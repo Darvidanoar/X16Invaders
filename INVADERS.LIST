@@ -1,0 +1,605 @@
+ca65 V2.19 - Git 80cef73
+Main file   : INVADERS.asm
+Current file: INVADERS.asm
+
+000000r 1               .segment "ZEROPAGE"
+000000r 1               ; Zero Page variables ($22-$7F available)
+000000r 1               
+000000r 1  xx           key_last:       .res 1           ; most recent key polled this frame ($00 = none)
+000001r 1  xx           frame_count:    .res 1           ; wrapping frame counter (increments each VSYNC)
+000002r 1  xx           rand_seed_lo:   .res 1           ; PRNG state - low byte
+000003r 1  xx           rand_seed_hi:   .res 1           ; PRNG state - high byte
+000004r 1               
+000004r 1               ;******************************************************************
+000004r 1               .segment "ONCE"
+000000r 1               .segment "CODE"
+000000r 1               .org $080D
+00080D  1               
+00080D  1  4C 10 08        jmp start                     ; jump to main code routine
+000810  1               
+000810  1               
+000810  1               ;******************************************************************
+000810  1               ; Includes
+000810  1               ;******************************************************************
+000810  1               .include "INC\x16.inc"
+000810  2               .ifndef X16_INC
+000810  2               X16_INC  = 1
+000810  2               
+000810  2               .ifndef __CX16__
+000810  2               __CX16__ = 1
+000810  2               .endif
+000810  2               
+000810  2               ; X16 addresses, values, and macros
+000810  2               ; Accurate for ROM release R38
+000810  2               
+000810  2               SD_DEVICE   = 8 ; also host file system on emulator if no SD image mounted
+000810  2               DISK_DEVICE = SD_DEVICE ; change if to be loaded off IEC device
+000810  2               
+000810  2               
+000810  2               ; RAM Addresses
+000810  2               
+000810  2               ; Kernal Registers
+000810  2               r0                = $02
+000810  2               r0L               = r0
+000810  2               r0H               = r0+1
+000810  2               r1                = $04
+000810  2               r1L               = r1
+000810  2               r1H               = r1+1
+000810  2               r2                = $06
+000810  2               r2L               = r2
+000810  2               r2H               = r2+1
+000810  2               r3                = $08
+000810  2               r3L               = r3
+000810  2               r3H               = r3+1
+000810  2               r4                = $0A
+000810  2               r4L               = r4
+000810  2               r4H               = r4+1
+000810  2               r5                = $0C
+000810  2               r5L               = r5
+000810  2               r5H               = r5+1
+000810  2               r6                = $0E
+000810  2               r6L               = r6
+000810  2               r6H               = r6+1
+000810  2               r7                = $10
+000810  2               r7L               = r7
+000810  2               r7H               = r7+1
+000810  2               r8                = $12
+000810  2               r8L               = r8
+000810  2               r8H               = r8+1
+000810  2               r9                = $14
+000810  2               r9L               = r9
+000810  2               r9H               = r9+1
+000810  2               r10               = $16
+000810  2               r10L              = r10
+000810  2               r10H              = r10+1
+000810  2               r11               = $18
+000810  2               r11L              = r11
+000810  2               r11H              = r11+1
+000810  2               r12               = $1A
+000810  2               r12L              = r12
+000810  2               r12H              = r12+1
+000810  2               r13               = $1C
+000810  2               r13L              = r13
+000810  2               r13H              = r13+1
+000810  2               r14               = $1E
+000810  2               r14L              = r14
+000810  2               r14H              = r14+1
+000810  2               r15               = $20
+000810  2               r15L              = r15
+000810  2               r15H              = r15+1
+000810  2               
+000810  2               ; Zero-Page userspace
+000810  2               ZP_PTR_1          = $7E   ; four pointers for temporary use only
+000810  2               ZP_PTR_2          = $22
+000810  2               ZP_PTR_3          = $24
+000810  2               ZP_PTR_4          = $26
+000810  2               
+000810  2               ; I/O Registers
+000810  2               VERA_addr_low     = $9F20
+000810  2               VERA_addr_high    = $9F21
+000810  2               VERA_addr_bank    = $9F22
+000810  2               VERA_data0        = $9F23
+000810  2               VERA_data1        = $9F24
+000810  2               VERA_ctrl         = $9F25
+000810  2               VERA_ien          = $9F26
+000810  2               VERA_isr          = $9F27
+000810  2               VERA_irqline_l    = $9F28
+000810  2               VERA_dc_video     = $9F29 ; VERA_ctrl(1) (DCSEL) = 0
+000810  2               VERA_dc_hscale    = $9F2A ; VERA_ctrl(1) (DCSEL) = 0
+000810  2               VERA_dc_vscale    = $9F2B ; VERA_ctrl(1) (DCSEL) = 0
+000810  2               VERA_dc_border    = $9F2C ; VERA_ctrl(1) (DCSEL) = 0
+000810  2               VERA_dc_hstart    = $9F29 ; VERA_ctrl(1) (DCSEL) = 1
+000810  2               VERA_dc_hstop     = $9F2A ; VERA_ctrl(1) (DCSEL) = 1
+000810  2               VERA_dc_vsstart   = $9F2B ; VERA_ctrl(1) (DCSEL) = 1
+000810  2               VERA_dc_vstop     = $9F2C ; VERA_ctrl(1) (DCSEL) = 1
+000810  2               VERA_L0_config    = $9F2D
+000810  2               VERA_L0_mapbase   = $9F2E
+000810  2               VERA_L0_tilebase  = $9F2F
+000810  2               VERA_L0_hscroll_l = $9F30
+000810  2               VERA_L0_hscroll_h = $9F31
+000810  2               VERA_L0_vscroll_l = $9F32
+000810  2               VERA_L0_vscroll_h = $9F33
+000810  2               VERA_L1_config    = $9F34
+000810  2               VERA_L1_mapbase   = $9F35
+000810  2               VERA_L1_tilebase  = $9F36
+000810  2               VERA_L1_hscroll_l = $9F37
+000810  2               VERA_L1_hscroll_h = $9F38
+000810  2               VERA_L1_vscroll_l = $9F39
+000810  2               VERA_L1_vscroll_h = $9F3A
+000810  2               VERA_audio_ctrl   = $9F3B
+000810  2               VERA_audio_rate   = $9F3C
+000810  2               VERA_audio_data   = $9F3D
+000810  2               VERA_spi_data     = $9F3E
+000810  2               VERA_spi_ctrl     = $9F3F
+000810  2               
+000810  2               ROM_BANK          = $01
+000810  2               RAM_BANK          = $00
+000810  2               
+000810  2               YM_reg            = $9F40
+000810  2               YM_data           = $9F41
+000810  2               
+000810  2               ; Emulator Registers
+000810  2               GIF_ctrl          = $9FB5
+000810  2               
+000810  2               ; ROM Banks
+000810  2               KERNAL_ROM_BANK   = 0
+000810  2               KEYBOARD_ROM_BANK = 1
+000810  2               CBDOS_ROM_BANK    = 2
+000810  2               GEOS_ROM_BANK     = 3
+000810  2               BASIC_ROM_BANK    = 4
+000810  2               MONITOR_ROM_BANK  = 5
+000810  2               CHARSET_ROM_BANK  = 6
+000810  2               
+000810  2               ; Banked Addresses
+000810  2               RAM_WIN           = $A000
+000810  2               RAM_WIN_SIZE      = $2000
+000810  2               ROM_WIN           = $C000
+000810  2               
+000810  2               ; Kernal Subroutines
+000810  2               ENTROPY_GET                   := $FECF
+000810  2               CONSOLE_set_paging_message    := $FED5
+000810  2               CONSOLE_put_image             := $FED8
+000810  2               CONSOLE_init                  := $FEDB
+000810  2               CONSOLE_put_char              := $FEDE
+000810  2               CONSOLE_get_char              := $FEE1
+000810  2               MEMORY_FILL                   := $FEE4
+000810  2               MEMORY_COPY                   := $FEE7
+000810  2               MEMORY_CRC                    := $FEEA
+000810  2               MEMORY_DECOMPRESS             := $FEED
+000810  2               SPRITE_set_image              := $FEF0
+000810  2               SPRITE_set_position           := $FEF3
+000810  2               FB_init                       := $FEF6
+000810  2               FB_get_info                   := $FEF9
+000810  2               FB_set_palette                := $FEFC
+000810  2               FB_cursor_position            := $FEFF
+000810  2               FB_cursor_next_line           := $FF02
+000810  2               FB_get_pixel                  := $FF05
+000810  2               FB_get_pixels                 := $FF08
+000810  2               FB_set_pixel                  := $FF0B
+000810  2               FB_set_pixels                 := $FF0E
+000810  2               FB_set_8_pixels               := $FF11
+000810  2               FB_set_8_pixels_opaque        := $FF14
+000810  2               FB_fill_pixels                := $FF17
+000810  2               FB_filter_pixels              := $FF1A
+000810  2               FB_move_pixels                := $FF1D
+000810  2               GRAPH_init                    := $FF20
+000810  2               GRAPH_clear                   := $FF23
+000810  2               GRAPH_set_window              := $FF26
+000810  2               GRAPH_set_colors              := $FF29
+000810  2               GRAPH_draw_line               := $FF2C
+000810  2               GRAPH_draw_rect               := $FF2F
+000810  2               GRAPH_move_rect               := $FF32
+000810  2               GRAPH_draw_oval               := $FF35
+000810  2               GRAPH_draw_image              := $FF38
+000810  2               GRAPH_set_font                := $FF3B
+000810  2               GRAPH_get_char_size           := $FF3E
+000810  2               GRAPH_put_char                := $FF41
+000810  2               MONITOR                       := $FF44
+000810  2               ENTER_BASIC                   := $FF47
+000810  2               CLOSE_ALL                     := $FF4A
+000810  2               CLOCK_SET_DATE_TIME           := $FF4D
+000810  2               CLOCK_GET_DATE_TIME           := $FF50
+000810  2               JOYSTICK_SCAN                 := $FF53
+000810  2               JOYSTICK_GET                  := $FF56
+000810  2               SCREEN_MODE               		:= $FF5F
+000810  2               SCREEN_SET_CHARSET            := $FF62
+000810  2               PFKEY                         := $FF65
+000810  2               MOUSE_CONFIG                  := $FF68
+000810  2               MOUSE_GET                     := $FF6B
+000810  2               JSRFAR_kernal_addr            := $FF6E
+000810  2               MOUSE_SCAN                    := $FF71
+000810  2               FETCH                         := $FF74
+000810  2               STASH                         := $FF77
+000810  2               CMPARE                        := $FF7A
+000810  2               PRIMM                         := $FF7D
+000810  2               
+000810  2               SCINIT                        := $FF81
+000810  2               IOINIT                        := $FF84
+000810  2               RAMTAS                        := $FF87
+000810  2               RESTOR                        := $FF8A
+000810  2               LKUPLA                        := $FF8D
+000810  2               SETMSG                        := $FF90
+000810  2               SECOND                        := $FF93
+000810  2               TKSA                          := $FF96
+000810  2               MEMTOP                        := $FF99
+000810  2               MEMBOT                        := $FF9C
+000810  2               SETTMO                        := $FFA2
+000810  2               IECIN                         := $FFA5
+000810  2               IECOUT                        := $FFA8
+000810  2               UNTALK                        := $FFAB
+000810  2               UNLISTEN                      := $FFAE
+000810  2               LISTEN                        := $FFB1
+000810  2               TALK                          := $FFB4
+000810  2               READST                        := $FFB7
+000810  2               SETLFS                        := $FFBA
+000810  2               SETNAM                        := $FFBD
+000810  2               OPEN                          := $FFC0
+000810  2               CLOSE                         := $FFC3
+000810  2               CHKIN                         := $FFC6
+000810  2               CHKOUT                        := $FFC9
+000810  2               CLRCHN                        := $FFCC
+000810  2               CHRIN                         := $FFCF
+000810  2               BASIN                         := CHRIN ; alias
+000810  2               CHROUT                        := $FFD2
+000810  2               BSOUT                         := CHROUT ; alias
+000810  2               LOAD                          := $FFD5
+000810  2               SAVE                          := $FFD8
+000810  2               SETTIM                        := $FFDB
+000810  2               RDTIM                         := $FFDE
+000810  2               STOP                          := $FFE1
+000810  2               GETIN                         := $FFE4
+000810  2               CLALL                         := $FFE7
+000810  2               UDTIM                         := $FFEA
+000810  2               SCREEN                        := $FFED
+000810  2               PLOT                          := $FFF0
+000810  2               IOBASE                        := $FFF3
+000810  2               
+000810  2               ; BASIC Vectors
+000810  2               BASIC_PANIC       := $C000
+000810  2               BASIC_INIT        := $C003
+000810  2               
+000810  2               
+000810  2               ; VRAM Addresses
+000810  2               VRAM_layer1_map= $1B000
+000810  2               VRAM_petscii   = $1F000
+000810  2               VRAM_psg       = $1F9C0
+000810  2               VRAM_palette   = $1FA00
+000810  2               VRAM_sprattr   = $1FC00
+000810  2               
+000810  2               ; RAM Vectors
+000810  2               IRQVec         := $0314
+000810  2               BRKVec         := $0316
+000810  2               NMIVec         := $0318
+000810  2               FETVec         := $03AF
+000810  2               ;STAVec         := TBD
+000810  2               ;CMPVec         := TBD
+000810  2               
+000810  2               
+000810  2               ;   Macros
+000810  2               
+000810  2               .macro VERA_SET_ADDR addr, stride
+000810  2                  .ifnblank stride
+000810  2                     .if stride < 0
+000810  2                        lda #((^addr) | $08 | ((0-stride) << 4))
+000810  2                     .else
+000810  2                        lda #((^addr) | (stride << 4))
+000810  2                     .endif
+000810  2                  .else
+000810  2                     lda #(^addr) | $10
+000810  2                  .endif
+000810  2               
+000810  2                  sta VERA_addr_bank
+000810  2                  lda #(>addr)
+000810  2                  sta VERA_addr_high
+000810  2                  lda #(<addr)
+000810  2                  sta VERA_addr_low
+000810  2               .endmacro
+000810  2               
+000810  2               .macro JSRFAR far_sr_addr, bank
+000810  2               	jsr JSRFAR_kernal_addr
+000810  2               	.addr far_sr_addr
+000810  2               	.byte bank
+000810  2               .endmacro
+000810  2               
+000810  2               .endif
+000810  2               
+000810  1               
+000810  1               ;******************************************************************
+000810  1               ; Constants
+000810  1               ;******************************************************************
+000810  1               
+000810  1               ; VERA display control
+000810  1               VERA_SPRITE_EN  = %01000000      ; VERA_dc_video bit 6: enable sprites
+000810  1               
+000810  1               ; PETSCII control codes
+000810  1               PETSCII_WHITE   = $05            ; set text color to white
+000810  1               PETSCII_CLR     = $93            ; clear screen and home cursor
+000810  1               PETSCII_HOME    = $13            ; home cursor (no clear)
+000810  1               PETSCII_RETURN  = $0D            ; carriage return
+000810  1               
+000810  1               ; SCREEN_SET_CHARSET font numbers (call address $FF62)
+000810  1               CHARSET_UPPER   = 1              ; Commodore upper/graphics: $41-$5A = A-Z
+000810  1               CHARSET_LOWER   = 2              ; Commodore lower/upper:    $41-$5A = a-z (lowercase)
+000810  1               
+000810  1               ; Key codes (PETSCII)
+000810  1               KEY_RUN_STOP    = $03            ; RUN/STOP — exit game
+000810  1               
+000810  1               ;******************************************************************
+000810  1               ; start — main program entry point
+000810  1               ;******************************************************************
+000810  1               start:
+000810  1  78              sei                           ; disable interrupts during init
+000811  1               
+000811  1                  ; Switch to 40-column text mode (mode 0)
+000811  1                  ; Carry clear = SET mode (carry set = READ mode)
+000811  1  18              clc
+000812  1  A9 00           lda #$00
+000814  1  20 5F FF        jsr SCREEN_MODE
+000817  1               
+000817  1                  ; Seed PRNG with hardware entropy
+000817  1  20 CF FE        jsr ENTROPY_GET
+00081A  1  85 rr           sta rand_seed_lo
+00081C  1  86 rr           stx rand_seed_hi
+00081E  1               
+00081E  1                  ; Enable sprites in VERA display controller
+00081E  1  9C 25 9F        stz VERA_ctrl                 ; DCSEL=0, ADDRSEL=0
+000821  1  AD 29 9F        lda VERA_dc_video
+000824  1  09 40           ora #VERA_SPRITE_EN
+000826  1  8D 29 9F        sta VERA_dc_video
+000829  1               
+000829  1                  ; Clear game variables
+000829  1  64 rr           stz key_last
+00082B  1  64 rr           stz frame_count
+00082D  1               
+00082D  1  58              cli                           ; re-enable interrupts
+00082E  1               
+00082E  1                  ; Switch to Commodore uppercase/graphics charset: $41-$5A = A-Z
+00082E  1                  ; Must be called AFTER SCREEN_MODE (which resets to lowercase by default)
+00082E  1  A9 01           lda #CHARSET_UPPER
+000830  1  20 62 FF        jsr SCREEN_SET_CHARSET
+000833  1               
+000833  1                  ; Clear screen and set text color
+000833  1  A9 05           lda #PETSCII_WHITE
+000835  1  20 D2 FF        jsr CHROUT
+000838  1  A9 93           lda #PETSCII_CLR
+00083A  1  20 D2 FF        jsr CHROUT
+00083D  1               
+00083D  1  20 75 08        jsr draw_title_screen
+000840  1               
+000840  1               ;******************************************************************
+000840  1               ; main_loop — one iteration per video frame (60 Hz)
+000840  1               ;******************************************************************
+000840  1               main_loop:
+000840  1  20 5C 08        jsr wait_vsync
+000843  1               
+000843  1  E6 rr           inc frame_count
+000845  1               
+000845  1  20 69 08        jsr read_keyboard             ; fills key_last
+000848  1               
+000848  1  A5 rr           lda key_last
+00084A  1  C9 03           cmp #KEY_RUN_STOP
+00084C  1  F0 06           beq exit_game
+00084E  1               
+00084E  1  20 F4 08        jsr update_hud                ; refresh dynamic readouts
+000851  1               
+000851  1  4C 40 08        jmp main_loop
+000854  1               
+000854  1               ;------------------------------------------------------------------
+000854  1               exit_game:
+000854  1  A9 93           lda #PETSCII_CLR
+000856  1  20 D2 FF        jsr CHROUT
+000859  1  4C 47 FF        jmp ENTER_BASIC
+00085C  1               
+00085C  1               ;******************************************************************
+00085C  1               ; wait_vsync — busy-poll VERA_isr until VSYNC, then clear flag
+00085C  1               ;******************************************************************
+00085C  1               wait_vsync:
+00085C  1               @poll:
+00085C  1  AD 27 9F        lda VERA_isr
+00085F  1  29 01           and #$01                      ; bit 0 = VSYNC interrupt
+000861  1  F0 F9           beq @poll
+000863  1  A9 01           lda #$01
+000865  1  8D 27 9F        sta VERA_isr                  ; write 1 to clear VSYNC bit only
+000868  1  60              rts
+000869  1               
+000869  1               ;******************************************************************
+000869  1               ; read_keyboard — drain GETIN buffer; key_last = last key seen
+000869  1               ;   key_last = $00 means no key was pressed this frame
+000869  1               ;******************************************************************
+000869  1               read_keyboard:
+000869  1  64 rr           stz key_last                  ; clear before each frame's poll
+00086B  1               @drain:
+00086B  1  20 E4 FF        jsr GETIN
+00086E  1  F0 04           beq @done                     ; Z=1 → buffer empty
+000870  1  85 rr           sta key_last
+000872  1  80 F7           bra @drain                    ; keep draining buffer
+000874  1               @done:
+000874  1  60              rts
+000875  1               
+000875  1               ;******************************************************************
+000875  1               ; draw_title_screen — print static Phase 1 info to screen
+000875  1               ;   Called once at startup; static text stays until screen cleared
+000875  1               ;******************************************************************
+000875  1               draw_title_screen:
+000875  1                  ; Row 2, col 14: "X16 INVADERS"
+000875  1  A9 02           lda #2
+000877  1  A0 0E           ldy #14
+000879  1  18              clc
+00087A  1  20 F0 FF        jsr PLOT
+00087D  1  A2 00           ldx #0
+00087F  1  BD 4D 09     @lp1: lda str_title,x
+000882  1  F0 06           beq @lp1_done
+000884  1  20 D2 FF        jsr CHROUT
+000887  1  E8              inx
+000888  1  80 F5           bra @lp1
+00088A  1               @lp1_done:
+00088A  1               
+00088A  1                  ; Row 4, col 10: "PHASE 1 - FOUNDATION"
+00088A  1  A9 04           lda #4
+00088C  1  A0 0A           ldy #10
+00088E  1  18              clc
+00088F  1  20 F0 FF        jsr PLOT
+000892  1  A2 00           ldx #0
+000894  1  BD 5A 09     @lp2: lda str_subtitle,x
+000897  1  F0 06           beq @lp2_done
+000899  1  20 D2 FF        jsr CHROUT
+00089C  1  E8              inx
+00089D  1  80 F5           bra @lp2
+00089F  1               @lp2_done:
+00089F  1               
+00089F  1                  ; Row 8, col 2: status lines
+00089F  1  A9 08           lda #8
+0008A1  1  A0 02           ldy #2
+0008A3  1  18              clc
+0008A4  1  20 F0 FF        jsr PLOT
+0008A7  1  A2 00           ldx #0
+0008A9  1  BD 6F 09     @lp3: lda str_status_vsync,x
+0008AC  1  F0 06           beq @lp3_done
+0008AE  1  20 D2 FF        jsr CHROUT
+0008B1  1  E8              inx
+0008B2  1  80 F5           bra @lp3
+0008B4  1               @lp3_done:
+0008B4  1               
+0008B4  1  A9 0A           lda #10
+0008B6  1  A0 02           ldy #2
+0008B8  1  18              clc
+0008B9  1  20 F0 FF        jsr PLOT
+0008BC  1  A2 00           ldx #0
+0008BE  1  BD 89 09     @lp4: lda str_status_kbd,x
+0008C1  1  F0 06           beq @lp4_done
+0008C3  1  20 D2 FF        jsr CHROUT
+0008C6  1  E8              inx
+0008C7  1  80 F5           bra @lp4
+0008C9  1               @lp4_done:
+0008C9  1               
+0008C9  1  A9 0C           lda #12
+0008CB  1  A0 02           ldy #2
+0008CD  1  18              clc
+0008CE  1  20 F0 FF        jsr PLOT
+0008D1  1  A2 00           ldx #0
+0008D3  1  BD A4 09     @lp5: lda str_status_spr,x
+0008D6  1  F0 06           beq @lp5_done
+0008D8  1  20 D2 FF        jsr CHROUT
+0008DB  1  E8              inx
+0008DC  1  80 F5           bra @lp5
+0008DE  1               @lp5_done:
+0008DE  1               
+0008DE  1                  ; Row 15, col 2: exit hint
+0008DE  1  A9 0F           lda #15
+0008E0  1  A0 02           ldy #2
+0008E2  1  18              clc
+0008E3  1  20 F0 FF        jsr PLOT
+0008E6  1  A2 00           ldx #0
+0008E8  1  BD B6 09     @lp6: lda str_exit_hint,x
+0008EB  1  F0 06           beq @lp6_done
+0008ED  1  20 D2 FF        jsr CHROUT
+0008F0  1  E8              inx
+0008F1  1  80 F5           bra @lp6
+0008F3  1               @lp6_done:
+0008F3  1               
+0008F3  1  60              rts
+0008F4  1               
+0008F4  1               ;******************************************************************
+0008F4  1               ; update_hud — rewrite dynamic values each frame
+0008F4  1               ;   Overwrites fixed screen positions; no full redraw needed
+0008F4  1               ;******************************************************************
+0008F4  1               update_hud:
+0008F4  1                  ; Frame counter at row 19, col 2
+0008F4  1  A9 13           lda #19
+0008F6  1  A0 02           ldy #2
+0008F8  1  18              clc
+0008F9  1  20 F0 FF        jsr PLOT
+0008FC  1  A2 00           ldx #0
+0008FE  1  BD CD 09     @fc_lbl: lda str_frame_lbl,x
+000901  1  F0 06           beq @fc_val
+000903  1  20 D2 FF        jsr CHROUT
+000906  1  E8              inx
+000907  1  80 F5           bra @fc_lbl
+000909  1               @fc_val:
+000909  1  A5 rr           lda frame_count
+00090B  1  20 2E 09        jsr print_hex_byte
+00090E  1               
+00090E  1                  ; Last key at row 21, col 2
+00090E  1  A9 15           lda #21
+000910  1  A0 02           ldy #2
+000912  1  18              clc
+000913  1  20 F0 FF        jsr PLOT
+000916  1  A2 00           ldx #0
+000918  1  BD D9 09     @kl_lbl: lda str_key_lbl,x
+00091B  1  F0 06           beq @kl_val
+00091D  1  20 D2 FF        jsr CHROUT
+000920  1  E8              inx
+000921  1  80 F5           bra @kl_lbl
+000923  1               @kl_val:
+000923  1  A5 rr           lda key_last
+000925  1  20 2E 09        jsr print_hex_byte
+000928  1  A9 20           lda #' '
+00092A  1  20 D2 FF        jsr CHROUT                    ; erase stale digit if value shrank
+00092D  1  60              rts
+00092E  1               
+00092E  1               ;******************************************************************
+00092E  1               ; print_hex_byte — print .A as two uppercase hex digits via CHROUT
+00092E  1               ;******************************************************************
+00092E  1               print_hex_byte:
+00092E  1  48              pha
+00092F  1  4A              lsr                           ; shift high nibble down
+000930  1  4A              lsr
+000931  1  4A              lsr
+000932  1  4A              lsr
+000933  1  20 3D 09        jsr print_hex_nybble
+000936  1  68              pla
+000937  1  29 0F           and #$0F                      ; isolate low nibble
+000939  1  20 3D 09        jsr print_hex_nybble
+00093C  1  60              rts
+00093D  1               
+00093D  1               ; print_hex_nybble — print lower 4 bits of .A as one hex digit
+00093D  1               ;   Relies on carry state from CMP to select digit vs. letter range
+00093D  1               print_hex_nybble:
+00093D  1  C9 0A           cmp #10
+00093F  1  90 06           bcc @digit                    ; carry clear → 0-9
+000941  1  69 36           adc #($41 - 10 - 1)          ; A-F: 'A'=65; carry set adds 1
+000943  1  20 D2 FF        jsr CHROUT
+000946  1  60              rts
+000947  1               @digit:
+000947  1  69 30           adc #$30                      ; 0-9: '0'=48; carry clear adds 0
+000949  1  20 D2 FF        jsr CHROUT
+00094C  1  60              rts
+00094D  1               
+00094D  1               ;******************************************************************
+00094D  1               ; String data — null-terminated, PETSCII uppercase
+00094D  1               ;******************************************************************
+00094D  1               str_title:
+00094D  1  D8 31 36 20     .byte "X16 INVADERS", 0
+000951  1  C9 CE D6 C1  
+000955  1  C4 C5 D2 D3  
+00095A  1               str_subtitle:
+00095A  1  D0 C8 C1 D3     .byte "PHASE 1 - FOUNDATION", 0
+00095E  1  C5 20 31 20  
+000962  1  2D 20 C6 CF  
+00096F  1               str_status_vsync:
+00096F  1  D6 D3 D9 CE     .byte "VSYNC : OK (60HZ POLLING)", 0
+000973  1  C3 20 3A 20  
+000977  1  CF CB 20 28  
+000989  1               str_status_kbd:
+000989  1  CB C5 D9 C2     .byte "KEYBOARD: GETIN DRAIN LOOP", 0
+00098D  1  CF C1 D2 C4  
+000991  1  3A 20 C7 C5  
+0009A4  1               str_status_spr:
+0009A4  1  D3 D0 D2 C9     .byte "SPRITES : ENABLED", 0
+0009A8  1  D4 C5 D3 20  
+0009AC  1  3A 20 C5 CE  
+0009B6  1               str_exit_hint:
+0009B6  1  D0 D2 C5 D3     .byte "PRESS RUN/STOP TO EXIT", 0
+0009BA  1  D3 20 D2 D5  
+0009BE  1  CE 2F D3 D4  
+0009CD  1               str_frame_lbl:
+0009CD  1  C6 D2 C1 CD     .byte "FRAME   : $", 0
+0009D1  1  C5 20 20 20  
+0009D5  1  3A 20 24 00  
+0009D9  1               str_key_lbl:
+0009D9  1  CC C1 D3 D4     .byte "LAST KEY: $", 0
+0009DD  1  20 CB C5 D9  
+0009E1  1  3A 20 24 00  
+0009E5  1               
+0009E5  1               ;******************************************************************
+0009E5  1               

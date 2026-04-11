@@ -1,0 +1,561 @@
+==============================================================
+  X16 INVADERS — Implementation Plan
+  Target: Commander X16, 6502 Assembly (ca65)
+  Display: 320x240, VERA sprites
+==============================================================
+
+--------------------------------------------------------------
+1. OVERVIEW
+--------------------------------------------------------------
+A faithful Space Invaders clone for the Commander X16.
+
+Controls:
+  Left/Right arrow keys  — move player ship
+  Space                  — fire
+
+Core rules:
+  - 55 invaders (5 rows x 11 columns) march left/right,
+    dropping one step each time they hit a screen edge.
+  - Invaders fire bullets downward at random intervals.
+  - 4 shields protect the player; they erode when hit.
+  - A UFO saucer occasionally flies across the top for bonus pts.
+  - Wave clears → new wave, faster invaders.
+  - Player starts with 3 lives.
+
+
+--------------------------------------------------------------
+2. TECHNICAL SPECIFICATIONS
+--------------------------------------------------------------
+
+Display
+  Mode  : VERA 320x240 (hscale=$80, vscale=$80 via SCREEN_MODE)
+  Layers: Layer 1 — 40x30 tile/text for score/HUD (PETSCII font)
+          Layer 0 — disabled (black background)
+  Sprites: VERA hardware sprites (up to 128)
+
+Sprite size: 16x16 pixels, 4bpp (128 bytes each)
+
+Timing: Sync to VSYNC via polling VERA_isr bit 0 (VSYNC flag).
+        One full game-logic update per video frame (60 Hz target).
+
+Sound: Basic tones via VERA PSG (4 pulse-wave channels).
+       Classic "thump-thump" march sound + fire/explosion.
+
+Assembler: ca65 with cl65 linker, as per CLAUDE.md build commands.
+
+
+--------------------------------------------------------------
+3. MEMORY MAP
+--------------------------------------------------------------
+
+Zero Page ($22–$7F) — fast game variables
+  $22  player_x_lo     ; player X position low byte
+  $23  player_x_hi     ; player X position high byte (0 or 1)
+  $24  player_y        ; player Y (fixed, near bottom)
+  $25  bullet_active   ; 0=inactive, 1=active
+  $26  bullet_x_lo     ; player bullet X low
+  $27  bullet_x_hi     ; player bullet X high
+  $28  bullet_y_lo     ; player bullet Y low
+  $29  bullet_y_hi     ; player bullet Y high
+  $2A  inv_offset_x_lo ; invader grid X offset low
+  $2B  inv_offset_x_hi ; invader grid X offset high
+  $2C  inv_offset_y    ; invader grid Y offset (drops only)
+  $2D  inv_direction   ; 0=moving right, 1=moving left
+  $2E  inv_alive_lo    ; bitmap of live invaders, bytes 0–7
+         ...             (7 bytes: 55 bits, rows 0-4 x cols 0-10)
+  $36  inv_alive_hi    ; (byte 7, top bits used)
+  $37  inv_count       ; number of invaders still alive
+  $38  inv_move_timer  ; countdown to next invader step
+  $39  inv_move_speed  ; ticks between invader steps (decreases)
+  $3A  inv_drop_flag   ; set when grid must drop on next step
+  $3B  score_lo        ; score BCD byte 0 (digits 1–2)
+  $3C  score_mid       ; score BCD byte 1 (digits 3–4)
+  $3D  score_hi        ; score BCD byte 2 (digits 5–6)
+  $3E  hi_score_lo     ; hi-score BCD
+  $3F  hi_score_mid
+  $40  hi_score_hi
+  $41  lives           ; remaining lives (0–3)
+  $42  wave            ; current wave number
+  $43  game_state      ; 0=title, 1=playing, 2=game_over, 3=wave_clear
+  $44  frame_counter   ; increments each VSYNC
+  $45  ufo_active      ; 0=inactive, 1=active
+  $46  ufo_x_lo
+  $47  ufo_x_hi
+  $48  ufo_timer       ; countdown to next UFO appearance
+  $49  march_beat      ; 0–3, cycles through 4 march sounds
+  $4A  inv_bullet_count ; number of active invader bullets
+  $4B–$56  inv_bullets  ; 3 invader bullets x 6 bytes each:
+               ; [active, x_lo, x_hi, y_lo, y_hi, reserved]
+  $57  key_state       ; bitmask of currently held keys
+  $58  rand_seed_lo    ; PRNG state
+  $59  rand_seed_hi
+  $5A–$5F  (reserved / scratch)
+
+Main RAM ($0800–$BFFF)
+  $080D  entry point (jmp start)
+  $0900+ game code and data
+
+Shield data stored as 4 x 3-byte bitmasks in main RAM
+(each shield is 24x16 pixels; track which pixels are destroyed).
+
+
+--------------------------------------------------------------
+4. VRAM LAYOUT
+--------------------------------------------------------------
+
+Sprite Pixel Data (4bpp, 16x16 = 128 bytes each)
+  $00000  player_sprite      128 bytes  (1 frame)
+  $00080  invader_a_fr0      128 bytes  row type A frame 0 (rows 4-5)
+  $00100  invader_a_fr1      128 bytes  row type A frame 1
+  $00180  invader_b_fr0      128 bytes  row type B frame 0 (rows 2-3)
+  $00200  invader_b_fr1      128 bytes  row type B frame 1
+  $00280  invader_c_fr0      128 bytes  row type C frame 0 (row 1)
+  $00300  invader_c_fr1      128 bytes  row type C frame 1
+  $00380  ufo_sprite         128 bytes
+  $00400  bullet_sprite       32 bytes  (8x8 4bpp, player bullet)
+  $00420  inv_bullet_sprite   32 bytes  (8x8 4bpp, invader bullet)
+  $00440  explosion_sprite   128 bytes  (16x16 4bpp, shared)
+  $00500  shield_tile_full   128 bytes  (16x16 4bpp, intact)
+  $00580  shield_tile_dmg1   128 bytes  (16x16 4bpp, 25% damaged)
+  $00600  shield_tile_dmg2   128 bytes  (16x16 4bpp, 50% damaged)
+  $00680  shield_tile_dmg3   128 bytes  (16x16 4bpp, 75% damaged)
+  ... (remaining low VRAM free)
+
+Layer 1 Tile Map — text display for HUD
+  $1B000  40x30 tile map (PETSCII/text mode, layer 1)
+  $1F000  PETSCII font tiles (ROM-mapped by default)
+
+Palette
+  $1FA00  512-byte palette (256 colors x 2 bytes, RGB444)
+          Custom palette: black BG, white/green/cyan/magenta invaders,
+          yellow player, red UFO, green shields.
+
+Sprite Attributes  (8 bytes per sprite, 128 sprites max)
+  $1FC00  sprite 0   — player ship
+  $1FC08  sprite 1   — player bullet
+  $1FC10  sprite 2   — UFO
+  $1FC18  sprite 3   — explosion (shared, repositioned as needed)
+  $1FC20  sprites 4–6  — 3 invader bullets (3 x 8 bytes)
+  $1FC38  sprites 7–10 — 4 shields (4 x 8 bytes; use 4 sprite slots
+                          per shield if needed, or draw to layer)
+  $1FC58  sprites 11–65 — 55 invaders (55 x 8 bytes)
+
+  Note: Shields can alternatively be drawn as tiles on Layer 0
+  using a separate tile layer. Sprite approach is simpler.
+
+
+--------------------------------------------------------------
+5. SPRITE ATTRIBUTE FORMAT (VERA reference)
+--------------------------------------------------------------
+
+Each sprite: 8 bytes at VRAM $1FC00 + (sprite_num * 8)
+
+  Byte 0:  addr[12:5]         — bits 12–5 of VRAM data address
+  Byte 1:  mode<<7|addr[16:13] — bit 7=8bpp(0)/4bpp(1 inverted?),
+                                  bits 3-0 = addr bits 16–13
+           (For 4bpp: bit7=0; for 8bpp: bit7=1)
+  Byte 2:  x[7:0]             — X position low byte
+  Byte 3:  x[9:8]             — X position bits 9-8 (in bits 1-0)
+  Byte 4:  y[7:0]             — Y position low byte
+  Byte 5:  y[9:8]             — Y position bits 9-8 (in bits 1-0)
+  Byte 6:  coll[7:4] | zdepth[3:2] | vflip[1] | hflip[0]
+           zdepth: 0=disabled, 1=behind layer0, 2=behind layer1,
+                   3=in front of all layers
+  Byte 7:  palette_off[7:4] | height[3:2] | width[1:0]
+           height/width: 0=8px, 1=16px, 2=32px, 3=64px
+
+To use 16x16 sprites: height=1, width=1 → byte7 bits 3-0 = %0101
+
+For VRAM address of sprite data (e.g. $00080):
+  addr[12:5] = ($00080 >> 5) & $FF = $04
+  addr[16:13] = ($00080 >> 13) & $0F = 0
+
+
+--------------------------------------------------------------
+6. SPRITE DESIGNS (pixel art, 16x16, 4bpp)
+--------------------------------------------------------------
+
+Color palette indices used in sprites:
+  0 = transparent
+  1 = white       (player ship, bullets)
+  2 = cyan        (invader type C — top row)
+  3 = magenta     (invader type B — middle rows)
+  4 = green       (invader type A — bottom rows)
+  5 = red         (UFO)
+  6 = yellow      (explosion)
+  7 = dark green  (shields)
+
+Player ship: classic triangular ship, white, centered 16x16
+  Row 0-3: blank
+  Row 4: center pixel (cannon)
+  Rows 5-9: widening body
+  Rows 10-15: full-width base
+
+Invader Type A (bottom 2 rows) — crab shape
+  Two animation frames: legs spread vs. legs tucked
+
+Invader Type B (middle 2 rows) — jellyfish shape
+  Two animation frames: tentacles down vs. up
+
+Invader Type C (top row) — saucer/squid shape
+  Two animation frames: antennae in vs. out
+
+UFO — classic saucer with dome top, red
+
+Bullet (player) — thin vertical bar, 2x8 pixels centered in 8x8
+Bullet (invader) — zigzag line, 4x8 pixels, 3 frames for animation
+
+Explosion — starburst pattern, 16x16, shown for ~15 frames
+
+
+--------------------------------------------------------------
+7. GAME ENTITIES AND DATA STRUCTURES
+--------------------------------------------------------------
+
+7.1 INVADER GRID
+  - 55 invaders in a 5-row x 11-column grid
+  - Base layout origin: grid_x = 24, grid_y = 64 (pixel coords)
+  - Spacing: 24 pixels horizontal, 24 pixels vertical
+  - Total grid width at start: 10*24 + 16 = 256 pixels
+  - Alive/dead tracked as a 55-bit bitmap (7 bytes) in ZP
+  - Invader type per row:
+      Row 0 (top):    Type C (squid)
+      Rows 1-2:       Type B (jellyfish)
+      Rows 3-4 (bot): Type A (crab)
+  - Movement: all invaders share a single (offset_x, offset_y)
+    that is added to each invader's base position each frame.
+  - Step size: 2 pixels per step sideways, 8 pixels per drop
+  - Speed: starts at 50 frames/step; decreases as invaders die
+    (min ~5 frames/step when 1 invader remains)
+  - Animation frame toggles on each movement step
+
+7.2 PLAYER
+  - Fixed Y position: 208 (near bottom of 240-pixel screen)
+  - X range: 16 to 304 (16-pixel margins)
+  - Movement speed: 2 pixels per frame while key held
+  - Input: Arrow keys polled each frame
+  - Only one bullet active at a time
+
+7.3 PLAYER BULLET
+  - Speed: 6 pixels per frame, moving upward
+  - Disappears when: hits invader, hits UFO, reaches top of screen
+  - One active at a time; Space fires only when inactive
+
+7.4 INVADER BULLETS
+  - Up to 3 active simultaneously
+  - Each frame: random bottom-row invader selected as source
+  - Fire rate: tied to invader speed (faster invaders fire more often)
+  - Speed: 3 pixels per frame downward
+  - Zigzag sprite animates every 4 frames
+
+7.5 UFO SAUCER
+  - Appears at top (Y=16) every 600±random frames
+  - Moves 1 pixel/frame from left to right
+  - Score: 50–300 points (based on shot count mod 15 table)
+  - Disappears when: hits right edge or shot by player
+
+7.6 SHIELDS
+  - 4 shields, evenly spaced at Y=176
+  - Each shield: 24x16 pixels, stored as 3x2 sprite tiles
+    (or drawn into Layer 0 bitmap)
+  - Simple approach: each shield = 1 sprite (16x16), pick from
+    4 damage-level tiles based on a 2-bit damage counter per shield
+  - Hit detection: if bullet Y overlaps shield Y-band and X overlaps
+    shield X-range, increment shield damage, destroy bullet
+
+
+--------------------------------------------------------------
+8. GAME LOGIC (per-frame update sequence)
+--------------------------------------------------------------
+
+main_loop:
+  1. Wait for VSYNC (poll VERA_isr bit 0, clear flag)
+  2. Read keyboard input → update key_state flags
+  3. If game_state = PLAYING:
+       a. Move player based on key_state
+       b. Fire player bullet if Space pressed and bullet inactive
+       c. Move player bullet upward; check top boundary
+       d. Check player bullet vs. invader collisions
+       e. Check player bullet vs. UFO collision
+       f. Check player bullet vs. shield collisions
+       g. Decrement inv_move_timer; if zero, step invaders:
+            - Toggle animation frame
+            - Update offset_x (or trigger drop)
+            - Check edge conditions → set inv_drop_flag
+            - Play march sound (cycle march_beat)
+            - Reset inv_move_timer = inv_move_speed
+       h. Move/spawn invader bullets (each active bullet moves down)
+       i. Check invader bullets vs. player → lose life
+       j. Check invader bullets vs. shields → damage shield
+       k. Check invader bullets vs. bottom of screen → deactivate
+       l. Update UFO (spawn timer, movement, deactivate at edge)
+       m. Check win condition (inv_count = 0) → wave_clear
+       n. Check invaders reaching player Y → game_over
+       o. Handle explosion timers (decrement, hide when done)
+  4. Update all sprite attributes in VRAM
+  5. Update score/lives display on Layer 1
+  6. jmp main_loop
+
+
+--------------------------------------------------------------
+9. COLLISION DETECTION
+--------------------------------------------------------------
+
+Player bullet vs. invader:
+  - For each invader (row 0-4, col 0-10):
+      If alive AND bullet_x in [inv_x, inv_x+15]
+               AND bullet_y in [inv_y, inv_y+15]:
+        Kill invader (clear alive bit), deactivate bullet
+        Add score (Type C=30, B=20, A=10)
+        Start explosion sprite at invader position
+        Decrease inv_move_speed
+        Break loop
+
+  Optimization: only check the ~10 invaders in the column
+  nearest to bullet_x (compute column index from bullet_x).
+
+Player bullet vs. UFO:
+  - Simple AABB: bullet rect vs. UFO sprite rect
+
+Player bullet/invader bullet vs. shield:
+  - Check if Y overlaps shield band (Y=176 to Y=192)
+  - Check if X overlaps one of 4 shield X-ranges
+  - Increment that shield's damage counter (0–3)
+  - Swap shield sprite to next damage tile
+  - Deactivate bullet
+
+Invader bullet vs. player:
+  - AABB: bullet rect vs. player sprite rect (16x16)
+  - On hit: start explosion, decrement lives, respawn player,
+    brief invincibility timer, or game_over if lives=0
+
+
+--------------------------------------------------------------
+10. SCORING TABLE
+--------------------------------------------------------------
+
+  Invader Type A (bottom 2 rows): 10 points
+  Invader Type B (middle 2 rows): 20 points
+  Invader Type C (top row):       30 points
+  UFO:                    50/100/150/300 (based on shot count)
+
+  Score stored as 6-digit BCD (3 bytes).
+  Display updated each frame on Layer 1 row 0.
+
+
+--------------------------------------------------------------
+11. SOUND
+--------------------------------------------------------------
+
+Use VERA PSG (at VRAM $1F9C0, 16 voices x 4 bytes).
+  Voice 0: March beat (4-note cycle, stepped on each invader move)
+           Frequencies: ~120 Hz, ~100 Hz, ~80 Hz, ~100 Hz
+  Voice 1: Player fire (short high-pitched pulse ~800 Hz, 5 frames)
+  Voice 2: Explosion (low-frequency noise burst, 20 frames)
+  Voice 3: UFO drone (continuous medium pitch while UFO active)
+
+
+--------------------------------------------------------------
+12. INPUT HANDLING
+--------------------------------------------------------------
+
+Method: Use GETIN ($FFE4) each frame to read keyboard buffer.
+        Maintain key_state byte:
+          Bit 0: left arrow held
+          Bit 1: right arrow held
+          Bit 2: space pressed this frame
+
+Key codes on X16 (PETSCII):
+  Left arrow : $9D
+  Right arrow: $1D
+  Space      : $20
+  Run/Stop   : $03 (pause / return to BASIC)
+
+Each frame, call GETIN in a loop (drain the buffer), set bits
+in key_state based on keys seen. Clear key_state at start of
+each frame before draining buffer.
+
+For held-key movement: since KERNAL auto-repeats keys in the
+buffer, movement will appear continuous. Increase repeat rate
+via KERNAL if needed.
+
+Alternative: Install a custom IRQ handler to track key-down/
+key-up state for smoother control (advanced; implement if
+GETIN approach feels sluggish).
+
+
+--------------------------------------------------------------
+13. INITIALIZATION SEQUENCE
+--------------------------------------------------------------
+
+  1. Disable interrupts (SEI)
+  2. Set VERA display mode:
+       - Call SCREEN_MODE ($FF5F) with .A=$00 first to reset
+       - Set VERA_dc_hscale = $80, VERA_dc_vscale = $80 for 320x240
+       - Enable sprites: VERA_dc_video |= %01000000
+       - Enable Layer 1: configure for 40x30 text, 8x8 tiles
+  3. Upload palette to VRAM $1FA00
+  4. Upload all sprite pixel data to VRAM
+  5. Initialize all 55 invader sprite attributes (enable, set pos)
+  6. Initialize player sprite attributes
+  7. Initialize bullet/UFO/explosion sprites (disabled)
+  8. Initialize shield sprites
+  9. Clear score, set lives=3, wave=1
+  10. Set all invader alive bits
+  11. Draw initial HUD (score, hi-score, lives) on Layer 1
+  12. Enable interrupts (CLI)
+  13. Show title screen → wait for Space → start game loop
+
+
+--------------------------------------------------------------
+14. TITLE SCREEN
+--------------------------------------------------------------
+
+  - Display "X16 INVADERS" text via Layer 1
+  - Show a row of each invader type with score values
+  - "PRESS SPACE TO START" blinking text
+  - Display current hi-score
+  - Wait for Space key; then init game state and start loop
+
+
+--------------------------------------------------------------
+15. WAVE PROGRESSION
+--------------------------------------------------------------
+
+  On wave clear:
+    - Brief "WAVE CLEAR" message
+    - Increment wave counter
+    - Reset invader grid (all alive, back to starting position)
+    - Decrease starting inv_move_speed (faster by 5 frames each wave)
+    - Minimum speed cap: 5 frames/step
+    - Reset player bullet; keep player X, score, lives unchanged
+
+
+--------------------------------------------------------------
+16. IMPLEMENTATION PHASES
+--------------------------------------------------------------
+
+Phase 1 — Foundation
+  [ ] Set up VERA 320x240 mode with Layer 1 text HUD
+  [ ] Upload palette and dummy sprite data
+  [ ] VSYNC wait loop
+  [ ] Keyboard input (GETIN polling)
+  [ ] Draw "HELLO" on screen to confirm display works
+
+Phase 2 — Player
+  [ ] Define player sprite pixel data
+  [ ] Upload and display player sprite
+  [ ] Move player left/right with arrow keys
+  [ ] Clamp to screen edges
+
+Phase 3 — Invader Grid
+  [ ] Define all three invader sprite pixel data (both frames)
+  [ ] Initialize 55 invader sprites at correct positions
+  [ ] Invader march movement (timer-based, direction + drop)
+  [ ] Animation frame toggle on step
+  [ ] Alive/dead bitmap; disable sprite when dead
+
+Phase 4 — Combat
+  [ ] Player bullet: fire, move, boundary check
+  [ ] Bullet vs. invader collision → kill invader, score
+  [ ] Speed increase as invaders die
+  [ ] Explosion sprite + timer
+  [ ] Invader bullets: spawn, move, boundary check
+  [ ] Invader bullet vs. player → lose life
+
+Phase 5 — Shields & UFO
+  [ ] Shield sprites (4 damage levels per shield)
+  [ ] Bullet vs. shield collision and damage
+  [ ] UFO spawn, movement, scoring
+  [ ] UFO drone sound
+
+Phase 6 — Game States & Polish
+  [ ] Title screen
+  [ ] Game over screen
+  [ ] Wave clear / next wave
+  [ ] Lives display (sprite icons or text)
+  [ ] Score BCD display on Layer 1
+  [ ] Hi-score tracking (RAM only; no save)
+  [ ] March sounds (VERA PSG)
+  [ ] Fire and explosion sounds
+
+Phase 7 — Testing & Tuning
+  [ ] Difficulty balance (speed curve, fire rate)
+  [ ] Edge-case collision fixes
+  [ ] Verify on real X16 hardware if possible
+
+
+--------------------------------------------------------------
+17. FILE STRUCTURE
+--------------------------------------------------------------
+
+  INVADERS.asm   — main source file (entry point, game loop,
+                    all subroutines, sprite data, tile data)
+  INC\x16.inc    — X16 KERNAL/VERA definitions (already exists)
+  INVADERS.PRG   — assembled output
+  INVADERS.LIST  — listing file
+
+All code in a single .asm file per the existing template pattern.
+Sections:
+  ; --- Zero Page Variables
+  ; --- Constants & Equates
+  ; --- Entry Point
+  ; --- Initialization
+  ; --- Main Game Loop
+  ; --- Input Routines
+  ; --- Player Routines
+  ; --- Invader Routines
+  ; --- Bullet Routines
+  ; --- UFO Routines
+  ; --- Shield Routines
+  ; --- Collision Detection
+  ; --- VERA Sprite Update
+  ; --- HUD/Score Display
+  ; --- Sound Routines
+  ; --- PRNG Routine
+  ; --- Sprite & Tile Pixel Data
+
+
+--------------------------------------------------------------
+18. KEY VERA MACROS / PATTERNS TO USE
+--------------------------------------------------------------
+
+Write to VERA:
+  Use VERA_SET_ADDR macro from x16.inc, then write bytes
+  to VERA_data0.
+
+Set sprite attribute byte N of sprite S:
+  addr = $1FC00 + (S * 8) + N
+  VERA_SET_ADDR addr, 1    ; stride=1
+  lda #value
+  sta VERA_data0
+
+Update sprite X position (sprite S):
+  addr = $1FC00 + (S * 8) + 2
+  VERA_SET_ADDR addr, 1
+  lda x_lo
+  sta VERA_data0
+  lda x_hi
+  sta VERA_data0
+
+Disable sprite S (set z-depth=0 in attribute byte 6):
+  addr = $1FC00 + (S * 8) + 6
+  VERA_SET_ADDR addr, 1
+  lda #%00000011   ; z-depth=0, collision=0, no flip
+  sta VERA_data0   ; wait — z-depth 0 = disabled
+
+VSYNC wait:
+  @vsync_wait:
+    lda VERA_isr
+    and #$01          ; bit 0 = VSYNC flag
+    beq @vsync_wait
+    sta VERA_isr      ; write back to clear VSYNC flag
+
+PRNG (simple 16-bit LFSR):
+  Use rand_seed_lo/hi in ZP; shift and XOR each call.
+  Seed with ENTROPY_GET ($FECF) at startup.
+
+
+==============================================================
+END OF PLAN
+==============================================================
