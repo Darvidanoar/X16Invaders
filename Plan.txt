@@ -131,14 +131,14 @@ Palette
           yellow player, red UFO, green shields.
 
 Sprite Attributes  (8 bytes per sprite, 128 sprites max)
-  $1FC00  sprite 0   — player ship
-  $1FC08  sprite 1   — player bullet
-  $1FC10  sprite 2   — UFO
-  $1FC18  sprite 3   — explosion (shared, repositioned as needed)
-  $1FC20  sprites 4–6  — 3 invader bullets (3 x 8 bytes)
-  $1FC38  sprites 7–10 — 4 shields (4 x 8 bytes; use 4 sprite slots
+  $1FC00  sprite 1   — player ship
+  $1FC08  sprite 2   — player bullet
+  $1FC10  sprite 3   — UFO
+  $1FC18  sprite 4   — explosion (shared, repositioned as needed)
+  $1FC20  sprites 5–7  — 3 invader bullets (3 x 8 bytes)
+  $1FC38  sprites 8–11 — 4 shields (4 x 8 bytes; use 4 sprite slots
                           per shield if needed, or draw to layer)
-  $1FC58  sprites 11–65 — 55 invaders (55 x 8 bytes)
+  $1FC58  sprites 12–66 — 55 invaders (55 x 8 bytes)
 
   Note: Shields can alternatively be drawn as tiles on Layer 0
   using a separate tile layer. Sprite approach is simpler.
@@ -148,7 +148,7 @@ Sprite Attributes  (8 bytes per sprite, 128 sprites max)
 5. SPRITE ATTRIBUTE FORMAT (VERA reference)
 --------------------------------------------------------------
 
-Each sprite: 8 bytes at VRAM $1FC00 + (sprite_num * 8)
+Each sprite: 8 bytes at VRAM $1FC08 + (sprite_num * 8)
 
   Byte 0:  addr[12:5]         — bits 12–5 of VRAM data address
   Byte 1:  mode<<7|addr[16:13] — bit 7=8bpp(0)/4bpp(1 inverted?),
