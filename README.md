@@ -6,7 +6,7 @@ For this project I am using Claude (Anthropic's AI) to write a version of Space 
 
 We are writing 6502 assembly language, targeting the Commander X16.  The aim is to learn how to more effectively use Claude Code, and hopefully end up with some well commented sample code that I can refer to in the future.
 
-I decided to start this project by asking Claude to write a plan before starting to write any code.  This plan is stored to in **plan.txt**.
+I decided to start this project by asking Claude to write a plan before we start coding.  This plan is stored in **plan.txt**.
 
 ## Thoughts so far
 
