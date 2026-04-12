@@ -4,8 +4,7 @@ For this project I am using Claude (Anthropic's AI) to write a version of Space 
 
 ## About the Project
 
-We are writing 6502 assembly language programs targeting the Commander X16.  
-The aim is to learn how to more effectively use Claude Code, and hopefully end up with some well commented sample code that I can refer to in the future.
+We are writing 6502 assembly language, targeting the Commander X16.  The aim is to learn how to more effectively use Claude Code, and hopefully end up with some well commented sample code that I can refer to in the future.
 
 I decided to start this project by asking Claude to write a plan for this project before starting to write any code.  This plan is stored to in ***plan.txt***.
 
