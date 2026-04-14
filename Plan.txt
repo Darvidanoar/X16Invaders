@@ -269,7 +269,7 @@ Explosion — starburst pattern, 16x16, shown for ~15 frames
 --------------------------------------------------------------
 
 main_loop:
-  1. Wait for VSYNC (poll VERA_isr bit 0, clear flag)
+  1. Wait for VSYNC (use WAI)
   2. Read keyboard input → update key_state flags
   3. If game_state = PLAYING:
        a. Move player based on key_state
@@ -493,7 +493,7 @@ Phase 7 — Testing & Tuning
                     all subroutines, sprite data, tile data)
   INC\x16.inc    — X16 KERNAL/VERA definitions (already exists)
   INVADERS.PRG   — assembled output
-  INVADERS.LIST  — listing file
+  INVADERS.LIST  — listing file (used by a human for debugging)
 
 All code in a single .asm file per the existing template pattern.
 Sections:
@@ -545,11 +545,7 @@ Disable sprite S (set z-depth=0 in attribute byte 6):
   sta VERA_data0   ; wait — z-depth 0 = disabled
 
 VSYNC wait:
-  @vsync_wait:
-    lda VERA_isr
-    and #$01          ; bit 0 = VSYNC flag
-    beq @vsync_wait
-    sta VERA_isr      ; write back to clear VSYNC flag
+  wai
 
 PRNG (simple 16-bit LFSR):
   Use rand_seed_lo/hi in ZP; shift and XOR each call.
