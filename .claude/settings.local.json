@@ -7,5 +7,8 @@
       "Read(./Mandate.txt)",
       "Read(./INVADERS.LIST)"
     ]
+  },
+  "env": {
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "50000"
   }
 }
