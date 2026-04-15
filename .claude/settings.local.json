@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch"
+    ],
+    "deny": [
+      "Read(./Mandate.txt)",
+      "Read(./INVADERS.LIST)"
+    ]
+  }
+}

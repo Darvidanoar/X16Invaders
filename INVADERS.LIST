@@ -13,8 +13,32 @@ Current file: INVADERS.asm
 000005r 1  xx           player_x_hi:    .res 1           ; player X position, high byte (bits 1-0 only)
 000006r 1  xx           key_flags:      .res 1           ; input flags this frame (see KEY_* constants)
 000007r 1               
-000007r 1               ;******************************************************************
-000007r 1               .segment "ONCE"
+000007r 1               ; --- Invader grid state ---
+000007r 1  xx           inv_grid_x_lo:  .res 1           ; invader grid left-column X, low byte (VERA coords)
+000008r 1  xx           inv_grid_x_hi:  .res 1           ; invader grid left-column X, high byte
+000009r 1  xx           inv_offset_y:   .res 1           ; cumulative Y drop applied to grid (VERA pixels)
+00000Ar 1  xx           inv_direction:  .res 1           ; 0 = moving right, 1 = moving left
+00000Br 1  xx xx xx xx  inv_alive:      .res 7           ; 55-bit alive bitmap; bit N = invader N alive
+00000Fr 1  xx xx xx     
+000012r 1  xx           inv_count:      .res 1           ; number of invaders still alive
+000013r 1  xx           inv_move_timer: .res 1           ; frames until next march step
+000014r 1  xx           inv_move_speed: .res 1           ; frames per march step (decreases as invaders die)
+000015r 1  xx           inv_drop_flag:  .res 1           ; 1 = drop grid on next step instead of marching
+000016r 1  xx           inv_anim_frame: .res 1           ; animation frame index: 0 or 1
+000017r 1               
+000017r 1               ; --- Scratch for invader sprite update loop ---
+000017r 1  xx           zp_row:         .res 1
+000018r 1  xx           zp_col:         .res 1
+000019r 1  xx           zp_x_lo:        .res 1
+00001Ar 1  xx           zp_x_hi:        .res 1
+00001Br 1  xx           zp_y_base_lo:   .res 1           ; grid Y base + cumulative drop
+00001Cr 1  xx           zp_y_base_hi:   .res 1
+00001Dr 1  xx           zp_row_y_lo:    .res 1           ; row Y = y_base + row spacing offset
+00001Er 1  xx           zp_row_y_hi:    .res 1
+00001Fr 1  xx           zp_addr_b0:     .res 1           ; VERA sprite data addr[12:5] for current row+frame
+000020r 1               
+000020r 1               ;******************************************************************
+000020r 1               .segment "ONCE"
 000000r 1               .segment "CODE"
 000000r 1               .org $080D
 00080D  1               
@@ -348,6 +372,35 @@ Current file: INVADERS.asm
 000810  1               SPR_Z_FRONT     = %00001100     ; byte 6: z-depth = %11 in bits 3-2 (in front of all layers)
 000810  1               SPR_16x16_PAL0  = %01010000     ; byte 7: width=1(16px), height=1(16px), palette_off=0
 000810  1               
+000810  1               ; Invader grid geometry (VERA 640x480 coordinate space)
+000810  1               INV_GRID_X_INIT   = 112         ; left-column X at start (centered: (640 - 10*40 - 16) / 2 = 112)
+000810  1               INV_GRID_Y_BASE   = 80          ; top-row Y, fixed base (drops added via inv_offset_y)
+000810  1               INV_SPACING_X     = 40          ; VERA pixels between invader column origins
+000810  1               INV_SPACING_Y     = 48          ; VERA pixels between invader row origins
+000810  1               INV_STEP_X        = 4           ; VERA pixels per march step
+000810  1               INV_DROP_Y        = 16          ; VERA pixels per grid drop
+000810  1               INV_MOVE_SPEED_INIT = 50        ; frames between march steps (initial)
+000810  1               INV_COUNT_INIT    = 55
+000810  1               
+000810  1               ; Grid boundary: when grid_x reaches these values, reverse and drop
+000810  1               ; Rightmost invader base X = grid_x + 10*INV_SPACING_X (=400). Right wall = 624 (640-16px).
+000810  1               ; So right limit = 624 - 400 - 16 = 208
+000810  1               INV_X_RIGHT_LIM   = 208
+000810  1               INV_X_LEFT_LIM    = 16          ; leftmost sprite at x=grid_x must stay >= 16
+000810  1               
+000810  1               ; VRAM addresses for invader sprite pixel data (128 bytes each, 16x16 4bpp)
+000810  1               VRAM_INV_A_F0   = $00100        ; Type A (crab,   bottom rows 3-4), frame 0
+000810  1               VRAM_INV_A_F1   = $00180        ; Type A frame 1
+000810  1               VRAM_INV_B_F0   = $00200        ; Type B (octopus, middle rows 1-2), frame 0
+000810  1               VRAM_INV_B_F1   = $00280        ; Type B frame 1
+000810  1               VRAM_INV_C_F0   = $00300        ; Type C (squid,   top row 0), frame 0
+000810  1               VRAM_INV_C_F1   = $00380        ; Type C frame 1
+000810  1               
+000810  1               ; Sprite addr[12:5] byte values for each type/frame (= VRAM_addr >> 5)
+000810  1               ;   VRAM $00100>>5=$08  $00180>>5=$0C  $00200>>5=$10  $00280>>5=$14  $00300>>5=$18  $00380>>5=$1C
+000810  1               INV_ATTR_BASE   = $1FC58        ; sprite slot 11 = first invader ($1FC00 + 11*8)
+000810  1               INV_SPRITE_SLOT = 11            ; first invader sprite slot index
+000810  1               
 000810  1               ;******************************************************************
 000810  1               ; start — main program entry point
 000810  1               ;******************************************************************
@@ -378,7 +431,7 @@ Current file: INVADERS.asm
 00082D  1  64 rr           stz frame_count
 00082F  1               
 00082F  1                  ; Set initial player position before sprite init reads it
-00082F  1  20 B7 08        jsr init_player
+00082F  1  20 C5 08        jsr init_player
 000832  1               
 000832  1  58              cli                           ; re-enable interrupts
 000833  1               
@@ -394,526 +447,1137 @@ Current file: INVADERS.asm
 00083F  1  20 D2 FF        jsr CHROUT
 000842  1               
 000842  1                  ; Upload sprite pixel data and configure sprite 1 attributes
-000842  1  20 C0 08        jsr init_sprites
+000842  1  20 CE 08        jsr init_sprites
 000845  1               
-000845  1  20 B6 09        jsr draw_title_screen
+000845  1                  ; Upload invader sprite data, set palette, init grid state, place sprites
+000845  1  20 74 09        jsr init_invaders
 000848  1               
-000848  1               ;******************************************************************
-000848  1               ; main_loop — one iteration per video frame (60 Hz)
-000848  1               ;******************************************************************
-000848  1               main_loop:
-000848  1  20 6A 08        jsr wait_vsync
+000848  1  20 A5 0B        jsr draw_title_screen
 00084B  1               
-00084B  1  E6 rr           inc frame_count
-00084D  1               
-00084D  1  20 6C 08        jsr update_input              ; fills key_flags (joystick) + key_last (GETIN)
+00084B  1               ;******************************************************************
+00084B  1               ; main_loop — one iteration per video frame (60 Hz)
+00084B  1               ;******************************************************************
+00084B  1               main_loop:
+00084B  1  20 78 08        jsr wait_vsync
+00084E  1               
+00084E  1  E6 rr           inc frame_count
 000850  1               
-000850  1  A5 rr           lda key_last
-000852  1  C9 03           cmp #KEY_RUN_STOP
-000854  1  F0 0C           beq exit_game
-000856  1               
-000856  1  20 48 09        jsr move_player               ; apply movement, clamp to boundaries
-000859  1  20 97 09        jsr update_player_sprite      ; write new X to VERA sprite 1
-00085C  1               
-00085C  1  20 35 0A        jsr update_hud                ; refresh text readouts
+000850  1  20 7A 08        jsr update_input              ; fills key_flags (joystick) + key_last (GETIN)
+000853  1               
+000853  1  A5 rr           lda key_last
+000855  1  C9 03           cmp #KEY_RUN_STOP
+000857  1  F0 17           beq exit_game
+000859  1               
+000859  1  20 37 0B        jsr move_player               ; apply movement, clamp to boundaries
+00085C  1  20 86 0B        jsr update_player_sprite      ; write new X to VERA sprite 1
 00085F  1               
-00085F  1  4C 48 08        jmp main_loop
-000862  1               
-000862  1               ;------------------------------------------------------------------
-000862  1               exit_game:
-000862  1  A9 93           lda #PETSCII_CLR
-000864  1  20 D2 FF        jsr CHROUT
-000867  1  4C 47 FF        jmp ENTER_BASIC
+00085F  1                  ; --- Invader march timer ---
+00085F  1  C6 rr           dec inv_move_timer
+000861  1  D0 07           bne @skip_inv_step
+000863  1  20 43 0A        jsr step_invaders             ; move grid, check bounds, update sprites
+000866  1  A5 rr           lda inv_move_speed
+000868  1  85 rr           sta inv_move_timer
+00086A  1               @skip_inv_step:
 00086A  1               
-00086A  1               ;******************************************************************
-00086A  1               ; wait_vsync — busy-poll VERA_isr until VSYNC, then clear flag
-00086A  1               ;******************************************************************
-00086A  1               wait_vsync:
-00086A  1                  ; WAI sleeps the CPU until any IRQ fires.  The KERNAL's VSYNC IRQ
-00086A  1                  ; handler (60 Hz) wakes us up and has already cleared VERA_isr bit 0
-00086A  1                  ; by the time execution returns here, so polling VERA_isr would loop
-00086A  1                  ; forever.  Just return — one WAI ≈ one frame.
-00086A  1  CB              wai
-00086B  1  60              rts
-00086C  1               
-00086C  1               ;******************************************************************
-00086C  1               ; update_input — joystick + GETIN keyboard input each frame
-00086C  1               ;
-00086C  1               ;   key_flags bits set this frame:
-00086C  1               ;     KEY_LEFT  — left arrow held
-00086C  1               ;     KEY_RIGHT — right arrow held
-00086C  1               ;     KEY_FIRE  — space bar pressed
-00086C  1               ;   key_last   — raw PETSCII from GETIN (RUN/STOP etc.)
-00086C  1               ;
-00086C  1               ;   JOYSTICK_GET(0) = keyboard-as-joystick; gives smooth held-key
-00086C  1               ;   movement with no repeat delay.  GETIN handles space and RUN/STOP.
-00086C  1               ;******************************************************************
-00086C  1               update_input:
-00086C  1  64 rr           stz key_flags
-00086E  1  64 rr           stz key_last
+00086A  1  20 24 0C        jsr update_hud                ; refresh text readouts
+00086D  1               
+00086D  1  4C 4B 08        jmp main_loop
 000870  1               
-000870  1                  ; --- joystick 0 = keyboard d-pad (active low: 0 = pressed) ---
-000870  1                  ; Byte returned: {B,Y,Sel,Sta,Up,Dn,Left,Right} bits 7–0
-000870  1  A9 00           lda #0
-000872  1  20 56 FF        jsr JOYSTICK_GET
-000875  1  48              pha                           ; save — AND destroys .A
-000876  1               
-000876  1  29 01           and #JOY_RIGHT                ; bit 0: right arrow
-000878  1  D0 06           bne @not_right
-00087A  1  A5 rr           lda key_flags
-00087C  1  09 02           ora #KEY_RIGHT
-00087E  1  85 rr           sta key_flags
-000880  1               @not_right:
-000880  1  68              pla
-000881  1  29 02           and #JOY_LEFT                 ; bit 1: left arrow
-000883  1  D0 06           bne @not_left
-000885  1  A5 rr           lda key_flags
-000887  1  09 01           ora #KEY_LEFT
-000889  1  85 rr           sta key_flags
-00088B  1               @not_left:
-00088B  1               
-00088B  1                  ; --- GETIN — discrete events: fire, RUN/STOP, arrow fallback ---
-00088B  1               @getin_drain:
-00088B  1  20 E4 FF        jsr GETIN
-00088E  1  F0 26           beq @getin_done               ; buffer empty
-000890  1  85 rr           sta key_last
-000892  1  C9 9D           cmp #$9D                      ; cursor left (PETSCII)
-000894  1  D0 08           bne @chk_right_getin
-000896  1  A5 rr           lda key_flags
-000898  1  09 01           ora #KEY_LEFT
-00089A  1  85 rr           sta key_flags
-00089C  1  80 ED           bra @getin_drain
-00089E  1               @chk_right_getin:
-00089E  1  C9 1D           cmp #$1D                      ; cursor right (PETSCII)
-0008A0  1  D0 08           bne @chk_fire_getin
-0008A2  1  A5 rr           lda key_flags
-0008A4  1  09 02           ora #KEY_RIGHT
-0008A6  1  85 rr           sta key_flags
-0008A8  1  80 E1           bra @getin_drain
-0008AA  1               @chk_fire_getin:
-0008AA  1  C9 20           cmp #$20                      ; space = fire
-0008AC  1  D0 DD           bne @getin_drain
-0008AE  1  A5 rr           lda key_flags
-0008B0  1  09 04           ora #KEY_FIRE
-0008B2  1  85 rr           sta key_flags
-0008B4  1  80 D5           bra @getin_drain
-0008B6  1               @getin_done:
-0008B6  1  60              rts
-0008B7  1               
-0008B7  1               ;******************************************************************
-0008B7  1               ; init_player — set player_x to starting position
-0008B7  1               ;******************************************************************
-0008B7  1               init_player:
-0008B7  1  A9 38           lda #<PLAYER_X_INIT
-0008B9  1  85 rr           sta player_x_lo
-0008BB  1  A9 01           lda #>PLAYER_X_INIT
-0008BD  1  85 rr           sta player_x_hi
-0008BF  1  60              rts
-0008C0  1               
-0008C0  1               ;******************************************************************
-0008C0  1               ; init_sprites — upload pixel data + write sprite 1 attributes
-0008C0  1               ;
-0008C0  1               ;   Sprite 0 ($1FC00) is reserved by the KERNAL mouse cursor —
-0008C0  1               ;   we disable it and keep clear of $1FC00.
-0008C0  1               ;
-0008C0  1               ;   Sprite 1 ($1FC08) = player ship
-0008C0  1               ;   Pixel data at VRAM $00080 (128 bytes, 16x16 4bpp)
-0008C0  1               ;   Address encoding:  addr[12:5] = $00080>>5 = $04  → byte 0 = $04
-0008C0  1               ;                      4bpp, addr[16:13] = 0          → byte 1 = $00
-0008C0  1               ;******************************************************************
-0008C0  1               init_sprites:
-0008C0  1  9C 25 9F        stz VERA_ctrl
-0008C3  1               
-0008C3  1                  ; --- set palette entry 1 = white (R=$F,G=$F,B=$F) ---
-0008C3  1                  ; VERA palette entry N is 2 bytes at VRAM_palette + N*2
-0008C3  1                  ; Byte 0: [7:4]=Green [3:0]=Blue   Byte 1: [3:0]=Red
-0008C3  1  A9 11 8D 22     VERA_SET_ADDR (VRAM_palette + 2), 1   ; entry 1 (player white)
-0008C7  1  9F A9 FA 8D  
-0008CB  1  21 9F A9 02  
-0008D2  1  A9 FF           lda #$FF                               ; G=$F, B=$F
-0008D4  1  8D 23 9F        sta VERA_data0
-0008D7  1  A9 0F           lda #$0F                               ; R=$F
-0008D9  1  8D 23 9F        sta VERA_data0
-0008DC  1               
-0008DC  1                  ; --- disable sprite 0 (KERNAL mouse cursor) ---
-0008DC  1  A9 11 8D 22     VERA_SET_ADDR (VRAM_sprattr + 6), 1   ; sprite 0 byte 6 = z-depth
-0008E0  1  9F A9 FC 8D  
-0008E4  1  21 9F A9 06  
-0008EB  1  A9 00           lda #$00                               ; z-depth=0 → disabled
-0008ED  1  8D 23 9F        sta VERA_data0
-0008F0  1               
-0008F0  1                  ; --- upload player sprite pixel data to VRAM $00080 ---
-0008F0  1  A9 10 8D 22     VERA_SET_ADDR $00080, 1
-0008F4  1  9F A9 00 8D  
-0008F8  1  21 9F A9 80  
-0008FF  1  A2 00           ldx #0
-000901  1               @upload:
-000901  1  BD 24 0B        lda player_spr_data,x
-000904  1  8D 23 9F        sta VERA_data0
-000907  1  E8              inx
-000908  1  E0 80           cpx #128
-00090A  1  D0 F5           bne @upload
-00090C  1               
-00090C  1                  ; --- write sprite 1 attribute bytes ---
-00090C  1  A9 11 8D 22     VERA_SET_ADDR SPRITE1_ATTR, 1
-000910  1  9F A9 FC 8D  
-000914  1  21 9F A9 08  
-00091B  1  A9 04           lda #$04
-00091D  1  8D 23 9F        sta VERA_data0               ; byte 0: addr[12:5] = $00080>>5 = $04
-000920  1  A9 00           lda #$00
-000922  1  8D 23 9F        sta VERA_data0               ; byte 1: 4bpp, addr[16:13] = 0
-000925  1  A5 rr           lda player_x_lo
-000927  1  8D 23 9F        sta VERA_data0               ; byte 2: X[7:0]
-00092A  1  A5 rr           lda player_x_hi
-00092C  1  29 03           and #$03
-00092E  1  8D 23 9F        sta VERA_data0               ; byte 3: X[9:8]
-000931  1  A9 A4           lda #<PLAYER_Y
-000933  1  8D 23 9F        sta VERA_data0               ; byte 4: Y[7:0]
-000936  1  A9 01           lda #>PLAYER_Y
-000938  1  29 03           and #$03
-00093A  1  8D 23 9F        sta VERA_data0               ; byte 5: Y[9:8]
-00093D  1  A9 0C           lda #SPR_Z_FRONT
-00093F  1  8D 23 9F        sta VERA_data0               ; byte 6: z-depth=3, no collision, no flip
-000942  1  A9 50           lda #SPR_16x16_PAL0
-000944  1  8D 23 9F        sta VERA_data0               ; byte 7: palette 0, 16x16
-000947  1  60              rts
-000948  1               
-000948  1               ;******************************************************************
-000948  1               ; move_player — apply key_flags movement and clamp to screen edges
-000948  1               ;******************************************************************
-000948  1               move_player:
-000948  1  A5 rr           lda key_flags
-00094A  1               
-00094A  1                  ; --- move left ---
-00094A  1  29 01           and #KEY_LEFT
-00094C  1  F0 1F           beq @check_right
-00094E  1  A5 rr           lda player_x_lo
-000950  1  38              sec
-000951  1  E9 04           sbc #PLAYER_SPEED
-000953  1  85 rr           sta player_x_lo
-000955  1  B0 02           bcs @clamp_left              ; no borrow → hi unchanged
-000957  1  C6 rr           dec player_x_hi
-000959  1               @clamp_left:
-000959  1                  ; Clamp: if hi went negative ($FF) or (hi=0 AND lo < min) → set to min
-000959  1  A5 rr           lda player_x_hi
-00095B  1  30 08           bmi @set_min                 ; $80–$FF = underflowed
-00095D  1  D0 0E           bne @check_right             ; hi > 0 → still above minimum
-00095F  1  A5 rr           lda player_x_lo
-000961  1  C9 08           cmp #PLAYER_X_MIN
-000963  1  B0 08           bcs @check_right             ; lo >= min → ok
-000965  1               @set_min:
-000965  1  A9 08           lda #<PLAYER_X_MIN
-000967  1  85 rr           sta player_x_lo
-000969  1  A9 00           lda #>PLAYER_X_MIN
-00096B  1  85 rr           sta player_x_hi
-00096D  1               
-00096D  1                  ; --- move right ---
-00096D  1               @check_right:
-00096D  1  A5 rr           lda key_flags
-00096F  1  29 02           and #KEY_RIGHT
-000971  1  F0 23           beq @move_done
-000973  1  A5 rr           lda player_x_lo
-000975  1  18              clc
-000976  1  69 04           adc #PLAYER_SPEED
-000978  1  85 rr           sta player_x_lo
-00097A  1  90 02           bcc @clamp_right             ; no carry → hi unchanged
-00097C  1  E6 rr           inc player_x_hi
-00097E  1               @clamp_right:
-00097E  1                  ; Clamp: if hi > max_hi, OR (hi == max_hi AND lo > max_lo) → set to max
-00097E  1  A5 rr           lda player_x_hi
-000980  1  C9 02           cmp #>PLAYER_X_MAX
-000982  1  90 12           bcc @move_done               ; hi < max_hi → definitely ok
-000984  1  D0 08           bne @set_max                 ; hi > max_hi → over limit
-000986  1  A5 rr           lda player_x_lo
-000988  1  C9 68           cmp #<PLAYER_X_MAX
-00098A  1  90 0A           bcc @move_done               ; lo < max_lo when hi == max_hi → ok
-00098C  1  F0 08           beq @move_done               ; lo == max_lo → exactly at max, ok
-00098E  1               @set_max:
-00098E  1  A9 68           lda #<PLAYER_X_MAX
-000990  1  85 rr           sta player_x_lo
-000992  1  A9 02           lda #>PLAYER_X_MAX
-000994  1  85 rr           sta player_x_hi
-000996  1               
-000996  1               @move_done:
-000996  1  60              rts
-000997  1               
-000997  1               ;******************************************************************
-000997  1               ; update_player_sprite — write current X position to sprite 1 in VERA
-000997  1               ;   Only X needs updating (Y is fixed)
-000997  1               ;******************************************************************
-000997  1               update_player_sprite:
-000997  1  9C 25 9F        stz VERA_ctrl
-00099A  1  A9 11 8D 22     VERA_SET_ADDR (SPRITE1_ATTR + 2), 1
-00099E  1  9F A9 FC 8D  
-0009A2  1  21 9F A9 0A  
-0009A9  1  A5 rr           lda player_x_lo
-0009AB  1  8D 23 9F        sta VERA_data0               ; sprite byte 2: X[7:0]
-0009AE  1  A5 rr           lda player_x_hi
-0009B0  1  29 03           and #$03
-0009B2  1  8D 23 9F        sta VERA_data0               ; sprite byte 3: X[9:8]
-0009B5  1  60              rts
-0009B6  1               
-0009B6  1               ;******************************************************************
-0009B6  1               ; draw_title_screen — print static Phase 1 info to screen
-0009B6  1               ;   Called once at startup; static text stays until screen cleared
-0009B6  1               ;******************************************************************
-0009B6  1               draw_title_screen:
-0009B6  1                  ; Row 2, col 14: "X16 INVADERS"
-0009B6  1  A9 02           lda #2
-0009B8  1  A0 0E           ldy #14
-0009BA  1  18              clc
-0009BB  1  20 F0 FF        jsr PLOT
-0009BE  1  A2 00           ldx #0
-0009C0  1  BD 8E 0A     @lp1: lda str_title,x
-0009C3  1  F0 06           beq @lp1_done
-0009C5  1  20 D2 FF        jsr CHROUT
-0009C8  1  E8              inx
-0009C9  1  80 F5           bra @lp1
-0009CB  1               @lp1_done:
-0009CB  1               
-0009CB  1                  ; Row 4, col 10: "PHASE 1 - FOUNDATION"
-0009CB  1  A9 04           lda #4
-0009CD  1  A0 0A           ldy #10
-0009CF  1  18              clc
-0009D0  1  20 F0 FF        jsr PLOT
-0009D3  1  A2 00           ldx #0
-0009D5  1  BD 9B 0A     @lp2: lda str_subtitle,x
-0009D8  1  F0 06           beq @lp2_done
-0009DA  1  20 D2 FF        jsr CHROUT
-0009DD  1  E8              inx
-0009DE  1  80 F5           bra @lp2
-0009E0  1               @lp2_done:
-0009E0  1               
-0009E0  1                  ; Row 8, col 2: status lines
-0009E0  1  A9 08           lda #8
-0009E2  1  A0 02           ldy #2
-0009E4  1  18              clc
-0009E5  1  20 F0 FF        jsr PLOT
-0009E8  1  A2 00           ldx #0
-0009EA  1  BD B1 0A     @lp3: lda str_status_vsync,x
-0009ED  1  F0 06           beq @lp3_done
-0009EF  1  20 D2 FF        jsr CHROUT
-0009F2  1  E8              inx
-0009F3  1  80 F5           bra @lp3
-0009F5  1               @lp3_done:
-0009F5  1               
-0009F5  1  A9 0A           lda #10
-0009F7  1  A0 02           ldy #2
-0009F9  1  18              clc
-0009FA  1  20 F0 FF        jsr PLOT
-0009FD  1  A2 00           ldx #0
-0009FF  1  BD C8 0A     @lp4: lda str_status_kbd,x
-000A02  1  F0 06           beq @lp4_done
-000A04  1  20 D2 FF        jsr CHROUT
-000A07  1  E8              inx
-000A08  1  80 F5           bra @lp4
-000A0A  1               @lp4_done:
-000A0A  1               
-000A0A  1  A9 0C           lda #12
-000A0C  1  A0 02           ldy #2
-000A0E  1  18              clc
-000A0F  1  20 F0 FF        jsr PLOT
-000A12  1  A2 00           ldx #0
-000A14  1  BD E3 0A     @lp5: lda str_status_spr,x
-000A17  1  F0 06           beq @lp5_done
-000A19  1  20 D2 FF        jsr CHROUT
-000A1C  1  E8              inx
-000A1D  1  80 F5           bra @lp5
-000A1F  1               @lp5_done:
-000A1F  1               
-000A1F  1                  ; Row 15, col 2: exit hint
-000A1F  1  A9 0F           lda #15
-000A21  1  A0 02           ldy #2
-000A23  1  18              clc
-000A24  1  20 F0 FF        jsr PLOT
-000A27  1  A2 00           ldx #0
-000A29  1  BD F5 0A     @lp6: lda str_exit_hint,x
-000A2C  1  F0 06           beq @lp6_done
-000A2E  1  20 D2 FF        jsr CHROUT
-000A31  1  E8              inx
-000A32  1  80 F5           bra @lp6
-000A34  1               @lp6_done:
-000A34  1               
-000A34  1  60              rts
+000870  1               ;------------------------------------------------------------------
+000870  1               exit_game:
+000870  1  A9 93           lda #PETSCII_CLR
+000872  1  20 D2 FF        jsr CHROUT
+000875  1  4C 47 FF        jmp ENTER_BASIC
+000878  1               
+000878  1               ;******************************************************************
+000878  1               ; wait_vsync — busy-poll VERA_isr until VSYNC, then clear flag
+000878  1               ;******************************************************************
+000878  1               wait_vsync:
+000878  1                  ; WAI sleeps the CPU until any IRQ fires.  The KERNAL's VSYNC IRQ
+000878  1                  ; handler (60 Hz) wakes us up and has already cleared VERA_isr bit 0
+000878  1                  ; by the time execution returns here, so polling VERA_isr would loop
+000878  1                  ; forever.  Just return — one WAI ≈ one frame.
+000878  1  CB              wai
+000879  1  60              rts
+00087A  1               
+00087A  1               ;******************************************************************
+00087A  1               ; update_input — joystick + GETIN keyboard input each frame
+00087A  1               ;
+00087A  1               ;   key_flags bits set this frame:
+00087A  1               ;     KEY_LEFT  — left arrow held
+00087A  1               ;     KEY_RIGHT — right arrow held
+00087A  1               ;     KEY_FIRE  — space bar pressed
+00087A  1               ;   key_last   — raw PETSCII from GETIN (RUN/STOP etc.)
+00087A  1               ;
+00087A  1               ;   JOYSTICK_GET(0) = keyboard-as-joystick; gives smooth held-key
+00087A  1               ;   movement with no repeat delay.  GETIN handles space and RUN/STOP.
+00087A  1               ;******************************************************************
+00087A  1               update_input:
+00087A  1  64 rr           stz key_flags
+00087C  1  64 rr           stz key_last
+00087E  1               
+00087E  1                  ; --- joystick 0 = keyboard d-pad (active low: 0 = pressed) ---
+00087E  1                  ; Byte returned: {B,Y,Sel,Sta,Up,Dn,Left,Right} bits 7–0
+00087E  1  A9 00           lda #0
+000880  1  20 56 FF        jsr JOYSTICK_GET
+000883  1  48              pha                           ; save — AND destroys .A
+000884  1               
+000884  1  29 01           and #JOY_RIGHT                ; bit 0: right arrow
+000886  1  D0 06           bne @not_right
+000888  1  A5 rr           lda key_flags
+00088A  1  09 02           ora #KEY_RIGHT
+00088C  1  85 rr           sta key_flags
+00088E  1               @not_right:
+00088E  1  68              pla
+00088F  1  29 02           and #JOY_LEFT                 ; bit 1: left arrow
+000891  1  D0 06           bne @not_left
+000893  1  A5 rr           lda key_flags
+000895  1  09 01           ora #KEY_LEFT
+000897  1  85 rr           sta key_flags
+000899  1               @not_left:
+000899  1               
+000899  1                  ; --- GETIN — discrete events: fire, RUN/STOP, arrow fallback ---
+000899  1               @getin_drain:
+000899  1  20 E4 FF        jsr GETIN
+00089C  1  F0 26           beq @getin_done               ; buffer empty
+00089E  1  85 rr           sta key_last
+0008A0  1  C9 9D           cmp #$9D                      ; cursor left (PETSCII)
+0008A2  1  D0 08           bne @chk_right_getin
+0008A4  1  A5 rr           lda key_flags
+0008A6  1  09 01           ora #KEY_LEFT
+0008A8  1  85 rr           sta key_flags
+0008AA  1  80 ED           bra @getin_drain
+0008AC  1               @chk_right_getin:
+0008AC  1  C9 1D           cmp #$1D                      ; cursor right (PETSCII)
+0008AE  1  D0 08           bne @chk_fire_getin
+0008B0  1  A5 rr           lda key_flags
+0008B2  1  09 02           ora #KEY_RIGHT
+0008B4  1  85 rr           sta key_flags
+0008B6  1  80 E1           bra @getin_drain
+0008B8  1               @chk_fire_getin:
+0008B8  1  C9 20           cmp #$20                      ; space = fire
+0008BA  1  D0 DD           bne @getin_drain
+0008BC  1  A5 rr           lda key_flags
+0008BE  1  09 04           ora #KEY_FIRE
+0008C0  1  85 rr           sta key_flags
+0008C2  1  80 D5           bra @getin_drain
+0008C4  1               @getin_done:
+0008C4  1  60              rts
+0008C5  1               
+0008C5  1               ;******************************************************************
+0008C5  1               ; init_player — set player_x to starting position
+0008C5  1               ;******************************************************************
+0008C5  1               init_player:
+0008C5  1  A9 38           lda #<PLAYER_X_INIT
+0008C7  1  85 rr           sta player_x_lo
+0008C9  1  A9 01           lda #>PLAYER_X_INIT
+0008CB  1  85 rr           sta player_x_hi
+0008CD  1  60              rts
+0008CE  1               
+0008CE  1               ;******************************************************************
+0008CE  1               ; init_sprites — upload pixel data + write sprite 1 attributes
+0008CE  1               ;
+0008CE  1               ;   Sprite 0 ($1FC00) is reserved by the KERNAL mouse cursor —
+0008CE  1               ;   we disable it and keep clear of $1FC00.
+0008CE  1               ;
+0008CE  1               ;   Sprite 1 ($1FC08) = player ship
+0008CE  1               ;   Pixel data at VRAM $00080 (128 bytes, 16x16 4bpp)
+0008CE  1               ;   Address encoding:  addr[12:5] = $00080>>5 = $04  → byte 0 = $04
+0008CE  1               ;                      4bpp, addr[16:13] = 0          → byte 1 = $00
+0008CE  1               ;******************************************************************
+0008CE  1               init_sprites:
+0008CE  1  9C 25 9F        stz VERA_ctrl
+0008D1  1               
+0008D1  1                  ; --- set palette entries 1-4 ---
+0008D1  1                  ; VERA palette entry N is 2 bytes at VRAM_palette + N*2
+0008D1  1                  ; Byte 0: [7:4]=Green [3:0]=Blue   Byte 1: [3:0]=Red (bits 7-4 unused)
+0008D1  1  A9 11 8D 22     VERA_SET_ADDR (VRAM_palette + 2), 1   ; entry 1 (player white); stride=1 auto-advances
+0008D5  1  9F A9 FA 8D  
+0008D9  1  21 9F A9 02  
+0008E0  1  A9 FF           lda #$FF                               ; G=$F, B=$F
+0008E2  1  8D 23 9F        sta VERA_data0
+0008E5  1  A9 0F           lda #$0F                               ; R=$F  → white
+0008E7  1  8D 23 9F        sta VERA_data0
+0008EA  1                  ; entry 2 = cyan  (R=0, G=$F, B=$F)
+0008EA  1  A9 FF           lda #$FF                               ; G=$F, B=$F
+0008EC  1  8D 23 9F        sta VERA_data0
+0008EF  1  A9 00           lda #$00                               ; R=$0
+0008F1  1  8D 23 9F        sta VERA_data0
+0008F4  1                  ; entry 3 = magenta (R=$F, G=0, B=$F)
+0008F4  1  A9 0F           lda #$0F                               ; G=$0, B=$F
+0008F6  1  8D 23 9F        sta VERA_data0
+0008F9  1  A9 0F           lda #$0F                               ; R=$F
+0008FB  1  8D 23 9F        sta VERA_data0
+0008FE  1                  ; entry 4 = green  (R=0, G=$F, B=0)
+0008FE  1  A9 F0           lda #$F0                               ; G=$F, B=$0
+000900  1  8D 23 9F        sta VERA_data0
+000903  1  A9 00           lda #$00                               ; R=$0
+000905  1  8D 23 9F        sta VERA_data0
+000908  1               
+000908  1                  ; --- disable sprite 0 (KERNAL mouse cursor) ---
+000908  1  A9 11 8D 22     VERA_SET_ADDR (VRAM_sprattr + 6), 1   ; sprite 0 byte 6 = z-depth
+00090C  1  9F A9 FC 8D  
+000910  1  21 9F A9 06  
+000917  1  A9 00           lda #$00                               ; z-depth=0 → disabled
+000919  1  8D 23 9F        sta VERA_data0
+00091C  1               
+00091C  1                  ; --- upload player sprite pixel data to VRAM $00080 ---
+00091C  1  A9 10 8D 22     VERA_SET_ADDR $00080, 1
+000920  1  9F A9 00 8D  
+000924  1  21 9F A9 80  
+00092B  1  A2 00           ldx #0
+00092D  1               @upload:
+00092D  1  BD 14 0D        lda player_spr_data,x
+000930  1  8D 23 9F        sta VERA_data0
+000933  1  E8              inx
+000934  1  E0 80           cpx #128
+000936  1  D0 F5           bne @upload
+000938  1               
+000938  1                  ; --- write sprite 1 attribute bytes ---
+000938  1  A9 11 8D 22     VERA_SET_ADDR SPRITE1_ATTR, 1
+00093C  1  9F A9 FC 8D  
+000940  1  21 9F A9 08  
+000947  1  A9 04           lda #$04
+000949  1  8D 23 9F        sta VERA_data0               ; byte 0: addr[12:5] = $00080>>5 = $04
+00094C  1  A9 00           lda #$00
+00094E  1  8D 23 9F        sta VERA_data0               ; byte 1: 4bpp, addr[16:13] = 0
+000951  1  A5 rr           lda player_x_lo
+000953  1  8D 23 9F        sta VERA_data0               ; byte 2: X[7:0]
+000956  1  A5 rr           lda player_x_hi
+000958  1  29 03           and #$03
+00095A  1  8D 23 9F        sta VERA_data0               ; byte 3: X[9:8]
+00095D  1  A9 A4           lda #<PLAYER_Y
+00095F  1  8D 23 9F        sta VERA_data0               ; byte 4: Y[7:0]
+000962  1  A9 01           lda #>PLAYER_Y
+000964  1  29 03           and #$03
+000966  1  8D 23 9F        sta VERA_data0               ; byte 5: Y[9:8]
+000969  1  A9 0C           lda #SPR_Z_FRONT
+00096B  1  8D 23 9F        sta VERA_data0               ; byte 6: z-depth=3, no collision, no flip
+00096E  1  A9 50           lda #SPR_16x16_PAL0
+000970  1  8D 23 9F        sta VERA_data0               ; byte 7: palette 0, 16x16
+000973  1  60              rts
+000974  1               
+000974  1               ;******************************************************************
+000974  1               ; init_invaders — upload invader pixel data, init grid state, place sprites
+000974  1               ;******************************************************************
+000974  1               init_invaders:
+000974  1  9C 25 9F        stz VERA_ctrl
+000977  1               
+000977  1                  ; --- upload Type A frame 0 → VRAM $00100 ---
+000977  1  A9 10 8D 22     VERA_SET_ADDR VRAM_INV_A_F0, 1
+00097B  1  9F A9 01 8D  
+00097F  1  21 9F A9 00  
+000986  1  A2 80           ldx #128
+000988  1  BD 39 0D     @up_af0: lda inv_a_spr_f0-128,x
+00098B  1  8D 23 9F        sta VERA_data0
+00098E  1  E8              inx
+00098F  1  D0 F7           bne @up_af0
+000991  1               
+000991  1                  ; --- upload Type A frame 1 → VRAM $00180 ---
+000991  1  A9 10 8D 22     VERA_SET_ADDR VRAM_INV_A_F1, 1
+000995  1  9F A9 01 8D  
+000999  1  21 9F A9 80  
+0009A0  1  A2 80           ldx #128
+0009A2  1  BD B9 0D     @up_af1: lda inv_a_spr_f1-128,x
+0009A5  1  8D 23 9F        sta VERA_data0
+0009A8  1  E8              inx
+0009A9  1  D0 F7           bne @up_af1
+0009AB  1               
+0009AB  1                  ; --- upload Type B frame 0 → VRAM $00200 ---
+0009AB  1  A9 10 8D 22     VERA_SET_ADDR VRAM_INV_B_F0, 1
+0009AF  1  9F A9 02 8D  
+0009B3  1  21 9F A9 00  
+0009BA  1  A2 80           ldx #128
+0009BC  1  BD 39 0E     @up_bf0: lda inv_b_spr_f0-128,x
+0009BF  1  8D 23 9F        sta VERA_data0
+0009C2  1  E8              inx
+0009C3  1  D0 F7           bne @up_bf0
+0009C5  1               
+0009C5  1                  ; --- upload Type B frame 1 → VRAM $00280 ---
+0009C5  1  A9 10 8D 22     VERA_SET_ADDR VRAM_INV_B_F1, 1
+0009C9  1  9F A9 02 8D  
+0009CD  1  21 9F A9 80  
+0009D4  1  A2 80           ldx #128
+0009D6  1  BD B9 0E     @up_bf1: lda inv_b_spr_f1-128,x
+0009D9  1  8D 23 9F        sta VERA_data0
+0009DC  1  E8              inx
+0009DD  1  D0 F7           bne @up_bf1
+0009DF  1               
+0009DF  1                  ; --- upload Type C frame 0 → VRAM $00300 ---
+0009DF  1  A9 10 8D 22     VERA_SET_ADDR VRAM_INV_C_F0, 1
+0009E3  1  9F A9 03 8D  
+0009E7  1  21 9F A9 00  
+0009EE  1  A2 80           ldx #128
+0009F0  1  BD 39 0F     @up_cf0: lda inv_c_spr_f0-128,x
+0009F3  1  8D 23 9F        sta VERA_data0
+0009F6  1  E8              inx
+0009F7  1  D0 F7           bne @up_cf0
+0009F9  1               
+0009F9  1                  ; --- upload Type C frame 1 → VRAM $00380 ---
+0009F9  1  A9 10 8D 22     VERA_SET_ADDR VRAM_INV_C_F1, 1
+0009FD  1  9F A9 03 8D  
+000A01  1  21 9F A9 80  
+000A08  1  A2 80           ldx #128
+000A0A  1  BD B9 0F     @up_cf1: lda inv_c_spr_f1-128,x
+000A0D  1  8D 23 9F        sta VERA_data0
+000A10  1  E8              inx
+000A11  1  D0 F7           bne @up_cf1
+000A13  1               
+000A13  1                  ; --- initialize zero-page grid variables ---
+000A13  1  A9 70           lda #<INV_GRID_X_INIT
+000A15  1  85 rr           sta inv_grid_x_lo
+000A17  1  A9 00           lda #>INV_GRID_X_INIT
+000A19  1  85 rr           sta inv_grid_x_hi
+000A1B  1  64 rr           stz inv_offset_y
+000A1D  1  64 rr           stz inv_direction
+000A1F  1  64 rr           stz inv_anim_frame
+000A21  1  64 rr           stz inv_drop_flag
+000A23  1               
+000A23  1                  ; all 55 invaders alive: bytes 0-5 = $FF, byte 6 = $7F (55 bits)
+000A23  1  A9 FF           lda #$FF
+000A25  1  85 rr           sta inv_alive+0
+000A27  1  85 rr           sta inv_alive+1
+000A29  1  85 rr           sta inv_alive+2
+000A2B  1  85 rr           sta inv_alive+3
+000A2D  1  85 rr           sta inv_alive+4
+000A2F  1  85 rr           sta inv_alive+5
+000A31  1  A9 7F           lda #$7F
+000A33  1  85 rr           sta inv_alive+6
 000A35  1               
-000A35  1               ;******************************************************************
-000A35  1               ; update_hud — rewrite dynamic values each frame
-000A35  1               ;   Overwrites fixed screen positions; no full redraw needed
-000A35  1               ;******************************************************************
-000A35  1               update_hud:
-000A35  1                  ; Frame counter at row 19, col 2
-000A35  1  A9 13           lda #19
-000A37  1  A0 02           ldy #2
-000A39  1  18              clc
-000A3A  1  20 F0 FF        jsr PLOT
-000A3D  1  A2 00           ldx #0
-000A3F  1  BD 0C 0B     @fc_lbl: lda str_frame_lbl,x
-000A42  1  F0 06           beq @fc_val
-000A44  1  20 D2 FF        jsr CHROUT
-000A47  1  E8              inx
-000A48  1  80 F5           bra @fc_lbl
-000A4A  1               @fc_val:
-000A4A  1  A5 rr           lda frame_count
-000A4C  1  20 6F 0A        jsr print_hex_byte
-000A4F  1               
-000A4F  1                  ; Last key at row 21, col 2
-000A4F  1  A9 15           lda #21
-000A51  1  A0 02           ldy #2
-000A53  1  18              clc
-000A54  1  20 F0 FF        jsr PLOT
-000A57  1  A2 00           ldx #0
-000A59  1  BD 18 0B     @kl_lbl: lda str_key_lbl,x
-000A5C  1  F0 06           beq @kl_val
-000A5E  1  20 D2 FF        jsr CHROUT
-000A61  1  E8              inx
-000A62  1  80 F5           bra @kl_lbl
-000A64  1               @kl_val:
-000A64  1  A5 rr           lda key_last
-000A66  1  20 6F 0A        jsr print_hex_byte
-000A69  1  A9 20           lda #' '
-000A6B  1  20 D2 FF        jsr CHROUT                    ; erase stale digit if value shrank
-000A6E  1               
-000A6E  1  60              rts
-000A6F  1               
-000A6F  1               ;******************************************************************
-000A6F  1               ; print_hex_byte — print .A as two uppercase hex digits via CHROUT
-000A6F  1               ;******************************************************************
-000A6F  1               print_hex_byte:
-000A6F  1  48              pha
-000A70  1  4A              lsr                           ; shift high nibble down
-000A71  1  4A              lsr
-000A72  1  4A              lsr
-000A73  1  4A              lsr
-000A74  1  20 7E 0A        jsr print_hex_nybble
-000A77  1  68              pla
-000A78  1  29 0F           and #$0F                      ; isolate low nibble
-000A7A  1  20 7E 0A        jsr print_hex_nybble
-000A7D  1  60              rts
-000A7E  1               
-000A7E  1               ; print_hex_nybble — print lower 4 bits of .A as one hex digit
-000A7E  1               ;   Relies on carry state from CMP to select digit vs. letter range
-000A7E  1               print_hex_nybble:
-000A7E  1  C9 0A           cmp #10
-000A80  1  90 06           bcc @digit                    ; carry clear → 0-9
-000A82  1  69 36           adc #($41 - 10 - 1)          ; A-F: 'A'=65; carry set adds 1
-000A84  1  20 D2 FF        jsr CHROUT
-000A87  1  60              rts
-000A88  1               @digit:
-000A88  1  69 30           adc #$30                      ; 0-9: '0'=48; carry clear adds 0
-000A8A  1  20 D2 FF        jsr CHROUT
-000A8D  1  60              rts
-000A8E  1               
-000A8E  1               ;******************************************************************
-000A8E  1               ; String data — null-terminated, PETSCII uppercase
-000A8E  1               ;******************************************************************
-000A8E  1               str_title:
-000A8E  1  D8 31 36 20     .byte "X16 INVADERS", 0
-000A92  1  C9 CE D6 C1  
-000A96  1  C4 C5 D2 D3  
-000A9B  1               str_subtitle:
-000A9B  1  D0 C8 C1 D3     .byte "PHASE 2 - PLAYER SHIP", 0
-000A9F  1  C5 20 32 20  
-000AA3  1  2D 20 D0 CC  
-000AB1  1               str_status_vsync:
-000AB1  1  D6 D3 D9 CE     .byte "VSYNC : WAI (60HZ IRQ)", 0
-000AB5  1  C3 20 3A 20  
-000AB9  1  D7 C1 C9 20  
-000AC8  1               str_status_kbd:
-000AC8  1  CB C5 D9 C2     .byte "KEYBOARD: JOYSTICK + GETIN", 0
-000ACC  1  CF C1 D2 C4  
-000AD0  1  3A 20 CA CF  
-000AE3  1               str_status_spr:
-000AE3  1  D3 D0 D2 C9     .byte "SPRITES : ENABLED", 0
-000AE7  1  D4 C5 D3 20  
-000AEB  1  3A 20 C5 CE  
-000AF5  1               str_exit_hint:
-000AF5  1  D0 D2 C5 D3     .byte "PRESS RUN/STOP TO EXIT", 0
-000AF9  1  D3 20 D2 D5  
-000AFD  1  CE 2F D3 D4  
-000B0C  1               str_frame_lbl:
-000B0C  1  C6 D2 C1 CD     .byte "FRAME   : $", 0
-000B10  1  C5 20 20 20  
-000B14  1  3A 20 24 00  
-000B18  1               str_key_lbl:
-000B18  1  CC C1 D3 D4     .byte "LAST KEY: $", 0
-000B1C  1  20 CB C5 D9  
-000B20  1  3A 20 24 00  
-000B24  1               
-000B24  1               ;******************************************************************
-000B24  1               ; player_spr_data — 16x16 4bpp sprite, 128 bytes
-000B24  1               ;
-000B24  1               ;   Color 0 = transparent, Color 1 = white (default palette index 1)
-000B24  1               ;   Design: classic upward-pointing triangular ship with engine notches
-000B24  1               ;
-000B24  1               ;   Each byte encodes 2 pixels: high nibble = left, low nibble = right
-000B24  1               ;   Columns: 0123456789ABCDEF
-000B24  1               ;
-000B24  1               ;   Row  0:  .......1........   cannon tip
-000B24  1               ;   Row  1:  .......11.......
-000B24  1               ;   Row  2:  ......111.......
-000B24  1               ;   Row  3:  ......111.......
-000B24  1               ;   Row  4:  .....11111......
-000B24  1               ;   Row  5:  .....1111111....
-000B24  1               ;   Row  6:  ...111111111....
-000B24  1               ;   Row  7:  ..11111111111...
-000B24  1               ;   Row  8:  .1111111111111..
-000B24  1               ;   Row  9:  1111111111111111   full base
-000B24  1               ;   Row 10:  1111111111111111
-000B24  1               ;   Row 11:  1111111111111111
-000B24  1               ;   Row 12:  11..11111111..11   engine notches
-000B24  1               ;   Row 13:  11..11111111..11
-000B24  1               ;   Row 14:  ................
-000B24  1               ;   Row 15:  ................
-000B24  1               ;******************************************************************
-000B24  1               player_spr_data:
-000B24  1                  ; row 0
-000B24  1  00 00 00 01     .byte $00,$00,$00,$01,$00,$00,$00,$00
-000B28  1  00 00 00 00  
-000B2C  1                  ; row 1
-000B2C  1  00 00 00 01     .byte $00,$00,$00,$01,$10,$00,$00,$00
-000B30  1  10 00 00 00  
-000B34  1                  ; row 2
-000B34  1  00 00 00 11     .byte $00,$00,$00,$11,$10,$00,$00,$00
-000B38  1  10 00 00 00  
-000B3C  1                  ; row 3
-000B3C  1  00 00 00 11     .byte $00,$00,$00,$11,$10,$00,$00,$00
-000B40  1  10 00 00 00  
-000B44  1                  ; row 4
-000B44  1  00 00 01 11     .byte $00,$00,$01,$11,$11,$00,$00,$00
-000B48  1  11 00 00 00  
-000B4C  1                  ; row 5
-000B4C  1  00 00 01 11     .byte $00,$00,$01,$11,$11,$11,$00,$00
-000B50  1  11 11 00 00  
-000B54  1                  ; row 6
-000B54  1  00 01 11 11     .byte $00,$01,$11,$11,$11,$11,$00,$00
-000B58  1  11 11 00 00  
-000B5C  1                  ; row 7
-000B5C  1  00 11 11 11     .byte $00,$11,$11,$11,$11,$11,$10,$00
-000B60  1  11 11 10 00  
-000B64  1                  ; row 8
-000B64  1  01 11 11 11     .byte $01,$11,$11,$11,$11,$11,$11,$00
-000B68  1  11 11 11 00  
-000B6C  1                  ; row 9
-000B6C  1  11 11 11 11     .byte $11,$11,$11,$11,$11,$11,$11,$11
-000B70  1  11 11 11 11  
-000B74  1                  ; row 10
-000B74  1  11 11 11 11     .byte $11,$11,$11,$11,$11,$11,$11,$11
-000B78  1  11 11 11 11  
-000B7C  1                  ; row 11
-000B7C  1  11 11 11 11     .byte $11,$11,$11,$11,$11,$11,$11,$11
-000B80  1  11 11 11 11  
-000B84  1                  ; row 12  (engine notches: cols 2-3 and 12-13 transparent)
-000B84  1  11 00 11 11     .byte $11,$00,$11,$11,$11,$11,$00,$11
-000B88  1  11 11 00 11  
-000B8C  1                  ; row 13
-000B8C  1  11 00 11 11     .byte $11,$00,$11,$11,$11,$11,$00,$11
-000B90  1  11 11 00 11  
-000B94  1                  ; row 14
-000B94  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00
-000B98  1  00 00 00 00  
-000B9C  1                  ; row 15
-000B9C  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00
-000BA0  1  00 00 00 00  
-000BA4  1               
-000BA4  1               ;******************************************************************
-000BA4  1               
+000A35  1  A9 37           lda #INV_COUNT_INIT
+000A37  1  85 rr           sta inv_count
+000A39  1  A9 32           lda #INV_MOVE_SPEED_INIT
+000A3B  1  85 rr           sta inv_move_speed
+000A3D  1  85 rr           sta inv_move_timer
+000A3F  1               
+000A3F  1                  ; --- write initial sprite attributes for all 55 invaders ---
+000A3F  1  20 A8 0A        jsr update_invader_sprites
+000A42  1  60              rts
+000A43  1               
+000A43  1               ;******************************************************************
+000A43  1               ; step_invaders — one march step: move or drop grid, toggle anim frame
+000A43  1               ;   Called when inv_move_timer reaches 0.
+000A43  1               ;   Updates inv_grid_x / inv_offset_y, sets inv_drop_flag as needed,
+000A43  1               ;   then refreshes all VERA sprite positions.
+000A43  1               ;******************************************************************
+000A43  1               step_invaders:
+000A43  1                  ; toggle animation frame
+000A43  1  A5 rr           lda inv_anim_frame
+000A45  1  49 01           eor #1
+000A47  1  85 rr           sta inv_anim_frame
+000A49  1               
+000A49  1                  ; if drop flag is set: drop grid this step, skip march
+000A49  1  A5 rr           lda inv_drop_flag
+000A4B  1  F0 0B           beq @do_march
+000A4D  1  64 rr           stz inv_drop_flag
+000A4F  1  A5 rr           lda inv_offset_y
+000A51  1  18              clc
+000A52  1  69 10           adc #INV_DROP_Y
+000A54  1  85 rr           sta inv_offset_y
+000A56  1  80 4C           bra @sprites_done
+000A58  1               
+000A58  1               @do_march:
+000A58  1  A5 rr           lda inv_direction
+000A5A  1  D0 25           bne @march_left
+000A5C  1               
+000A5C  1                  ; --- march right ---
+000A5C  1  A5 rr           lda inv_grid_x_lo
+000A5E  1  18              clc
+000A5F  1  69 04           adc #INV_STEP_X
+000A61  1  85 rr           sta inv_grid_x_lo
+000A63  1  90 02           bcc @chk_right
+000A65  1  E6 rr           inc inv_grid_x_hi
+000A67  1               @chk_right:
+000A67  1                  ; hit right if grid_x > INV_X_RIGHT_LIM (208, fits in 1 byte, hi always 0)
+000A67  1  A5 rr           lda inv_grid_x_hi
+000A69  1  D0 06           bne @clamp_right          ; hi > 0 → definitely over limit
+000A6B  1  A5 rr           lda inv_grid_x_lo
+000A6D  1  C9 D1           cmp #INV_X_RIGHT_LIM + 1  ; C set if lo > limit
+000A6F  1  90 33           bcc @sprites_done
+000A71  1               @clamp_right:
+000A71  1  A9 D0           lda #<INV_X_RIGHT_LIM
+000A73  1  85 rr           sta inv_grid_x_lo
+000A75  1  A9 00           lda #>INV_X_RIGHT_LIM
+000A77  1  85 rr           sta inv_grid_x_hi
+000A79  1  A9 01           lda #1
+000A7B  1  85 rr           sta inv_direction
+000A7D  1  85 rr           sta inv_drop_flag
+000A7F  1  80 23           bra @sprites_done
+000A81  1               
+000A81  1                  ; --- march left ---
+000A81  1               @march_left:
+000A81  1  A5 rr           lda inv_grid_x_lo
+000A83  1  38              sec
+000A84  1  E9 04           sbc #INV_STEP_X
+000A86  1  85 rr           sta inv_grid_x_lo
+000A88  1  B0 02           bcs @chk_left             ; no borrow
+000A8A  1  C6 rr           dec inv_grid_x_hi
+000A8C  1               @chk_left:
+000A8C  1                  ; hit left if hi went negative OR lo < INV_X_LEFT_LIM
+000A8C  1  A5 rr           lda inv_grid_x_hi
+000A8E  1  30 06           bmi @clamp_left
+000A90  1  A5 rr           lda inv_grid_x_lo
+000A92  1  C9 10           cmp #INV_X_LEFT_LIM
+000A94  1  B0 0E           bcs @sprites_done         ; lo >= left limit → ok
+000A96  1               @clamp_left:
+000A96  1  A9 10           lda #<INV_X_LEFT_LIM
+000A98  1  85 rr           sta inv_grid_x_lo
+000A9A  1  A9 00           lda #>INV_X_LEFT_LIM
+000A9C  1  85 rr           sta inv_grid_x_hi
+000A9E  1  64 rr           stz inv_direction
+000AA0  1  A9 01           lda #1
+000AA2  1  85 rr           sta inv_drop_flag
+000AA4  1               
+000AA4  1               @sprites_done:
+000AA4  1  20 A8 0A        jsr update_invader_sprites
+000AA7  1  60              rts
+000AA8  1               
+000AA8  1               ;******************************************************************
+000AA8  1               ; update_invader_sprites — write all 55 invader sprite attributes to VERA
+000AA8  1               ;
+000AA8  1               ;   VERA sprite slots 11-65 hold the 55 invaders.
+000AA8  1               ;   Attributes base: $1FC58 ($1FC00 + 11*8).
+000AA8  1               ;   With stride=1 the VERA address auto-increments, so we set it
+000AA8  1               ;   once and write all 440 bytes sequentially.
+000AA8  1               ;
+000AA8  1               ;   Byte layout per sprite:
+000AA8  1               ;     0: data addr[12:5]   (encodes VRAM pixel data address + frame)
+000AA8  1               ;     1: $00               (4bpp, addr[16:13]=0)
+000AA8  1               ;     2: X[7:0]
+000AA8  1               ;     3: X[9:8]
+000AA8  1               ;     4: Y[7:0]
+000AA8  1               ;     5: Y[9:8]
+000AA8  1               ;     6: z-depth/collision
+000AA8  1               ;     7: palette / size
+000AA8  1               ;
+000AA8  1               ;   Invader index i = row*11 + col; alive bit i in inv_alive bitmap.
+000AA8  1               ;   For Phase 3 all invaders are alive; alive check will be added Phase 4.
+000AA8  1               ;******************************************************************
+000AA8  1               update_invader_sprites:
+000AA8  1  9C 25 9F        stz VERA_ctrl
+000AAB  1  A9 11           lda #$11              ; stride=1, VRAM bank bit=1 (addr $1Fxxxx)
+000AAD  1  8D 22 9F        sta VERA_addr_bank
+000AB0  1  A9 FC           lda #$FC
+000AB2  1  8D 21 9F        sta VERA_addr_high
+000AB5  1  A9 58           lda #$58
+000AB7  1  8D 20 9F        sta VERA_addr_low     ; VERA now at $1FC58, auto-increments by 1
+000ABA  1               
+000ABA  1                  ; precompute grid Y base = INV_GRID_Y_BASE + inv_offset_y
+000ABA  1  A9 50           lda #<INV_GRID_Y_BASE
+000ABC  1  18              clc
+000ABD  1  65 rr           adc inv_offset_y
+000ABF  1  85 rr           sta zp_y_base_lo
+000AC1  1  A9 00           lda #>INV_GRID_Y_BASE
+000AC3  1  69 00           adc #0
+000AC5  1  85 rr           sta zp_y_base_hi
+000AC7  1               
+000AC7  1  64 rr           stz zp_row
+000AC9  1               @row_loop:
+000AC9  1                  ; compute row Y: zp_row_y = zp_y_base + row_y_offsets[row]
+000AC9  1  A4 rr           ldy zp_row
+000ACB  1  B9 B4 0D        lda row_y_offsets,y
+000ACE  1  18              clc
+000ACF  1  65 rr           adc zp_y_base_lo
+000AD1  1  85 rr           sta zp_row_y_lo
+000AD3  1  A9 00           lda #0
+000AD5  1  65 rr           adc zp_y_base_hi
+000AD7  1  85 rr           sta zp_row_y_hi
+000AD9  1               
+000AD9  1                  ; select addr byte0 based on row type and animation frame
+000AD9  1  A4 rr           ldy zp_row
+000ADB  1  A5 rr           lda inv_anim_frame
+000ADD  1  F0 05           beq @use_f0
+000ADF  1  B9 99 0D        lda inv_addr_b0_f1,y
+000AE2  1  80 03           bra @got_b0
+000AE4  1               @use_f0:
+000AE4  1  B9 94 0D        lda inv_addr_b0_f0,y
+000AE7  1               @got_b0:
+000AE7  1  85 rr           sta zp_addr_b0
+000AE9  1               
+000AE9  1  64 rr           stz zp_col
+000AEB  1               @col_loop:
+000AEB  1                  ; compute sprite X = inv_grid_x + col_x_offsets[col]
+000AEB  1  A4 rr           ldy zp_col
+000AED  1  B9 9E 0D        lda col_x_lo,y
+000AF0  1  18              clc
+000AF1  1  65 rr           adc inv_grid_x_lo
+000AF3  1  85 rr           sta zp_x_lo
+000AF5  1  B9 A9 0D        lda col_x_hi,y
+000AF8  1  65 rr           adc inv_grid_x_hi
+000AFA  1  85 rr           sta zp_x_hi
+000AFC  1               
+000AFC  1                  ; write 8 attribute bytes (VERA auto-increments)
+000AFC  1  A5 rr           lda zp_addr_b0
+000AFE  1  8D 23 9F        sta VERA_data0        ; byte 0: data addr[12:5]
+000B01  1  9C 23 9F        stz VERA_data0        ; byte 1: 4bpp, addr[16:13]=0
+000B04  1  A5 rr           lda zp_x_lo
+000B06  1  8D 23 9F        sta VERA_data0        ; byte 2: X[7:0]
+000B09  1  A5 rr           lda zp_x_hi
+000B0B  1  29 03           and #$03
+000B0D  1  8D 23 9F        sta VERA_data0        ; byte 3: X[9:8]
+000B10  1  A5 rr           lda zp_row_y_lo
+000B12  1  8D 23 9F        sta VERA_data0        ; byte 4: Y[7:0]
+000B15  1  A5 rr           lda zp_row_y_hi
+000B17  1  29 03           and #$03
+000B19  1  8D 23 9F        sta VERA_data0        ; byte 5: Y[9:8]
+000B1C  1  A9 0C           lda #SPR_Z_FRONT
+000B1E  1  8D 23 9F        sta VERA_data0        ; byte 6: z-depth=3 (in front of all layers)
+000B21  1  A9 50           lda #SPR_16x16_PAL0
+000B23  1  8D 23 9F        sta VERA_data0        ; byte 7: 16x16, palette offset 0
+000B26  1               
+000B26  1  E6 rr           inc zp_col
+000B28  1  A5 rr           lda zp_col
+000B2A  1  C9 0B           cmp #11
+000B2C  1  D0 BD           bne @col_loop
+000B2E  1               
+000B2E  1  E6 rr           inc zp_row
+000B30  1  A5 rr           lda zp_row
+000B32  1  C9 05           cmp #5
+000B34  1  D0 93           bne @row_loop
+000B36  1               
+000B36  1  60              rts
+000B37  1               
+000B37  1               ;******************************************************************
+000B37  1               ; move_player — apply key_flags movement and clamp to screen edges
+000B37  1               ;******************************************************************
+000B37  1               move_player:
+000B37  1  A5 rr           lda key_flags
+000B39  1               
+000B39  1                  ; --- move left ---
+000B39  1  29 01           and #KEY_LEFT
+000B3B  1  F0 1F           beq @check_right
+000B3D  1  A5 rr           lda player_x_lo
+000B3F  1  38              sec
+000B40  1  E9 04           sbc #PLAYER_SPEED
+000B42  1  85 rr           sta player_x_lo
+000B44  1  B0 02           bcs @clamp_left              ; no borrow → hi unchanged
+000B46  1  C6 rr           dec player_x_hi
+000B48  1               @clamp_left:
+000B48  1                  ; Clamp: if hi went negative ($FF) or (hi=0 AND lo < min) → set to min
+000B48  1  A5 rr           lda player_x_hi
+000B4A  1  30 08           bmi @set_min                 ; $80–$FF = underflowed
+000B4C  1  D0 0E           bne @check_right             ; hi > 0 → still above minimum
+000B4E  1  A5 rr           lda player_x_lo
+000B50  1  C9 08           cmp #PLAYER_X_MIN
+000B52  1  B0 08           bcs @check_right             ; lo >= min → ok
+000B54  1               @set_min:
+000B54  1  A9 08           lda #<PLAYER_X_MIN
+000B56  1  85 rr           sta player_x_lo
+000B58  1  A9 00           lda #>PLAYER_X_MIN
+000B5A  1  85 rr           sta player_x_hi
+000B5C  1               
+000B5C  1                  ; --- move right ---
+000B5C  1               @check_right:
+000B5C  1  A5 rr           lda key_flags
+000B5E  1  29 02           and #KEY_RIGHT
+000B60  1  F0 23           beq @move_done
+000B62  1  A5 rr           lda player_x_lo
+000B64  1  18              clc
+000B65  1  69 04           adc #PLAYER_SPEED
+000B67  1  85 rr           sta player_x_lo
+000B69  1  90 02           bcc @clamp_right             ; no carry → hi unchanged
+000B6B  1  E6 rr           inc player_x_hi
+000B6D  1               @clamp_right:
+000B6D  1                  ; Clamp: if hi > max_hi, OR (hi == max_hi AND lo > max_lo) → set to max
+000B6D  1  A5 rr           lda player_x_hi
+000B6F  1  C9 02           cmp #>PLAYER_X_MAX
+000B71  1  90 12           bcc @move_done               ; hi < max_hi → definitely ok
+000B73  1  D0 08           bne @set_max                 ; hi > max_hi → over limit
+000B75  1  A5 rr           lda player_x_lo
+000B77  1  C9 68           cmp #<PLAYER_X_MAX
+000B79  1  90 0A           bcc @move_done               ; lo < max_lo when hi == max_hi → ok
+000B7B  1  F0 08           beq @move_done               ; lo == max_lo → exactly at max, ok
+000B7D  1               @set_max:
+000B7D  1  A9 68           lda #<PLAYER_X_MAX
+000B7F  1  85 rr           sta player_x_lo
+000B81  1  A9 02           lda #>PLAYER_X_MAX
+000B83  1  85 rr           sta player_x_hi
+000B85  1               
+000B85  1               @move_done:
+000B85  1  60              rts
+000B86  1               
+000B86  1               ;******************************************************************
+000B86  1               ; update_player_sprite — write current X position to sprite 1 in VERA
+000B86  1               ;   Only X needs updating (Y is fixed)
+000B86  1               ;******************************************************************
+000B86  1               update_player_sprite:
+000B86  1  9C 25 9F        stz VERA_ctrl
+000B89  1  A9 11 8D 22     VERA_SET_ADDR (SPRITE1_ATTR + 2), 1
+000B8D  1  9F A9 FC 8D  
+000B91  1  21 9F A9 0A  
+000B98  1  A5 rr           lda player_x_lo
+000B9A  1  8D 23 9F        sta VERA_data0               ; sprite byte 2: X[7:0]
+000B9D  1  A5 rr           lda player_x_hi
+000B9F  1  29 03           and #$03
+000BA1  1  8D 23 9F        sta VERA_data0               ; sprite byte 3: X[9:8]
+000BA4  1  60              rts
+000BA5  1               
+000BA5  1               ;******************************************************************
+000BA5  1               ; draw_title_screen — print static Phase 1 info to screen
+000BA5  1               ;   Called once at startup; static text stays until screen cleared
+000BA5  1               ;******************************************************************
+000BA5  1               draw_title_screen:
+000BA5  1                  ; Row 2, col 14: "X16 INVADERS"
+000BA5  1  A9 02           lda #2
+000BA7  1  A0 0E           ldy #14
+000BA9  1  18              clc
+000BAA  1  20 F0 FF        jsr PLOT
+000BAD  1  A2 00           ldx #0
+000BAF  1  BD 7D 0C     @lp1: lda str_title,x
+000BB2  1  F0 06           beq @lp1_done
+000BB4  1  20 D2 FF        jsr CHROUT
+000BB7  1  E8              inx
+000BB8  1  80 F5           bra @lp1
+000BBA  1               @lp1_done:
+000BBA  1               
+000BBA  1                  ; Row 4, col 10: "PHASE 1 - FOUNDATION"
+000BBA  1  A9 04           lda #4
+000BBC  1  A0 0A           ldy #10
+000BBE  1  18              clc
+000BBF  1  20 F0 FF        jsr PLOT
+000BC2  1  A2 00           ldx #0
+000BC4  1  BD 8A 0C     @lp2: lda str_subtitle,x
+000BC7  1  F0 06           beq @lp2_done
+000BC9  1  20 D2 FF        jsr CHROUT
+000BCC  1  E8              inx
+000BCD  1  80 F5           bra @lp2
+000BCF  1               @lp2_done:
+000BCF  1               
+000BCF  1                  ; Row 8, col 2: status lines
+000BCF  1  A9 08           lda #8
+000BD1  1  A0 02           ldy #2
+000BD3  1  18              clc
+000BD4  1  20 F0 FF        jsr PLOT
+000BD7  1  A2 00           ldx #0
+000BD9  1  BD A1 0C     @lp3: lda str_status_vsync,x
+000BDC  1  F0 06           beq @lp3_done
+000BDE  1  20 D2 FF        jsr CHROUT
+000BE1  1  E8              inx
+000BE2  1  80 F5           bra @lp3
+000BE4  1               @lp3_done:
+000BE4  1               
+000BE4  1  A9 0A           lda #10
+000BE6  1  A0 02           ldy #2
+000BE8  1  18              clc
+000BE9  1  20 F0 FF        jsr PLOT
+000BEC  1  A2 00           ldx #0
+000BEE  1  BD B8 0C     @lp4: lda str_status_kbd,x
+000BF1  1  F0 06           beq @lp4_done
+000BF3  1  20 D2 FF        jsr CHROUT
+000BF6  1  E8              inx
+000BF7  1  80 F5           bra @lp4
+000BF9  1               @lp4_done:
+000BF9  1               
+000BF9  1  A9 0C           lda #12
+000BFB  1  A0 02           ldy #2
+000BFD  1  18              clc
+000BFE  1  20 F0 FF        jsr PLOT
+000C01  1  A2 00           ldx #0
+000C03  1  BD D3 0C     @lp5: lda str_status_spr,x
+000C06  1  F0 06           beq @lp5_done
+000C08  1  20 D2 FF        jsr CHROUT
+000C0B  1  E8              inx
+000C0C  1  80 F5           bra @lp5
+000C0E  1               @lp5_done:
+000C0E  1               
+000C0E  1                  ; Row 15, col 2: exit hint
+000C0E  1  A9 0F           lda #15
+000C10  1  A0 02           ldy #2
+000C12  1  18              clc
+000C13  1  20 F0 FF        jsr PLOT
+000C16  1  A2 00           ldx #0
+000C18  1  BD E5 0C     @lp6: lda str_exit_hint,x
+000C1B  1  F0 06           beq @lp6_done
+000C1D  1  20 D2 FF        jsr CHROUT
+000C20  1  E8              inx
+000C21  1  80 F5           bra @lp6
+000C23  1               @lp6_done:
+000C23  1               
+000C23  1  60              rts
+000C24  1               
+000C24  1               ;******************************************************************
+000C24  1               ; update_hud — rewrite dynamic values each frame
+000C24  1               ;   Overwrites fixed screen positions; no full redraw needed
+000C24  1               ;******************************************************************
+000C24  1               update_hud:
+000C24  1                  ; Frame counter at row 19, col 2
+000C24  1  A9 13           lda #19
+000C26  1  A0 02           ldy #2
+000C28  1  18              clc
+000C29  1  20 F0 FF        jsr PLOT
+000C2C  1  A2 00           ldx #0
+000C2E  1  BD FC 0C     @fc_lbl: lda str_frame_lbl,x
+000C31  1  F0 06           beq @fc_val
+000C33  1  20 D2 FF        jsr CHROUT
+000C36  1  E8              inx
+000C37  1  80 F5           bra @fc_lbl
+000C39  1               @fc_val:
+000C39  1  A5 rr           lda frame_count
+000C3B  1  20 5E 0C        jsr print_hex_byte
+000C3E  1               
+000C3E  1                  ; Last key at row 21, col 2
+000C3E  1  A9 15           lda #21
+000C40  1  A0 02           ldy #2
+000C42  1  18              clc
+000C43  1  20 F0 FF        jsr PLOT
+000C46  1  A2 00           ldx #0
+000C48  1  BD 08 0D     @kl_lbl: lda str_key_lbl,x
+000C4B  1  F0 06           beq @kl_val
+000C4D  1  20 D2 FF        jsr CHROUT
+000C50  1  E8              inx
+000C51  1  80 F5           bra @kl_lbl
+000C53  1               @kl_val:
+000C53  1  A5 rr           lda key_last
+000C55  1  20 5E 0C        jsr print_hex_byte
+000C58  1  A9 20           lda #' '
+000C5A  1  20 D2 FF        jsr CHROUT                    ; erase stale digit if value shrank
+000C5D  1               
+000C5D  1  60              rts
+000C5E  1               
+000C5E  1               ;******************************************************************
+000C5E  1               ; print_hex_byte — print .A as two uppercase hex digits via CHROUT
+000C5E  1               ;******************************************************************
+000C5E  1               print_hex_byte:
+000C5E  1  48              pha
+000C5F  1  4A              lsr                           ; shift high nibble down
+000C60  1  4A              lsr
+000C61  1  4A              lsr
+000C62  1  4A              lsr
+000C63  1  20 6D 0C        jsr print_hex_nybble
+000C66  1  68              pla
+000C67  1  29 0F           and #$0F                      ; isolate low nibble
+000C69  1  20 6D 0C        jsr print_hex_nybble
+000C6C  1  60              rts
+000C6D  1               
+000C6D  1               ; print_hex_nybble — print lower 4 bits of .A as one hex digit
+000C6D  1               ;   Relies on carry state from CMP to select digit vs. letter range
+000C6D  1               print_hex_nybble:
+000C6D  1  C9 0A           cmp #10
+000C6F  1  90 06           bcc @digit                    ; carry clear → 0-9
+000C71  1  69 36           adc #($41 - 10 - 1)          ; A-F: 'A'=65; carry set adds 1
+000C73  1  20 D2 FF        jsr CHROUT
+000C76  1  60              rts
+000C77  1               @digit:
+000C77  1  69 30           adc #$30                      ; 0-9: '0'=48; carry clear adds 0
+000C79  1  20 D2 FF        jsr CHROUT
+000C7C  1  60              rts
+000C7D  1               
+000C7D  1               ;******************************************************************
+000C7D  1               ; String data — null-terminated, PETSCII uppercase
+000C7D  1               ;******************************************************************
+000C7D  1               str_title:
+000C7D  1  D8 31 36 20     .byte "X16 INVADERS", 0
+000C81  1  C9 CE D6 C1  
+000C85  1  C4 C5 D2 D3  
+000C8A  1               str_subtitle:
+000C8A  1  D0 C8 C1 D3     .byte "PHASE 3 - INVADER GRID", 0
+000C8E  1  C5 20 33 20  
+000C92  1  2D 20 C9 CE  
+000CA1  1               str_status_vsync:
+000CA1  1  D6 D3 D9 CE     .byte "VSYNC : WAI (60HZ IRQ)", 0
+000CA5  1  C3 20 3A 20  
+000CA9  1  D7 C1 C9 20  
+000CB8  1               str_status_kbd:
+000CB8  1  CB C5 D9 C2     .byte "KEYBOARD: JOYSTICK + GETIN", 0
+000CBC  1  CF C1 D2 C4  
+000CC0  1  3A 20 CA CF  
+000CD3  1               str_status_spr:
+000CD3  1  D3 D0 D2 C9     .byte "SPRITES : ENABLED", 0
+000CD7  1  D4 C5 D3 20  
+000CDB  1  3A 20 C5 CE  
+000CE5  1               str_exit_hint:
+000CE5  1  D0 D2 C5 D3     .byte "PRESS RUN/STOP TO EXIT", 0
+000CE9  1  D3 20 D2 D5  
+000CED  1  CE 2F D3 D4  
+000CFC  1               str_frame_lbl:
+000CFC  1  C6 D2 C1 CD     .byte "FRAME   : $", 0
+000D00  1  C5 20 20 20  
+000D04  1  3A 20 24 00  
+000D08  1               str_key_lbl:
+000D08  1  CC C1 D3 D4     .byte "LAST KEY: $", 0
+000D0C  1  20 CB C5 D9  
+000D10  1  3A 20 24 00  
+000D14  1               
+000D14  1               ;******************************************************************
+000D14  1               ; player_spr_data — 16x16 4bpp sprite, 128 bytes
+000D14  1               ;
+000D14  1               ;   Color 0 = transparent, Color 1 = white (default palette index 1)
+000D14  1               ;   Design: classic upward-pointing triangular ship with engine notches
+000D14  1               ;
+000D14  1               ;   Each byte encodes 2 pixels: high nibble = left, low nibble = right
+000D14  1               ;   Columns: 0123456789ABCDEF
+000D14  1               ;
+000D14  1               ;   Row  0:  .......1........   cannon tip
+000D14  1               ;   Row  1:  .......11.......
+000D14  1               ;   Row  2:  ......111.......
+000D14  1               ;   Row  3:  ......111.......
+000D14  1               ;   Row  4:  .....11111......
+000D14  1               ;   Row  5:  .....1111111....
+000D14  1               ;   Row  6:  ...111111111....
+000D14  1               ;   Row  7:  ..11111111111...
+000D14  1               ;   Row  8:  .1111111111111..
+000D14  1               ;   Row  9:  1111111111111111   full base
+000D14  1               ;   Row 10:  1111111111111111
+000D14  1               ;   Row 11:  1111111111111111
+000D14  1               ;   Row 12:  11..11111111..11   engine notches
+000D14  1               ;   Row 13:  11..11111111..11
+000D14  1               ;   Row 14:  ................
+000D14  1               ;   Row 15:  ................
+000D14  1               ;******************************************************************
+000D14  1               player_spr_data:
+000D14  1                  ; row 0
+000D14  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00
+000D18  1  00 00 00 00  
+000D1C  1                  ; row 1
+000D1C  1  00 00 00 01     .byte $00,$00,$00,$01,$10,$00,$00,$00
+000D20  1  10 00 00 00  
+000D24  1                  ; row 2
+000D24  1  00 00 00 01     .byte $00,$00,$00,$01,$10,$00,$00,$00
+000D28  1  10 00 00 00  
+000D2C  1                  ; row 3
+000D2C  1  00 00 00 01     .byte $00,$00,$00,$01,$10,$00,$00,$00
+000D30  1  10 00 00 00  
+000D34  1                  ; row 4
+000D34  1  00 00 01 11     .byte $00,$00,$01,$11,$11,$10,$00,$00
+000D38  1  11 10 00 00  
+000D3C  1                  ; row 5
+000D3C  1  00 00 11 11     .byte $00,$00,$11,$11,$11,$11,$00,$00
+000D40  1  11 11 00 00  
+000D44  1                  ; row 6
+000D44  1  00 01 11 11     .byte $00,$01,$11,$11,$11,$11,$10,$00
+000D48  1  11 11 10 00  
+000D4C  1                  ; row 7
+000D4C  1  00 01 11 11     .byte $00,$01,$11,$11,$11,$11,$10,$00
+000D50  1  11 11 10 00  
+000D54  1                  ; row 8
+000D54  1  01 11 11 11     .byte $01,$11,$11,$11,$11,$11,$11,$10
+000D58  1  11 11 11 10  
+000D5C  1                  ; row 9
+000D5C  1  11 11 11 11     .byte $11,$11,$11,$11,$11,$11,$11,$11
+000D60  1  11 11 11 11  
+000D64  1                  ; row 10
+000D64  1  11 11 11 11     .byte $11,$11,$11,$11,$11,$11,$11,$11
+000D68  1  11 11 11 11  
+000D6C  1                  ; row 11
+000D6C  1  11 11 11 11     .byte $11,$11,$11,$11,$11,$11,$11,$11
+000D70  1  11 11 11 11  
+000D74  1                  ; row 12  (engine notches: cols 2-3 and 12-13 transparent)
+000D74  1  11 00 11 11     .byte $11,$00,$11,$11,$11,$11,$00,$11
+000D78  1  11 11 00 11  
+000D7C  1                  ; row 13
+000D7C  1  11 00 11 11     .byte $11,$00,$11,$11,$11,$11,$00,$11
+000D80  1  11 11 00 11  
+000D84  1                  ; row 14
+000D84  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00
+000D88  1  00 00 00 00  
+000D8C  1                  ; row 15
+000D8C  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00
+000D90  1  00 00 00 00  
+000D94  1               
+000D94  1               ;******************************************************************
+000D94  1               ; Lookup tables for update_invader_sprites
+000D94  1               ;
+000D94  1               ;   inv_addr_b0_f0/f1 — sprite data addr[12:5] for row 0-4, each frame
+000D94  1               ;     Row 0 = Type C (squid),   VRAM $00300/$00380 → $18/$1C
+000D94  1               ;     Rows 1-2 = Type B (octo), VRAM $00200/$00280 → $10/$14
+000D94  1               ;     Rows 3-4 = Type A (crab), VRAM $00100/$00180 → $08/$0C
+000D94  1               ;
+000D94  1               ;   col_x_lo/hi — column X offset = col * INV_SPACING_X (=40), columns 0-10
+000D94  1               ;   row_y_offsets — row Y offset = row * INV_SPACING_Y (=48), rows 0-4
+000D94  1               ;******************************************************************
+000D94  1  18 10 10 08  inv_addr_b0_f0: .byte $18, $10, $10, $08, $08   ; rows 0-4, frame 0
+000D98  1  08           
+000D99  1  1C 14 14 0C  inv_addr_b0_f1: .byte $1C, $14, $14, $0C, $0C   ; rows 0-4, frame 1
+000D9D  1  0C           
+000D9E  1               
+000D9E  1  00 28 50 78  col_x_lo:       .byte   0, 40, 80,120,160,200,240, 24, 64,104,144
+000DA2  1  A0 C8 F0 18  
+000DA6  1  40 68 90     
+000DA9  1  00 00 00 00  col_x_hi:       .byte   0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1
+000DAD  1  00 00 00 01  
+000DB1  1  01 01 01     
+000DB4  1               
+000DB4  1  00 30 60 90  row_y_offsets:  .byte   0, 48, 96,144,192          ; rows 0-4
+000DB8  1  C0           
+000DB9  1               
+000DB9  1               ;******************************************************************
+000DB9  1               ; Invader sprite pixel data — 16x16 4bpp, 128 bytes each
+000DB9  1               ; Each byte encodes 2 pixels: high nibble = left pixel, low nibble = right
+000DB9  1               ; Color 0 = transparent
+000DB9  1               ;
+000DB9  1               ; Type A (crab,   rows 3-4): color 4 = green
+000DB9  1               ; Type B (octopus, rows 1-2): color 3 = magenta
+000DB9  1               ; Type C (squid,  row 0):    color 2 = cyan
+000DB9  1               ;
+000DB9  1               ; Design key (16 pixels wide):
+000DB9  1               ;   .  = 0 (transparent)
+000DB9  1               ;   A/B/C = color 4/3/2 for each type
+000DB9  1               ;******************************************************************
+000DB9  1               
+000DB9  1               ;------------------------------------------------------------------
+000DB9  1               ; Type A — crab, green (color 4), frame 0 (legs spread)
+000DB9  1               ;
+000DB9  1               ;   0: ................
+000DB9  1               ;   1: 4...4......4...4   claw tips
+000DB9  1               ;   2: .4............4.
+000DB9  1               ;   3: .4444444444444.   body top
+000DB9  1               ;   4: 44.44.4444.44.44  eye gaps
+000DB9  1               ;   5: 4444444444444444
+000DB9  1               ;   6: .44444444444444.
+000DB9  1               ;   7: 4..4........4..4  legs spread
+000DB9  1               ;   8: 4...........4...
+000DB9  1               ;   9-15: ..............
+000DB9  1               ;------------------------------------------------------------------
+000DB9  1               inv_a_spr_f0:
+000DB9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0
+000DBD  1  00 00 00 00  
+000DC1  1  40 00 40 00     .byte $40,$00,$40,$00,$00,$04,$00,$04  ; row 1
+000DC5  1  00 04 00 04  
+000DC9  1  04 00 00 00     .byte $04,$00,$00,$00,$00,$00,$04,$00  ; row 2
+000DCD  1  00 00 04 00  
+000DD1  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 3
+000DD5  1  44 44 44 40  
+000DD9  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 4
+000DDD  1  44 04 40 44  
+000DE1  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 5
+000DE5  1  44 04 40 44  
+000DE9  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 6
+000DED  1  44 04 40 44  
+000DF1  1  44 44 44 44     .byte $44,$44,$44,$44,$44,$44,$44,$44  ; row 7
+000DF5  1  44 44 44 44  
+000DF9  1  44 44 44 44     .byte $44,$44,$44,$44,$44,$44,$44,$44  ; row 8
+000DFD  1  44 44 44 44  
+000E01  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 9
+000E05  1  44 44 44 40  
+000E09  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 10
+000E0D  1  44 44 44 40  
+000E11  1  40 04 00 00     .byte $40,$04,$00,$00,$00,$00,$40,$04  ; row 11
+000E15  1  00 00 40 04  
+000E19  1  40 04 00 00     .byte $40,$04,$00,$00,$00,$00,$40,$04  ; row 12
+000E1D  1  00 00 40 04  
+000E21  1  40 00 00 00     .byte $40,$00,$00,$00,$00,$00,$00,$04  ; row 13
+000E25  1  00 00 00 04  
+000E29  1  40 00 00 00     .byte $40,$00,$00,$00,$00,$00,$00,$04  ; row 14
+000E2D  1  00 00 00 04  
+000E31  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+000E35  1  00 00 00 00  
+000E39  1               
+000E39  1               ;------------------------------------------------------------------
+000E39  1               ; Type A — crab, green (color 4), frame 1 (legs tucked)
+000E39  1               ;
+000E39  1               ;   rows 0-6: same as frame 0
+000E39  1               ;   7: .4..........4.  legs tucked inward
+000E39  1               ;   8: ..4..........4..
+000E39  1               ;------------------------------------------------------------------
+000E39  1               inv_a_spr_f1:
+000E39  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0
+000E3D  1  00 00 00 00  
+000E41  1  40 00 40 00     .byte $40,$00,$40,$00,$00,$04,$00,$04  ; row 1  (same)
+000E45  1  00 04 00 04  
+000E49  1  04 00 00 00     .byte $04,$00,$00,$00,$00,$00,$04,$00  ; row 2  (same)
+000E4D  1  00 00 04 00  
+000E51  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 3  (same)
+000E55  1  44 44 44 40  
+000E59  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 4  (same)
+000E5D  1  44 04 40 44  
+000E61  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 5  (same)
+000E65  1  44 04 40 44  
+000E69  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 6  (same)
+000E6D  1  44 04 40 44  
+000E71  1  44 44 44 44     .byte $44,$44,$44,$44,$44,$44,$44,$44  ; row 7  legs tucked
+000E75  1  44 44 44 44  
+000E79  1  44 44 44 44     .byte $44,$44,$44,$44,$44,$44,$44,$44  ; row 8
+000E7D  1  44 44 44 44  
+000E81  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 9
+000E85  1  44 44 44 40  
+000E89  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 10
+000E8D  1  44 44 44 40  
+000E91  1  04 00 04 00     .byte $04,$00,$04,$00,$00,$40,$00,$40  ; row 11
+000E95  1  00 40 00 40  
+000E99  1  04 00 04 00     .byte $04,$00,$04,$00,$00,$40,$00,$40  ; row 12
+000E9D  1  00 40 00 40  
+000EA1  1  00 40 00 00     .byte $00,$40,$00,$00,$00,$00,$04,$00  ; row 13
+000EA5  1  00 00 04 00  
+000EA9  1  00 40 00 00     .byte $00,$40,$00,$00,$00,$00,$04,$00  ; row 14
+000EAD  1  00 00 04 00  
+000EB1  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+000EB5  1  00 00 00 00  
+000EB9  1               
+000EB9  1               ;------------------------------------------------------------------
+000EB9  1               ; Type B — octopus, magenta (color 3), frame 0 (tentacles out-wide)
+000EB9  1               ;
+000EB9  1               ;   0: ................
+000EB9  1               ;   1: ..333333333333..  dome top
+000EB9  1               ;   2: .3333333333333.
+000EB9  1               ;   3: 33.333333333.33   bumps
+000EB9  1               ;   4: 3.33.33333.33.3   eye row
+000EB9  1               ;   5: 3333333333333333
+000EB9  1               ;   6: .3333333333333.
+000EB9  1               ;   7: 3..3...33...3..3  tentacles
+000EB9  1               ;   8: 3...........3
+000EB9  1               ;------------------------------------------------------------------
+000EB9  1               inv_b_spr_f0:
+000EB9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0
+000EBD  1  00 00 00 00  
+000EC1  1  00 33 33 33     .byte $00,$33,$33,$33,$33,$33,$33,$00  ; row 1
+000EC5  1  33 33 33 00  
+000EC9  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 2
+000ECD  1  33 33 33 30  
+000ED1  1  33 03 33 33     .byte $33,$03,$33,$33,$33,$33,$30,$33  ; row 3
+000ED5  1  33 33 30 33  
+000ED9  1  33 03 33 33     .byte $33,$03,$33,$33,$33,$33,$30,$33  ; row 4
+000EDD  1  33 33 30 33  
+000EE1  1  30 33 30 33     .byte $30,$33,$30,$33,$33,$30,$33,$03  ; row 5 eye row
+000EE5  1  33 30 33 03  
+000EE9  1  30 33 30 33     .byte $30,$33,$30,$33,$33,$30,$33,$03  ; row 6 eye row
+000EED  1  33 30 33 03  
+000EF1  1  33 33 33 33     .byte $33,$33,$33,$33,$33,$33,$33,$33  ; row 7
+000EF5  1  33 33 33 33  
+000EF9  1  33 33 33 33     .byte $33,$33,$33,$33,$33,$33,$33,$33  ; row 8
+000EFD  1  33 33 33 33  
+000F01  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 9
+000F05  1  33 33 33 30  
+000F09  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 10
+000F0D  1  33 33 33 30  
+000F11  1  30 03 00 03     .byte $30,$03,$00,$03,$30,$00,$30,$03  ; row 11
+000F15  1  30 00 30 03  
+000F19  1  30 03 00 30     .byte $30,$03,$00,$30,$03,$00,$30,$03  ; row 12
+000F1D  1  03 00 30 03  
+000F21  1  30 00 00 00     .byte $30,$00,$00,$00,$00,$00,$00,$03  ; row 13
+000F25  1  00 00 00 03  
+000F29  1  30 00 00 00     .byte $30,$00,$00,$00,$00,$00,$00,$03  ; row 14
+000F2D  1  00 00 00 03  
+000F31  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+000F35  1  00 00 00 00  
+000F39  1               
+000F39  1               ;------------------------------------------------------------------
+000F39  1               ; Type B — octopus, magenta (color 3), frame 1 (tentacles angled in)
+000F39  1               ;
+000F39  1               ;   rows 0-6: same as frame 0
+000F39  1               ;   7: .3..3.....3..3.   tentacles angled in
+000F39  1               ;   8: .3...........3.
+000F39  1               ;------------------------------------------------------------------
+000F39  1               inv_b_spr_f1:
+000F39  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0
+000F3D  1  00 00 00 00  
+000F41  1  00 33 33 33     .byte $00,$33,$33,$33,$33,$33,$33,$00  ; row 1  (same)
+000F45  1  33 33 33 00  
+000F49  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 2  (same)
+000F4D  1  33 33 33 30  
+000F51  1  33 03 33 33     .byte $33,$03,$33,$33,$33,$33,$30,$33  ; row 3  (same)
+000F55  1  33 33 30 33  
+000F59  1  33 03 33 33     .byte $33,$03,$33,$33,$33,$33,$30,$33  ; row 4  (same)
+000F5D  1  33 33 30 33  
+000F61  1  30 33 03 33     .byte $30,$33,$03,$33,$33,$03,$33,$03  ; row 5  (same)
+000F65  1  33 03 33 03  
+000F69  1  30 33 03 33     .byte $30,$33,$03,$33,$33,$03,$33,$03  ; row 6  (same)
+000F6D  1  33 03 33 03  
+000F71  1  33 33 33 33     .byte $33,$33,$33,$33,$33,$33,$33,$33  ; row 7  tentacles in
+000F75  1  33 33 33 33  
+000F79  1  33 33 33 33     .byte $33,$33,$33,$33,$33,$33,$33,$33  ; row 8
+000F7D  1  33 33 33 33  
+000F81  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 9
+000F85  1  33 33 33 30  
+000F89  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 10
+000F8D  1  33 33 33 30  
+000F91  1  03 00 30 03     .byte $03,$00,$30,$03,$00,$30,$03,$00  ; row 11
+000F95  1  00 30 03 00  
+000F99  1  00 30 30 03     .byte $00,$30,$30,$03,$00,$30,$03,$00  ; row 12
+000F9D  1  00 30 03 00  
+000FA1  1  03 00 00 00     .byte $03,$00,$00,$00,$00,$00,$00,$30  ; row 13
+000FA5  1  00 00 00 30  
+000FA9  1  03 00 00 00     .byte $03,$00,$00,$00,$00,$00,$00,$30  ; row 14
+000FAD  1  00 00 00 30  
+000FB1  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+000FB5  1  00 00 00 00  
+000FB9  1               
+000FB9  1               ;------------------------------------------------------------------
+000FB9  1               ; Type C — squid, cyan (color 2), frame 0 (antennae out)
+000FB9  1               ;
+000FB9  1               ;   0: ...2.......2...   antenna tips
+000FB9  1               ;   1: ..22........22..
+000FB9  1               ;   2: ..222222222222..
+000FB9  1               ;   3: .2222222222222.
+000FB9  1               ;   4: 2222222222222222
+000FB9  1               ;   5: 2.22.222222.22.2  eye row
+000FB9  1               ;   6: 2222222222222222
+000FB9  1               ;   7: .2.2.......2.2.   bottom fringe
+000FB9  1               ;   8: 2...........2
+000FB9  1               ;------------------------------------------------------------------
+000FB9  1               inv_c_spr_f0:
+000FB9  1  00 00 02 00     .byte $00,$00,$02,$00,$00,$20,$00,$00  ; row 0
+000FBD  1  00 20 00 00  
+000FC1  1  00 00 22 00     .byte $00,$00,$22,$00,$00,$22,$00,$00  ; row 1
+000FC5  1  00 22 00 00  
+000FC9  1  00 00 22 22     .byte $00,$00,$22,$22,$22,$22,$00,$00  ; row 2
+000FCD  1  22 22 00 00  
+000FD1  1  00 02 20 22     .byte $00,$02,$20,$22,$20,$22,$20,$00  ; row 3
+000FD5  1  20 22 20 00  
+000FD9  1  00 22 20 22     .byte $00,$22,$20,$22,$20,$22,$22,$00  ; row 4
+000FDD  1  20 22 22 00  
+000FE1  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 5 eye row
+000FE5  1  22 22 22 00  
+000FE9  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 6
+000FED  1  22 22 22 00  
+000FF1  1  00 20 22 02     .byte $00,$20,$22,$02,$20,$22,$02,$00  ; row 7
+000FF5  1  20 22 02 00  
+000FF9  1  00 20 22 02     .byte $00,$20,$22,$02,$20,$22,$02,$00  ; row 8
+000FFD  1  20 22 02 00  
+001001  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 9
+001005  1  22 22 22 00  
+001009  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 10
+00100D  1  22 22 22 00  
+001011  1  00 02 02 00     .byte $00,$02,$02,$00,$00,$20,$20,$00  ; row 11
+001015  1  00 20 20 00  
+001019  1  00 02 02 00     .byte $00,$02,$02,$00,$00,$20,$20,$00  ; row 12
+00101D  1  00 20 20 00  
+001021  1  00 20 00 00     .byte $00,$20,$00,$00,$00,$00,$02,$00  ; row 13
+001025  1  00 00 02 00  
+001029  1  00 02 00 00     .byte $00,$02,$00,$00,$00,$00,$20,$00  ; row 14
+00102D  1  00 00 20 00  
+001031  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+001035  1  00 00 00 00  
+001039  1               
+001039  1               ;------------------------------------------------------------------
+001039  1               ; Type C — squid, cyan (color 2), frame 1 (antennae pulled inward)
+001039  1               ;
+001039  1               ;   row 0: .....2.2.2.....   antennae closer to centre
+001039  1               ;   row 1: ....22....22....
+001039  1               ;   rows 2-8: same as frame 0
+001039  1               ;------------------------------------------------------------------
+001039  1               inv_c_spr_f1:
+001039  1  00 02 00 00     .byte $00,$02,$00,$00,$00,$00,$20,$00  ; row 0  antennae in
+00103D  1  00 00 20 00  
+001041  1  00 00 22 00     .byte $00,$00,$22,$00,$00,$22,$00,$00  ; row 1
+001045  1  00 22 00 00  
+001049  1  00 00 22 22     .byte $00,$00,$22,$22,$22,$22,$00,$00  ; row 2  (same)
+00104D  1  22 22 00 00  
+001051  1  00 02 22 02     .byte $00,$02,$22,$02,$22,$02,$20,$00  ; row 3  (same)
+001055  1  22 02 20 00  
+001059  1  00 22 22 02     .byte $00,$22,$22,$02,$22,$02,$22,$00  ; row 4  (same)
+00105D  1  22 02 22 00  
+001061  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 5  (same)
+001065  1  22 22 22 00  
+001069  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 6  (same)
+00106D  1  22 22 22 00  
+001071  1  00 20 22 02     .byte $00,$20,$22,$02,$20,$22,$02,$00  ; row 7  (same)
+001075  1  20 22 02 00  
+001079  1  00 20 22 02     .byte $00,$20,$22,$02,$20,$22,$02,$00  ; row 8  (same)
+00107D  1  20 22 02 00  
+001081  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 9
+001085  1  22 22 22 00  
+001089  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 10
+00108D  1  22 22 22 00  
+001091  1  00 02 02 00     .byte $00,$02,$02,$00,$00,$20,$20,$00  ; row 11
+001095  1  00 20 20 00  
+001099  1  00 02 02 00     .byte $00,$02,$02,$00,$00,$20,$20,$00  ; row 12
+00109D  1  00 20 20 00  
+0010A1  1  00 20 00 00     .byte $00,$20,$00,$00,$00,$00,$02,$00  ; row 13
+0010A5  1  00 00 02 00  
+0010A9  1  00 20 00 00     .byte $00,$20,$00,$00,$00,$00,$02,$00  ; row 14
+0010AD  1  00 00 02 00  
+0010B1  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+0010B5  1  00 00 00 00  
+0010B9  1               
+0010B9  1               ;******************************************************************
+0010B9  1               
