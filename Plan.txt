@@ -436,32 +436,32 @@ GETIN approach feels sluggish).
 --------------------------------------------------------------
 
 Phase 1 — Foundation
-  [ ] Set up VERA 320x240 mode with Layer 1 text HUD
-  [ ] Upload palette and dummy sprite data
-  [ ] VSYNC wait loop
-  [ ] Keyboard input (GETIN polling)
-  [ ] Draw "HELLO" on screen to confirm display works
+  [x] Set up VERA 320x240 mode with Layer 1 text HUD
+  [x] Upload palette and dummy sprite data
+  [x] VSYNC wait loop
+  [x] Keyboard input (GETIN polling)
+  [x] Draw "HELLO" on screen to confirm display works
 
 Phase 2 — Player
-  [ ] Define player sprite pixel data
-  [ ] Upload and display player sprite
-  [ ] Move player left/right with arrow keys
-  [ ] Clamp to screen edges
+  [x] Define player sprite pixel data
+  [x] Upload and display player sprite
+  [x] Move player left/right with arrow keys
+  [x] Clamp to screen edges
 
 Phase 3 — Invader Grid
-  [ ] Define all three invader sprite pixel data (both frames)
-  [ ] Initialize 55 invader sprites at correct positions
-  [ ] Invader march movement (timer-based, direction + drop)
-  [ ] Animation frame toggle on step
-  [ ] Alive/dead bitmap; disable sprite when dead
+  [x] Define all three invader sprite pixel data (both frames)
+  [x] Initialize 55 invader sprites at correct positions
+  [x] Invader march movement (timer-based, direction + drop)
+  [x] Animation frame toggle on step
+  [x] Alive/dead bitmap; disable sprite when dead
 
 Phase 4 — Combat
-  [ ] Player bullet: fire, move, boundary check
-  [ ] Bullet vs. invader collision → kill invader, score
-  [ ] Speed increase as invaders die
-  [ ] Explosion sprite + timer
-  [ ] Invader bullets: spawn, move, boundary check
-  [ ] Invader bullet vs. player → lose life
+  [x] Player bullet: fire, move, boundary check
+  [x] Bullet vs. invader collision → kill invader, score
+  [x] Speed increase as invaders die
+  [x] Explosion sprite + timer
+  [x] Invader bullets: spawn, move, boundary check
+  [x] Invader bullet vs. player → lose life
 
 Phase 5 — Shields & UFO
   [ ] Shield sprites (4 damage levels per shield)

@@ -32,6 +32,37 @@ zp_row_y_lo:    .res 1           ; row Y = y_base + row spacing offset
 zp_row_y_hi:    .res 1
 zp_addr_b0:     .res 1           ; VERA sprite data addr[12:5] for current row+frame
 
+; --- Player bullet state ---
+bullet_active:  .res 1           ; 0=inactive, 1=active
+bullet_x_lo:    .res 1           ; bullet X low byte (VERA coords)
+bullet_x_hi:    .res 1           ; bullet X high byte
+bullet_y_lo:    .res 1           ; bullet Y low byte (VERA coords)
+bullet_y_hi:    .res 1           ; bullet Y high byte
+
+; --- Score ---
+score_lo:       .res 1           ; score BCD byte 0 (digits 1-2)
+score_mid:      .res 1           ; score BCD byte 1 (digits 3-4)
+score_hi:       .res 1           ; score BCD byte 2 (digits 5-6)
+
+; --- Scratch for 16-bit math (collision etc.) ---
+zp_scratch_lo:  .res 1
+zp_scratch_hi:  .res 1
+
+; --- Explosion ---
+exp_timer:      .res 1           ; frames remaining for explosion display (0=inactive)
+
+; --- Invader bullets (3 slots, parallel arrays) ---
+ibul_active:    .res 3           ; 0=inactive, 1=active (one per slot)
+ibul_x_lo:      .res 3           ; X position low byte (VERA coords)
+ibul_x_hi:      .res 3           ; X position high byte
+ibul_y_lo:      .res 3           ; Y position low byte (VERA coords)
+ibul_y_hi:      .res 3           ; Y position high byte
+inv_fire_timer: .res 1           ; frames until next fire attempt
+
+; --- Player lives & invincibility ---
+lives:          .res 1           ; remaining lives (0-3)
+inv_hit_timer:  .res 1           ; invincibility frames remaining after being hit (0=vulnerable)
+
 ;******************************************************************
 .segment "ONCE"
 .segment "CODE"
@@ -85,6 +116,29 @@ PLAYER_SPEED    = 4              ; pixels per frame
 SPRITE1_ATTR    = $1FC08 ; sprite 1 attribute base ($1FC00=sprite 0, reserved for KERNAL mouse)
 SPR_Z_FRONT     = %00001100     ; byte 6: z-depth = %11 in bits 3-2 (in front of all layers)
 SPR_16x16_PAL0  = %01010000     ; byte 7: width=1(16px), height=1(16px), palette_off=0
+SPR_8x8_PAL0    = %00000000     ; byte 7: width=0(8px),  height=0(8px),  palette_off=0
+
+; Explosion sprite (slot 4)
+VRAM_EXPLOSION     = $00440     ; explosion pixel data (128 bytes, 16x16 4bpp)
+EXPLODE_SPRITE_ATTR = $1FC20    ; sprite 4 attribute base (explosion)
+EXPLODE_FRAMES     = 30         ; display duration in frames (~0.5 sec at 60 Hz)
+
+; Invader bullets (sprite slots 5-7)
+VRAM_INV_BULLET    = $00420     ; invader bullet pixel data (32 bytes, 8x8 4bpp)
+INV_BULLET_SPR_BASE = $1FC28    ; sprite 5 attribute base (first invader bullet)
+INV_BULLET_SPEED   = 6          ; VERA pixels per frame downward (=3 game pixels)
+INV_FIRE_TIMER_MIN = 10         ; minimum frames between fire attempts
+INV_FIRE_TIMER_INIT = 90        ; frames before first shot
+
+; Player lives
+LIVES_INIT         = 3          ; starting lives
+INV_HIT_FRAMES     = 120        ; invincibility duration after being hit (2 sec at 60 Hz)
+
+; Player bullet
+BULLET_SPRITE_ATTR = $1FC10     ; sprite 2 attribute base (player bullet)
+VRAM_BULLET     = $00400        ; player bullet pixel data (32 bytes, 8x8 4bpp)
+BULLET_SPEED    = 12            ; VERA pixels per frame upward (= 6 game pixels)
+BULLET_Y_INIT   = PLAYER_Y - 8 ; bullet starts just above player ship top
 
 ; Invader grid geometry (VERA 640x480 coordinate space)
 INV_GRID_X_INIT   = 112         ; left-column X at start (centered: (640 - 10*40 - 16) / 2 = 112)
@@ -95,6 +149,7 @@ INV_STEP_X        = 4           ; VERA pixels per march step
 INV_DROP_Y        = 16          ; VERA pixels per grid drop
 INV_MOVE_SPEED_INIT = 50        ; frames between march steps (initial)
 INV_COUNT_INIT    = 55
+INV_MOVE_SPEED_MIN = 5           ; minimum frames per march step
 
 ; Grid boundary: when grid_x reaches these values, reverse and drop
 ; Rightmost invader base X = grid_x + 10*INV_SPACING_X (=400). Right wall = 624 (640-16px).
@@ -143,6 +198,10 @@ start:
    stz key_last
    stz key_flags
    stz frame_count
+   stz bullet_active
+   stz score_lo
+   stz score_mid
+   stz score_hi
 
    ; Set initial player position before sprite init reads it
    jsr init_player
@@ -182,8 +241,41 @@ main_loop:
    cmp #KEY_RUN_STOP
    beq exit_game
 
+   ; --- invincibility timer ---
+   lda inv_hit_timer
+   beq @no_inv_dec
+   dec inv_hit_timer
+@no_inv_dec:
+
    jsr move_player               ; apply movement, clamp to boundaries
    jsr update_player_sprite      ; write new X to VERA sprite 1
+
+   ; --- fire player bullet (SPACE pressed and bullet not already active) ---
+   lda key_flags
+   and #KEY_FIRE
+   beq @skip_fire
+   lda bullet_active
+   bne @skip_fire
+   jsr fire_bullet
+@skip_fire:
+
+   ; --- move bullet if active ---
+   lda bullet_active
+   beq @skip_bullet_move
+   jsr move_bullet
+@skip_bullet_move:
+
+   ; --- check player bullet vs invader collision ---
+   jsr check_bullet_invader
+
+   ; --- explosion timer ---
+   jsr update_explosion
+
+   ; --- invader bullets: move, spawn, boundary check ---
+   jsr update_inv_bullets
+
+   ; --- invader bullet vs player collision ---
+   jsr check_inv_bullet_player
 
    ; --- Invader march timer ---
    dec inv_move_timer
@@ -286,6 +378,9 @@ init_player:
    sta player_x_lo
    lda #>PLAYER_X_INIT
    sta player_x_hi
+   lda #LIVES_INIT
+   sta lives
+   stz inv_hit_timer
    rts
 
 ;******************************************************************
@@ -325,7 +420,6 @@ init_sprites:
    sta VERA_data0
    lda #$00                               ; R=$0
    sta VERA_data0
-
    ; --- disable sprite 0 (KERNAL mouse cursor) ---
    VERA_SET_ADDR (VRAM_sprattr + 6), 1   ; sprite 0 byte 6 = z-depth
    lda #$00                               ; z-depth=0 → disabled
@@ -361,6 +455,103 @@ init_sprites:
    sta VERA_data0               ; byte 6: z-depth=3, no collision, no flip
    lda #SPR_16x16_PAL0
    sta VERA_data0               ; byte 7: palette 0, 16x16
+
+   ; --- upload player bullet pixel data to VRAM $00400 ---
+   VERA_SET_ADDR VRAM_BULLET, 1
+   ldx #0
+@up_bullet:
+   lda bullet_spr_data,x
+   sta VERA_data0
+   inx
+   cpx #32
+   bne @up_bullet
+
+   ; --- write sprite 2 attributes (initially disabled, z-depth=0) ---
+   VERA_SET_ADDR BULLET_SPRITE_ATTR, 1
+   lda #$20                     ; byte 0: addr[12:5] = $00400>>5 = $20
+   sta VERA_data0
+   lda #$00                     ; byte 1: 4bpp, addr[16:13]=0
+   sta VERA_data0
+   lda #$00                     ; byte 2: X lo (arbitrary; sprite disabled)
+   sta VERA_data0
+   lda #$00                     ; byte 3: X hi
+   sta VERA_data0
+   lda #$00                     ; byte 4: Y lo
+   sta VERA_data0
+   lda #$00                     ; byte 5: Y hi
+   sta VERA_data0
+   lda #$00                     ; byte 6: z-depth=0 → disabled
+   sta VERA_data0
+   lda #SPR_8x8_PAL0            ; byte 7: 8x8, palette 0
+   sta VERA_data0
+
+   ; --- upload explosion pixel data to VRAM $00440 ---
+   VERA_SET_ADDR VRAM_EXPLOSION, 1
+   ldx #0
+@up_exp:
+   lda explosion_pixels,x
+   sta VERA_data0
+   inx
+   cpx #128
+   bne @up_exp
+
+   ; --- write sprite 4 attributes (initially disabled) ---
+   ; addr[12:5] = VRAM_EXPLOSION>>5 = $00440>>5 = $22
+   VERA_SET_ADDR EXPLODE_SPRITE_ATTR, 1
+   lda #$22                     ; byte 0: addr[12:5]
+   sta VERA_data0
+   lda #$00                     ; byte 1: 4bpp, addr[16:13]=0
+   sta VERA_data0
+   lda #$00                     ; byte 2: X lo (placeholder)
+   sta VERA_data0
+   lda #$00                     ; byte 3: X hi
+   sta VERA_data0
+   lda #$00                     ; byte 4: Y lo (placeholder)
+   sta VERA_data0
+   lda #$00                     ; byte 5: Y hi
+   sta VERA_data0
+   lda #$00                     ; byte 6: z-depth=0 → disabled
+   sta VERA_data0
+   lda #SPR_16x16_PAL0          ; byte 7: 16x16, palette 0
+   sta VERA_data0
+
+   stz exp_timer
+
+   ; --- upload invader bullet pixel data to VRAM $00420 ---
+   VERA_SET_ADDR VRAM_INV_BULLET, 1
+   ldx #0
+@up_ibul:
+   lda inv_bullet_spr_data,x
+   sta VERA_data0
+   inx
+   cpx #32
+   bne @up_ibul
+
+   ; --- init 3 invader bullet sprites (slots 5-7, base $1FC28), all disabled ---
+   ; addr[12:5] = VRAM_INV_BULLET>>5 = $00420>>5 = $21
+   VERA_SET_ADDR INV_BULLET_SPR_BASE, 1
+   ldx #3                       ; 3 sprites
+@init_ibspr:
+   lda #$21                     ; byte 0: addr[12:5] = $21
+   sta VERA_data0
+   lda #$00
+   sta VERA_data0               ; byte 1: 4bpp, bank 0
+   sta VERA_data0               ; byte 2: X lo
+   sta VERA_data0               ; byte 3: X hi
+   sta VERA_data0               ; byte 4: Y lo
+   sta VERA_data0               ; byte 5: Y hi
+   sta VERA_data0               ; byte 6: z-depth=0 → disabled
+   sta VERA_data0               ; byte 7: 8x8, palette 0
+   dex
+   bne @init_ibspr
+
+   ; --- clear invader bullet state ---
+   stz ibul_active+0
+   stz ibul_active+1
+   stz ibul_active+2
+   lda #INV_FIRE_TIMER_INIT
+   sta inv_fire_timer
+
    rts
 
 ;******************************************************************
@@ -588,9 +779,52 @@ update_invader_sprites:
 @got_b0:
    sta zp_addr_b0
 
+   jsr update_invader_row
+
+   inc zp_row
+   lda zp_row
+   cmp #5
+   bne @row_loop
+
+   rts
+
+;******************************************************************
+; update_invader_row — write 11 sprite attribute blocks for one row
+;
+;   Inputs (ZP): zp_row, zp_addr_b0, zp_row_y_lo/hi, inv_grid_x_lo/hi
+;   VERA address register must already be set to the first sprite slot
+;   for this row on entry (maintained by the sequential write stream).
+;******************************************************************
+update_invader_row:
    stz zp_col
 @col_loop:
-   ; compute sprite X = inv_grid_x + col_x_offsets[col]
+   ; --- determine z-depth from alive bitmap ---
+   ; index = inv_row_base[row] + col; byte = index>>3; bit = index&7
+   ldy zp_row
+   lda inv_row_base,y
+   clc
+   adc zp_col
+   tay                   ; Y = invader index
+   and #$07
+   tax                   ; X = bit index
+   lda bit_masks,x
+   pha                   ; save bit mask
+   tya
+   lsr
+   lsr
+   lsr
+   tay                   ; Y = byte index into inv_alive
+   pla                   ; A = bit mask
+   and inv_alive,y
+   beq @zdepth_off
+   lda #SPR_Z_FRONT
+   bra @zdepth_done
+@zdepth_off:
+   lda #0
+@zdepth_done:
+   sta zp_scratch_lo     ; save z-depth before VERA stream starts
+
+   ; --- compute sprite X = inv_grid_x + col_x_offsets[col] ---
    ldy zp_col
    lda col_x_lo,y
    clc
@@ -600,7 +834,7 @@ update_invader_sprites:
    adc inv_grid_x_hi
    sta zp_x_hi
 
-   ; write 8 attribute bytes (VERA auto-increments)
+   ; --- write 8 attribute bytes (VERA auto-increments) ---
    lda zp_addr_b0
    sta VERA_data0        ; byte 0: data addr[12:5]
    stz VERA_data0        ; byte 1: 4bpp, addr[16:13]=0
@@ -614,8 +848,8 @@ update_invader_sprites:
    lda zp_row_y_hi
    and #$03
    sta VERA_data0        ; byte 5: Y[9:8]
-   lda #SPR_Z_FRONT
-   sta VERA_data0        ; byte 6: z-depth=3 (in front of all layers)
+   lda zp_scratch_lo
+   sta VERA_data0        ; byte 6: z-depth (SPR_Z_FRONT if alive, 0 if dead)
    lda #SPR_16x16_PAL0
    sta VERA_data0        ; byte 7: 16x16, palette offset 0
 
@@ -623,11 +857,6 @@ update_invader_sprites:
    lda zp_col
    cmp #11
    bne @col_loop
-
-   inc zp_row
-   lda zp_row
-   cmp #5
-   bne @row_loop
 
    rts
 
@@ -702,7 +931,700 @@ update_player_sprite:
    lda player_x_hi
    and #$03
    sta VERA_data0               ; sprite byte 3: X[9:8]
+   ; update z-depth based on inv_hit_timer:
+   ;   timer = 0        → show solid (not hit)
+   ;   timer = 61-120   → hidden solid (1-second respawn delay)
+   ;   timer = 1-60     → flashing (invincible, visible warning)
+   VERA_SET_ADDR (SPRITE1_ATTR + 6), 1
+   lda inv_hit_timer
+   beq @show                    ; timer=0 → show solid
+   cmp #61
+   bcs @hide                    ; timer>=61 → first second: fully hidden
+   and #$08                     ; timer 1-60: bit 3 flips every 8 frames → ~4 Hz flash
+   bne @hide
+@show:
+   lda #SPR_Z_FRONT
+   bra @write_z
+@hide:
+   lda #0
+@write_z:
+   sta VERA_data0               ; sprite byte 6: z-depth
    rts
+
+;******************************************************************
+; fire_bullet — activate player bullet at cannon tip, update sprite
+;   Bullet X centers the 8-px bullet over the 16-px player ship:
+;     bullet_x = player_x + 4
+;   Bullet Y starts 8 VERA pixels above the player sprite top.
+;   Caller must check bullet_active == 0 before calling.
+;******************************************************************
+fire_bullet:
+   lda player_x_lo
+   clc
+   adc #4
+   sta bullet_x_lo
+   lda player_x_hi
+   adc #0
+   sta bullet_x_hi
+
+   lda #<BULLET_Y_INIT
+   sta bullet_y_lo
+   lda #>BULLET_Y_INIT
+   sta bullet_y_hi
+
+   lda #1
+   sta bullet_active
+   jsr update_bullet_sprite
+   rts
+
+;******************************************************************
+; move_bullet — move bullet upward by BULLET_SPEED each frame;
+;   deactivate when it reaches the top of the screen (Y underflows 0)
+;******************************************************************
+move_bullet:
+   lda bullet_y_lo
+   sec
+   sbc #BULLET_SPEED
+   sta bullet_y_lo
+   lda bullet_y_hi
+   sbc #0
+   sta bullet_y_hi
+   bmi @deactivate              ; 16-bit underflow past 0 → off screen
+
+   jsr update_bullet_sprite
+   rts
+
+@deactivate:
+   stz bullet_active
+   jsr update_bullet_sprite     ; disables sprite (z-depth=0)
+   rts
+
+;******************************************************************
+; update_bullet_sprite — write bullet position and enable/disable
+;   to VERA sprite 2 (bytes 2-6); byte 7 set once at init.
+;   z-depth = SPR_Z_FRONT when active, 0 when inactive.
+;******************************************************************
+update_bullet_sprite:
+   stz VERA_ctrl
+   VERA_SET_ADDR (BULLET_SPRITE_ATTR + 2), 1
+   lda bullet_x_lo
+   sta VERA_data0               ; byte 2: X[7:0]
+   lda bullet_x_hi
+   and #$03
+   sta VERA_data0               ; byte 3: X[9:8]
+   lda bullet_y_lo
+   sta VERA_data0               ; byte 4: Y[7:0]
+   lda bullet_y_hi
+   and #$03
+   sta VERA_data0               ; byte 5: Y[9:8]
+   lda bullet_active
+   beq @z_off
+   lda #SPR_Z_FRONT
+   bra @write_z
+@z_off:
+   lda #$00
+@write_z:
+   sta VERA_data0               ; byte 6: z-depth
+   rts
+
+;******************************************************************
+; check_bullet_invader — scan all 55 invaders for a hit with the player bullet
+;
+;   Iterates rows 0-4, columns 0-10.  Skips dead invaders.
+;   For each live invader checks 16-bit AABB overlap:
+;     X: bullet_x+8 > inv_x  AND  bullet_x < inv_x+16
+;     Y: bullet_y+8 > inv_y  AND  bullet_y < inv_y+16
+;   On hit: calls kill_invader_hit and returns immediately.
+;
+;   Scratch used: zp_y_base_lo/hi, zp_row_y_lo/hi, zp_x_lo/hi,
+;                 zp_scratch_lo/hi, zp_row, zp_col
+;******************************************************************
+check_bullet_invader:
+   lda bullet_active
+   bne :+
+   rts
+:  ; precompute grid Y base = INV_GRID_Y_BASE + inv_offset_y
+   lda #<INV_GRID_Y_BASE
+   clc
+   adc inv_offset_y
+   sta zp_y_base_lo
+   lda #>INV_GRID_Y_BASE
+   adc #0
+   sta zp_y_base_hi
+
+   stz zp_row
+@row_loop:
+   ; row Y = y_base + row_y_offsets[row]
+   ldy zp_row
+   lda row_y_offsets,y
+   clc
+   adc zp_y_base_lo
+   sta zp_row_y_lo
+   lda #0
+   adc zp_y_base_hi
+   sta zp_row_y_hi
+
+   ; --- Quick Y range check for whole row ---
+   ; Need: bullet_y+8 > inv_y  AND  bullet_y < inv_y+16
+
+   ; (1) bullet_y+8 > inv_y  →  (bullet_y+8) - inv_y > 0
+   ;     result negative (bmi) means bullet above this row
+   lda bullet_y_lo
+   clc
+   adc #8
+   sta zp_scratch_lo
+   lda bullet_y_hi
+   adc #0
+   sta zp_scratch_hi
+   lda zp_scratch_lo
+   sec
+   sbc zp_row_y_lo
+   lda zp_scratch_hi
+   sbc zp_row_y_hi
+   bmi @next_row         ; bullet bottom above invader top → no hit in this row
+
+   ; (2) bullet_y < inv_y+16  →  bullet_y - (inv_y+16) < 0
+   ;     result >= 0 (bpl) means bullet below this row
+   lda zp_row_y_lo
+   clc
+   adc #16
+   sta zp_scratch_lo
+   lda zp_row_y_hi
+   adc #0
+   sta zp_scratch_hi
+   lda bullet_y_lo
+   sec
+   sbc zp_scratch_lo
+   lda bullet_y_hi
+   sbc zp_scratch_hi
+   bpl @next_row         ; bullet top at or below invader bottom → no hit
+
+   ; Y overlaps this row — check each column
+   jsr cbi_check_cols
+   bcs @done             ; hit found; bullet already handled
+
+@next_row:
+   inc zp_row
+   lda zp_row
+   cmp #5
+   bne @row_loop
+
+@done:
+   rts
+
+;******************************************************************
+; cbi_check_cols — column scan for check_bullet_invader
+;
+;   Scans all 11 columns of zp_row for an X overlap with the bullet.
+;   Assumes Y overlap for this row has already been confirmed.
+;   Returns: C set if hit (kill_invader_hit already called),
+;            C clear if no hit.
+;   Scratch used: zp_col, zp_x_lo/hi, zp_scratch_lo/hi
+;******************************************************************
+cbi_check_cols:
+   stz zp_col
+@col_loop:
+   ; skip if invader is dead
+   ldy zp_row
+   lda inv_row_base,y
+   clc
+   adc zp_col
+   tay                   ; Y = invader index
+   and #$07
+   tax
+   lda bit_masks,x
+   pha
+   tya
+   lsr
+   lsr
+   lsr
+   tay                   ; Y = byte index into inv_alive
+   pla
+   and inv_alive,y
+   beq @next_col         ; dead
+
+   ; compute inv_x = inv_grid_x + col_x_offsets[col]
+   ldy zp_col
+   lda col_x_lo,y
+   clc
+   adc inv_grid_x_lo
+   sta zp_x_lo
+   lda col_x_hi,y
+   adc inv_grid_x_hi
+   sta zp_x_hi
+
+   ; X check (1): bullet_x+8 > inv_x
+   lda bullet_x_lo
+   clc
+   adc #8
+   sta zp_scratch_lo
+   lda bullet_x_hi
+   adc #0
+   sta zp_scratch_hi
+   lda zp_scratch_lo
+   sec
+   sbc zp_x_lo
+   lda zp_scratch_hi
+   sbc zp_x_hi
+   bmi @next_col         ; bullet right edge left of invader → no hit
+
+   ; X check (2): bullet_x < inv_x+16
+   lda zp_x_lo
+   clc
+   adc #16
+   sta zp_scratch_lo
+   lda zp_x_hi
+   adc #0
+   sta zp_scratch_hi
+   lda bullet_x_lo
+   sec
+   sbc zp_scratch_lo
+   lda bullet_x_hi
+   sbc zp_scratch_hi
+   bpl @next_col         ; bullet left edge at or right of invader → no hit
+
+   ; --- HIT ---
+   jsr kill_invader_hit
+   sec                   ; signal hit to caller
+   rts
+
+@next_col:
+   inc zp_col
+   lda zp_col
+   cmp #11
+   bne @col_loop
+
+   clc                   ; no hit
+   rts
+
+;******************************************************************
+; kill_invader_hit — clear alive bit, deactivate bullet, update score & speed
+;   Expects zp_row, zp_col to identify the hit invader.
+;******************************************************************
+kill_invader_hit:
+   ; --- clear alive bit ---
+   ldy zp_row
+   lda inv_row_base,y
+   clc
+   adc zp_col
+   tay                   ; Y = invader index
+   and #$07
+   tax
+   lda bit_masks,x       ; bit mask for this invader
+   pha
+   tya
+   lsr
+   lsr
+   lsr
+   tay                   ; Y = byte index into inv_alive
+   pla
+   eor #$FF              ; invert → clear mask
+   and inv_alive,y
+   sta inv_alive,y
+
+   ; --- start explosion at the hit invader's position ---
+   ; zp_x_lo/hi and zp_row_y_lo/hi still hold the invader coords from collision detection
+   jsr start_explosion
+
+   ; --- deactivate bullet ---
+   stz bullet_active
+   jsr update_bullet_sprite
+
+   ; --- decrement inv_count ---
+   dec inv_count
+
+   ; --- update inv_move_speed: proportional to remaining count ---
+   ldx inv_count
+   lda inv_speed_table,x
+   sta inv_move_speed
+
+   ; --- add score for this row's invader type ---
+   ldy zp_row
+   lda score_by_row_bcd,y
+   jsr add_score
+   rts
+
+;******************************************************************
+; add_score — add BCD value in A to score_lo/mid/hi
+;******************************************************************
+add_score:
+   sed
+   clc
+   adc score_lo
+   sta score_lo
+   lda score_mid
+   adc #0
+   sta score_mid
+   lda score_hi
+   adc #0
+   sta score_hi
+   cld
+   rts
+
+;******************************************************************
+; start_explosion — position sprite 4 at the hit invader and start timer
+;
+;   Inputs: zp_x_lo/hi     — invader X (VERA coords)
+;           zp_row_y_lo/hi — invader Y (VERA coords)
+;   Sets exp_timer = EXPLODE_FRAMES and enables sprite 4.
+;******************************************************************
+start_explosion:
+   stz VERA_ctrl
+   VERA_SET_ADDR (EXPLODE_SPRITE_ATTR + 2), 1  ; start at byte 2 (X lo)
+   lda zp_x_lo
+   sta VERA_data0               ; byte 2: X[7:0]
+   lda zp_x_hi
+   and #$03
+   sta VERA_data0               ; byte 3: X[9:8]
+   lda zp_row_y_lo
+   sta VERA_data0               ; byte 4: Y[7:0]
+   lda zp_row_y_hi
+   and #$03
+   sta VERA_data0               ; byte 5: Y[9:8]
+   lda #SPR_Z_FRONT
+   sta VERA_data0               ; byte 6: z-depth=3 → enabled, in front
+   lda #EXPLODE_FRAMES
+   sta exp_timer
+   rts
+
+;******************************************************************
+; update_explosion — decrement exp_timer; disable sprite when it hits 0
+;******************************************************************
+update_explosion:
+   lda exp_timer
+   beq @inactive
+   dec exp_timer
+   bne @inactive
+   ; timer just expired — disable sprite 4
+   stz VERA_ctrl
+   VERA_SET_ADDR (EXPLODE_SPRITE_ATTR + 6), 1  ; byte 6 = z-depth
+   lda #$00
+   sta VERA_data0               ; z-depth=0 → disabled
+@inactive:
+   rts
+
+;******************************************************************
+; prng — 16-bit Galois LFSR, feedback polynomial $B400
+;   Updates rand_seed_lo/hi; returns pseudo-random byte in A.
+;******************************************************************
+prng:
+   lsr rand_seed_hi          ; shift 16-bit state right; carry = old hi[0]
+   ror rand_seed_lo          ; lo[7] = old hi[0]; carry = old lo[0] (feedback bit)
+   bcc @done                 ; feedback bit=0: no XOR
+   lda rand_seed_hi
+   eor #$B4                  ; XOR hi byte with feedback poly ($B400 >> 8)
+   sta rand_seed_hi
+@done:
+   lda rand_seed_lo
+   rts
+
+;******************************************************************
+; update_inv_bullets — fire timer, move active bullets, boundary check,
+;   update VERA sprites for all 3 invader bullet slots.
+;******************************************************************
+update_inv_bullets:
+   ; --- fire timer ---
+   dec inv_fire_timer
+   bne @move_loop
+   ; reset timer = max(inv_move_speed, INV_FIRE_TIMER_MIN)
+   lda inv_move_speed
+   cmp #INV_FIRE_TIMER_MIN
+   bcs @set_timer
+   lda #INV_FIRE_TIMER_MIN
+@set_timer:
+   sta inv_fire_timer
+   jsr try_fire_inv_bullet
+
+@move_loop:
+   ldx #0
+@slot_loop:
+   lda ibul_active,x
+   beq @update_spr           ; inactive: just hide sprite
+
+   ; move bullet down by INV_BULLET_SPEED
+   lda ibul_y_lo,x
+   clc
+   adc #INV_BULLET_SPEED
+   sta ibul_y_lo,x
+   lda ibul_y_hi,x
+   adc #0
+   sta ibul_y_hi,x
+
+   ; boundary: deactivate if Y >= 480 ($01E0)
+   cmp #>480                 ; A = new hi byte; compare with 1
+   bcc @update_spr           ; hi < 1: still on screen
+   bne @deactivate           ; hi > 1: off screen
+   lda ibul_y_lo,x
+   cmp #<480                 ; compare lo with $E0
+   bcc @update_spr           ; lo < $E0: still on screen
+@deactivate:
+   stz ibul_active,x
+
+@update_spr:
+   jsr update_inv_bullet_sprite   ; preserves X
+   inx
+   cpx #3
+   bne @slot_loop
+   rts
+
+;******************************************************************
+; update_inv_bullet_sprite — write VERA sprite attrs bytes 2-6 for slot X
+;   X = slot index (0-2).  Preserves X.
+;******************************************************************
+update_inv_bullet_sprite:
+   stx zp_scratch_lo              ; preserve slot index
+   stz VERA_ctrl
+   lda #$11                       ; stride=1, bank bit=1
+   sta VERA_addr_bank
+   lda #$FC
+   sta VERA_addr_high
+   lda ibul_spr_lo,x
+   clc
+   adc #2                         ; point to byte 2 (X position)
+   sta VERA_addr_low
+   lda ibul_x_lo,x
+   sta VERA_data0                 ; byte 2: X lo
+   lda ibul_x_hi,x
+   and #$03
+   sta VERA_data0                 ; byte 3: X hi
+   lda ibul_y_lo,x
+   sta VERA_data0                 ; byte 4: Y lo
+   lda ibul_y_hi,x
+   and #$03
+   sta VERA_data0                 ; byte 5: Y hi
+   lda ibul_active,x
+   beq @disabled
+   lda #SPR_Z_FRONT
+   bra @write_z
+@disabled:
+   lda #0
+@write_z:
+   sta VERA_data0                 ; byte 6: z-depth
+   ldx zp_scratch_lo
+   rts
+
+;******************************************************************
+; try_fire_inv_bullet — find a free slot and spawn a bullet from the
+;   bottommost live invader in a randomly chosen column.
+;   Returns immediately if all slots busy or chosen column is empty.
+;   Scratch used: zp_row, zp_col, zp_scratch_lo (slot index)
+;******************************************************************
+try_fire_inv_bullet:
+   ; find a free bullet slot
+   ldx #0
+@find_slot:
+   lda ibul_active,x
+   beq @slot_found
+   inx
+   cpx #3
+   bne @find_slot
+   rts                            ; all slots busy
+
+@slot_found:
+   stx zp_scratch_lo              ; save free slot index
+
+   ; pick a random column 0-10
+   jsr prng
+   and #$0F                       ; 0-15
+   cmp #11
+   bcc @col_ok
+   sec
+   sbc #11                        ; wrap 11-15 → 0-4 (slight bias, acceptable)
+@col_ok:
+   sta zp_col
+
+   ; scan rows 4 down to 0 for bottommost live invader in this column
+   lda #4
+   sta zp_row
+@row_scan:
+   ldy zp_row
+   lda inv_row_base,y
+   clc
+   adc zp_col
+   tay                            ; Y = invader index
+   and #$07
+   tax                            ; X = bit position
+   lda bit_masks,x
+   pha
+   tya
+   lsr
+   lsr
+   lsr
+   tay                            ; Y = byte index into inv_alive
+   pla
+   and inv_alive,y
+   bne @found_invader
+   lda zp_row
+   beq @no_invader                ; checked row 0, nothing alive
+   dec zp_row
+   bra @row_scan
+
+@no_invader:
+   rts                            ; column empty, skip fire
+
+@found_invader:
+   ldx zp_scratch_lo              ; restore free slot index
+   lda #1
+   sta ibul_active,x
+
+   ; spawn X = inv_grid_x + col_x_offsets[col]  (16-bit, matching update_invader_sprites)
+   ldy zp_col
+   lda col_x_lo,y
+   clc
+   adc inv_grid_x_lo
+   sta ibul_x_lo,x
+   lda col_x_hi,y
+   adc inv_grid_x_hi
+   sta ibul_x_hi,x
+   ; add +4 as a separate 16-bit step to centre the 8px bullet in the 16px invader
+   lda ibul_x_lo,x
+   clc
+   adc #4
+   sta ibul_x_lo,x
+   lda ibul_x_hi,x
+   adc #0
+   sta ibul_x_hi,x
+
+   ; spawn Y: compute y_base first (same two-step pattern as update_invader_sprites)
+   ; step 1: y_base = INV_GRID_Y_BASE + inv_offset_y  (16-bit)
+   lda #<INV_GRID_Y_BASE
+   clc
+   adc inv_offset_y
+   sta zp_y_base_lo
+   lda #>INV_GRID_Y_BASE
+   adc #0
+   sta zp_y_base_hi
+   ; step 2: spawn_y = y_base + row_y_offsets[row]
+   ldy zp_row
+   lda row_y_offsets,y
+   clc
+   adc zp_y_base_lo
+   sta ibul_y_lo,x
+   lda #0
+   adc zp_y_base_hi
+   sta ibul_y_hi,x
+   ; step 3: +16 to place bullet at the bottom edge of the 16px invader
+   lda ibul_y_lo,x
+   clc
+   adc #16
+   sta ibul_y_lo,x
+   lda ibul_y_hi,x
+   adc #0
+   sta ibul_y_hi,x
+
+   rts
+
+;******************************************************************
+; check_inv_bullet_player — AABB test each active invader bullet vs. player
+;
+;   Player rect: (player_x, PLAYER_Y) to (player_x+15, PLAYER_Y+15), 16x16
+;   Bullet rect: (ibul_x,   ibul_y)   to (ibul_x+7,   ibul_y+7),     8x8
+;
+;   On hit: bullet deactivated, jsr player_hit called, loop continues
+;   (remaining bullets checked — at most one hit landing per frame).
+;   Scratch: zp_scratch_lo/hi, X (slot index)
+;******************************************************************
+check_inv_bullet_player:
+   ldx #0
+@slot_loop:
+   lda ibul_active,x
+   beq @next_slot
+
+   ; --- Y check 1: (bullet_y + 8) > PLAYER_Y  →  bullet_y + 8 - PLAYER_Y > 0 ---
+   lda ibul_y_lo,x
+   clc
+   adc #8
+   sta zp_scratch_lo
+   lda ibul_y_hi,x
+   adc #0
+   sta zp_scratch_hi
+   lda zp_scratch_lo
+   sec
+   sbc #<PLAYER_Y
+   lda zp_scratch_hi
+   sbc #>PLAYER_Y
+   bmi @next_slot            ; bullet bottom above player top → no hit
+
+   ; --- Y check 2: bullet_y < PLAYER_Y + 16 → bullet_y - (PLAYER_Y+16) < 0 ---
+   lda ibul_y_lo,x
+   sec
+   sbc #<(PLAYER_Y+16)
+   lda ibul_y_hi,x
+   sbc #>(PLAYER_Y+16)
+   bpl @next_slot            ; bullet top at or below player bottom → no hit
+
+   ; --- X check 1: (bullet_x + 8) > player_x ---
+   lda ibul_x_lo,x
+   clc
+   adc #8
+   sta zp_scratch_lo
+   lda ibul_x_hi,x
+   adc #0
+   sta zp_scratch_hi
+   lda zp_scratch_lo
+   sec
+   sbc player_x_lo
+   lda zp_scratch_hi
+   sbc player_x_hi
+   bmi @next_slot            ; bullet right edge left of player → no hit
+
+   ; --- X check 2: bullet_x < player_x + 16 ---
+   lda player_x_lo
+   clc
+   adc #16
+   sta zp_scratch_lo
+   lda player_x_hi
+   adc #0
+   sta zp_scratch_hi
+   lda ibul_x_lo,x
+   sec
+   sbc zp_scratch_lo
+   lda ibul_x_hi,x
+   sbc zp_scratch_hi
+   bpl @next_slot            ; bullet left edge at or right of player → no hit
+
+   ; --- HIT ---
+   stz ibul_active,x         ; deactivate this bullet
+   jsr update_inv_bullet_sprite
+   jsr player_hit
+
+@next_slot:
+   inx
+   cpx #3
+   bne @slot_loop
+   rts
+
+;******************************************************************
+; player_hit — handle a bullet-player collision:
+;   explosion at player position, decrement lives, respawn, invincibility
+;******************************************************************
+player_hit:
+   ; start explosion at player position
+   lda player_x_lo
+   sta zp_x_lo
+   lda player_x_hi
+   sta zp_x_hi
+   lda #<PLAYER_Y
+   sta zp_row_y_lo
+   lda #>PLAYER_Y
+   sta zp_row_y_hi
+   jsr start_explosion
+
+   ; decrement lives
+   dec lives
+   beq @game_over            ; lives hit 0 → end game (Phase 6 will handle this properly)
+
+   ; grant invincibility and re-centre the ship
+   lda #INV_HIT_FRAMES
+   sta inv_hit_timer
+   lda #<PLAYER_X_INIT
+   sta player_x_lo
+   lda #>PLAYER_X_INIT
+   sta player_x_hi
+   rts
+
+@game_over:
+   jmp exit_game             ; placeholder: Phase 6 will show a game-over screen
 
 ;******************************************************************
 ; draw_title_screen — print static Phase 1 info to screen
@@ -935,6 +1857,27 @@ player_spr_data:
    .byte $00,$00,$00,$00,$00,$00,$00,$00
 
 ;******************************************************************
+; bullet_spr_data — 8x8 4bpp, 32 bytes
+;
+;   Color 0 = transparent, Color 1 = white
+;   Design: 2-pixel-wide vertical bar, centered in 8px columns 3-4
+;
+;   Each byte encodes 2 pixels: high nibble = left, low nibble = right
+;   Columns:  0 1 | 2 3 | 4 5 | 6 7
+;   Pattern:  . . | . 1 | 1 . | . .   → $00 $01 $10 $00
+;   All 8 rows identical.
+;******************************************************************
+bullet_spr_data:
+   .byte $00,$01,$10,$00  ; row 0
+   .byte $00,$01,$10,$00  ; row 1
+   .byte $00,$01,$10,$00  ; row 2
+   .byte $00,$01,$10,$00  ; row 3
+   .byte $00,$01,$10,$00  ; row 4
+   .byte $00,$01,$10,$00  ; row 5
+   .byte $00,$01,$10,$00  ; row 6
+   .byte $00,$01,$10,$00  ; row 7
+
+;******************************************************************
 ; Lookup tables for update_invader_sprites
 ;
 ;   inv_addr_b0_f0/f1 — sprite data addr[12:5] for row 0-4, each frame
@@ -952,6 +1895,66 @@ col_x_lo:       .byte   0, 40, 80,120,160,200,240, 24, 64,104,144
 col_x_hi:       .byte   0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1
 
 row_y_offsets:  .byte   0, 48, 96,144,192          ; rows 0-4
+
+; row * 11 base index into inv_alive bitmap (rows 0-4)
+inv_row_base:   .byte   0, 11, 22, 33, 44
+
+; single-bit masks for bits 0-7
+bit_masks:      .byte   1,  2,  4,  8, 16, 32, 64,128
+
+; BCD score per invader row (row 0=Type C, rows 1-2=Type B, rows 3-4=Type A)
+score_by_row_bcd: .byte $30, $20, $20, $10, $10
+
+; March speed (frames/step) indexed by remaining invader count (0-55).
+; Formula: floor(5 + n*45/55) — speed=5 at 0-1 alive, speed=50 at 55 alive.
+inv_speed_table:
+   .byte  5,  5,  6,  7,  8,  9,  9, 10, 11, 12, 13, 14   ; n=0-11
+   .byte 14, 15, 16, 17, 18, 18, 19, 20, 21, 22, 23, 23   ; n=12-23
+   .byte 24, 25, 26, 27, 27, 28, 29, 30, 31, 32, 32, 33   ; n=24-35
+   .byte 34, 35, 36, 36, 37, 38, 39, 40, 41, 41, 42, 43   ; n=36-47
+   .byte 44, 45, 45, 46, 47, 48, 49, 50                   ; n=48-55
+
+; VERA sprite-attribute low-byte for each invader bullet slot (0-2)
+; Sprite 5=$1FC28, 6=$1FC30, 7=$1FC38 — high byte always $FC
+ibul_spr_lo:    .byte $28, $30, $38
+
+;******************************************************************
+; Invader bullet sprite pixel data — 8x8 4bpp, 32 bytes
+; Zigzag pattern, colour 1 (white).  Each byte = 2 pixels (hi=left, lo=right).
+;******************************************************************
+inv_bullet_spr_data:
+   .byte $00,$10,$00,$00   ; row 0: . . 1 . | . . . .
+   .byte $00,$10,$00,$00   ; row 1
+   .byte $00,$01,$00,$00   ; row 2: . . . 1 | . . . .
+   .byte $00,$01,$00,$00   ; row 3
+   .byte $00,$10,$00,$00   ; row 4
+   .byte $00,$10,$00,$00   ; row 5
+   .byte $00,$01,$00,$00   ; row 6
+   .byte $00,$01,$00,$00   ; row 7
+
+;******************************************************************
+; Explosion sprite pixel data — 16x16 4bpp, 128 bytes
+; Color 1 = white (bright core), Color 6 = yellow (burst), 0 = transparent
+; Starburst pattern, symmetric about centre.
+;******************************************************************
+; Color indices: 1=white (core), 7=yellow (burst, KERNAL default palette entry 7)
+explosion_pixels:
+   .byte $00,$00,$07,$00,$00,$70,$00,$00   ; row  0
+   .byte $00,$07,$00,$07,$70,$00,$70,$00   ; row  1
+   .byte $00,$70,$07,$00,$00,$70,$07,$00   ; row  2
+   .byte $07,$00,$00,$77,$77,$00,$00,$70   ; row  3
+   .byte $00,$00,$77,$71,$17,$77,$00,$00   ; row  4
+   .byte $70,$70,$71,$11,$11,$17,$07,$07   ; row  5
+   .byte $00,$07,$71,$11,$11,$17,$70,$00   ; row  6
+   .byte $07,$77,$71,$11,$11,$17,$77,$70   ; row  7
+   .byte $07,$77,$71,$11,$11,$17,$77,$70   ; row  8
+   .byte $00,$07,$71,$11,$11,$17,$70,$00   ; row  9
+   .byte $70,$70,$71,$11,$11,$17,$07,$07   ; row 10
+   .byte $00,$00,$77,$71,$17,$77,$00,$00   ; row 11
+   .byte $07,$00,$00,$77,$77,$00,$00,$70   ; row 12
+   .byte $00,$70,$07,$00,$00,$70,$07,$00   ; row 13
+   .byte $00,$07,$00,$07,$70,$00,$70,$00   ; row 14
+   .byte $00,$00,$07,$00,$00,$70,$00,$00   ; row 15
 
 ;******************************************************************
 ; Invader sprite pixel data — 16x16 4bpp, 128 bytes each
