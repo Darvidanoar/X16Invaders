@@ -2188,9 +2188,9 @@ check_bullet_shields:
 check_invbullet_shields:
    ldx #0                 ; outer loop: invader bullet slot
 @ibul_loop:
+   stx zp_row             ; save slot before any branch
    lda ibul_active, x
    beq @next_ibul
-   stx zp_row             ; save bullet slot
 
    ; --- Y quick check ---
    ; (1) ibul_y+8 > SHIELD_Y
