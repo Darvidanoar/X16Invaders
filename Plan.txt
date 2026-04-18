@@ -464,13 +464,13 @@ Phase 4 — Combat
   [x] Invader bullet vs. player → lose life
 
 Phase 5 — Shields & UFO
-  [ ] Shield sprites (4 damage levels per shield)
-  [ ] Bullet vs. shield collision and damage
+  [x] Shield sprites (4 damage levels per shield)
+  [x] Bullet vs. shield collision and damage
   [ ] UFO spawn, movement, scoring
   [ ] UFO drone sound
 
 Phase 6 — Game States & Polish
-  [ ] Title screen
+  [x] Title screen
   [ ] Game over screen
   [ ] Wave clear / next wave
   [ ] Lives display (sprite icons or text)

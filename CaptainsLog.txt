@@ -1,0 +1,45 @@
+Start
+We're going to write a version of the Space Invaders game in 6502 Assembly Language, targeting the Commander X16 computer.  The player should use the arrow keys to move left and right and the space key to fire.  The game should run in 320x240 graphics mode and use sprites for moving characters.
+Please create a plan and save it to the Plan.txt file.  We'll generate the code in another session. 
+
+Phase 1
+Please refer to the Plan.txt file and build the game.
+
+Phase 2
+Went down a rabbit hole trying to fix a bug with the player character not moving.  Turned out the code was getting stuck at waitforsync and never reaching the player movement code.
+
+Phase 3
+Take 1
+Asked Claude to start phase 3 and exceeded the token maximum (78% of tokens used).
+Added a reference to the plan.txt file in Claude.md.  Hoping this will direct code to the plan without me having to tell it and also without Claude having to 'discover' it.
+Added some guidance to the Claude.md file to hopefully get better token usage.
+Take 2
+After the updates to Claude.md, this phase went pretty smoothly.  I onlyh had to tweak the sprites a little to get them looking closer to how I want.
+
+
+Phase 4
+Ran out of tokens real quick (twice).  Started asking Claude to write the code for each item in the phase, individually:
+- proceed with phase 4 of thr plan, but only write the player bullet fire, move and boundary check.  We'll continue with the rest of phase 4 later. (total used session tokens used: 12%)
+- now write the phase 4 code for: Bullet vs. invader collision → kill invader, score.  (total used session tokens used: 29%)  However, there are some long conditional branches coded that need to be addressed.
+New session
+- I asked claude to address each of these long conditional branches (total used session tokens used: 7%)
+- now write the phase 4 code for: Speed increase as invaders die (total used session tokens used: 12%)
+   NOTE: At this point Claude noticed that I had been checking the items as done in the plan.txt and asked to do that.
+- now write the phase 4 code for: Explosion sprite + timer (total used session tokens used: 22%)
+  The background colour had chnaged to an eye-bleeding yellow. 
+- When I ran the code after your last changes, the background colour is now yellow.  Can you please change this back to black? (total used session tokens used: 35%)
+- now write the phase 4 code for: Invader bullets: spawn, move, boundary check (total used session tokens used: 50%)
+- the invader bullets sometimes don't fall from a location where there is an invader.  It needs to look like the invaders are firing the invader bullets. (total used session tokens used: 65%)
+- Coninuing with phase 4, now write the code for: Invader bullet vs. player → lose life (total used session tokens used: 71%)
+- When the player cannon gets hit with an invader bullet, add a 1 second delay before the player's new cannon appears. 
+
+
+Phase 5:
+- please write phase 5 code for: Title screen [oops accidentally asked for a bit of phase 6] (total used session tokens used: 32%)
+- please write phase 5 code for: Shield sprites (4 damage levels per shield) (total used session tokens used: 58%)
+  The game seems to have stopped working - Debugging:
+  - claude the games seems to be getting stuck in the @ibul_loop loop of the check_invbullet_shields subroutine.  can you please fix that?  (total used session tokens used: 61%)
+- Claude, can you make the shield sprites look more like the ones in the original game? (total used session tokens used: 96%)
+
+
+
