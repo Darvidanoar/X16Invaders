@@ -66,6 +66,9 @@ hi_score_lo:    .res 1           ; hi-score BCD byte 0 (digits 1-2)
 hi_score_mid:   .res 1           ; hi-score BCD byte 1 (digits 3-4)
 hi_score_hi:    .res 1           ; hi-score BCD byte 2 (digits 5-6)
 
+; --- Shield state ---
+shield_damage:  .res 4           ; damage level per shield: 0=intact … 3=dmg3, 4=destroyed
+
 ;******************************************************************
 .segment "ONCE"
 .segment "CODE"
@@ -136,6 +139,14 @@ INV_FIRE_TIMER_INIT = 90        ; frames before first shot
 ; Player lives
 LIVES_INIT         = 3          ; starting lives
 INV_HIT_FRAMES     = 120        ; invincibility duration after being hit (2 sec at 60 Hz)
+
+; Shields
+SHIELD_Y           = 352        ; VERA Y coordinate for all 4 shields (176 display pixels)
+SHIELD_SPR_BASE    = $1FE10     ; sprite slot 66 attr ($1FC00 + 66*8); slots 8-65 in use
+VRAM_SHIELD_FULL   = $00500     ; 128-byte 16x16 4bpp tile: intact
+VRAM_SHIELD_DMG1   = $00580     ; 25% damaged
+VRAM_SHIELD_DMG2   = $00600     ; 50% damaged
+VRAM_SHIELD_DMG3   = $00680     ; 75% damaged
 
 ; Player bullet
 BULLET_SPRITE_ATTR = $1FC10     ; sprite 2 attribute base (player bullet)
@@ -283,6 +294,7 @@ title_loop:
 
 start_game:
    jsr update_invader_sprites   ; re-enable all 55 invaders at grid positions
+   jsr init_shields             ; upload shield tiles, init damage counters, place sprites
    lda #PETSCII_CLR
    jsr CHROUT                   ; clear title text, leave sprites visible
 
@@ -327,6 +339,9 @@ main_loop:
    ; --- check player bullet vs invader collision ---
    jsr check_bullet_invader
 
+   ; --- check player bullet vs shield collision ---
+   jsr check_bullet_shields
+
    ; --- explosion timer ---
    jsr update_explosion
 
@@ -335,6 +350,9 @@ main_loop:
 
    ; --- invader bullet vs player collision ---
    jsr check_inv_bullet_player
+
+   ; --- invader bullet vs shield collision ---
+   jsr check_invbullet_shields
 
    ; --- Invader march timer ---
    dec inv_move_timer
@@ -1916,6 +1934,353 @@ hide_all_inv_sprites:
    rts
 
 ;******************************************************************
+; init_shields — upload 4 damage tiles, set palette entry 7 to dark
+;   green, init shield_damage counters, write sprite attributes for
+;   all 4 shields (slots 66–69, base $1FE10).
+;
+;   Sprite positions: X = shield_x_lo/hi[n], Y = SHIELD_Y (352)
+;   Each shield sprite: 16x16, palette 0 (entry 7 = dark green).
+;******************************************************************
+init_shields:
+   stz VERA_ctrl
+
+   ; --- palette entry 7 → dark green (R=0, G=$A, B=0) ---
+   ; Palette byte 0: G[3:0] B[3:0] = $A0;  byte 1: R[3:0] = $00
+   VERA_SET_ADDR (VRAM_palette + 14), 1   ; entry 7 = offset 14 bytes
+   lda #$A0
+   sta VERA_data0
+   lda #$00
+   sta VERA_data0
+
+   ; --- upload shield_tile_full → $00500 ---
+   VERA_SET_ADDR VRAM_SHIELD_FULL, 1
+   ldx #128
+@up_s0: lda shield_tile_full - 128, x
+   sta VERA_data0
+   inx
+   bne @up_s0
+
+   ; --- upload shield_tile_dmg1 → $00580 ---
+   VERA_SET_ADDR VRAM_SHIELD_DMG1, 1
+   ldx #128
+@up_s1: lda shield_tile_dmg1 - 128, x
+   sta VERA_data0
+   inx
+   bne @up_s1
+
+   ; --- upload shield_tile_dmg2 → $00600 ---
+   VERA_SET_ADDR VRAM_SHIELD_DMG2, 1
+   ldx #128
+@up_s2: lda shield_tile_dmg2 - 128, x
+   sta VERA_data0
+   inx
+   bne @up_s2
+
+   ; --- upload shield_tile_dmg3 → $00680 ---
+   VERA_SET_ADDR VRAM_SHIELD_DMG3, 1
+   ldx #128
+@up_s3: lda shield_tile_dmg3 - 128, x
+   sta VERA_data0
+   inx
+   bne @up_s3
+
+   ; --- reset damage counters ---
+   stz shield_damage+0
+   stz shield_damage+1
+   stz shield_damage+2
+   stz shield_damage+3
+
+   ; --- write sprite attributes for 4 shields (sequential VERA write) ---
+   ; Slots 66–69: $1FE10, $1FE18, $1FE20, $1FE28  (high=$FE, bank=1)
+   lda #$11               ; stride=1, bank=1
+   sta VERA_addr_bank
+   lda #$FE
+   sta VERA_addr_high
+   lda #$10               ; low byte of $1FE10
+   sta VERA_addr_low
+
+   ldx #0
+@spr_init:
+   lda #$28               ; byte 0: addr[12:5] = VRAM_SHIELD_FULL>>5 = $00500>>5
+   sta VERA_data0
+   lda #$00               ; byte 1: 4bpp, addr[16:13]=0
+   sta VERA_data0
+   lda shield_x_lo, x     ; byte 2: X lo
+   sta VERA_data0
+   lda shield_x_hi, x     ; byte 3: X hi
+   sta VERA_data0
+   lda #<SHIELD_Y         ; byte 4: Y lo
+   sta VERA_data0
+   lda #>SHIELD_Y         ; byte 5: Y hi
+   sta VERA_data0
+   lda #SPR_Z_FRONT       ; byte 6: z-depth=3 (in front of all layers)
+   sta VERA_data0
+   lda #SPR_16x16_PAL0    ; byte 7: 16x16, palette 0
+   sta VERA_data0
+   inx
+   cpx #4
+   bne @spr_init
+
+   rts
+
+;******************************************************************
+; update_shield_sprite — write new data-addr byte to shield sprite N
+;   Input:  X = shield index (0–3)
+;           shield_damage[X] = current damage level (1–3)
+;   Writes sprite byte 0 (addr[12:5]) using shield_addr_b0 lookup.
+;   VERA addr for byte 0 of sprite N: $1FE10 + N*8
+;******************************************************************
+update_shield_sprite:
+   stz VERA_ctrl
+   lda #$11               ; stride=1, bank=1
+   sta VERA_addr_bank
+   lda #$FE
+   sta VERA_addr_high
+   txa                    ; A = shield index
+   asl                    ; ×2
+   asl                    ; ×4
+   asl                    ; ×8
+   clc
+   adc #$10               ; + low byte of $1FE10
+   sta VERA_addr_low
+   ldy shield_damage, x   ; Y = damage level (1-3)
+   lda shield_addr_b0, y  ; addr[12:5] for this tile
+   sta VERA_data0
+   rts
+
+;******************************************************************
+; hide_shield_sprite — disable sprite for shield N (z-depth=0)
+;   Input: X = shield index (0–3)
+;   Writes sprite byte 6 at $1FE10 + N*8 + 6 = $1FE16 + N*8
+;******************************************************************
+hide_shield_sprite:
+   stz VERA_ctrl
+   lda #$11
+   sta VERA_addr_bank
+   lda #$FE
+   sta VERA_addr_high
+   txa
+   asl
+   asl
+   asl
+   clc
+   adc #$16               ; low($1FE10) + 6 = $16, + N*8
+   sta VERA_addr_low
+   lda #0                 ; z-depth=0 → sprite disabled
+   sta VERA_data0
+   rts
+
+;******************************************************************
+; damage_shield — increment damage counter for shield X and update
+;   sprite (or disable it when counter reaches 4 = destroyed).
+;   Input:  X = shield index (0–3)
+;   Clobbers: A, Y, VERA registers.  Preserves X.
+;******************************************************************
+damage_shield:
+   inc shield_damage, x
+   lda shield_damage, x
+   cmp #4
+   beq @destroy
+   bcs @done              ; already at 4 (safety guard)
+   jsr update_shield_sprite
+   rts
+@destroy:
+   jsr hide_shield_sprite
+@done:
+   rts
+
+;******************************************************************
+; check_bullet_shields — test active player bullet vs all 4 shields
+;
+;   Overlap condition (AABB, all values VERA 16-bit):
+;     X: bullet_x+8 > shield_x  AND  bullet_x < shield_x+16
+;     Y: bullet_y+8 > SHIELD_Y  AND  bullet_y < SHIELD_Y+16
+;
+;   On hit: calls damage_shield, deactivates bullet, returns.
+;   Scratch used: zp_scratch_lo/hi.  Preserves nothing.
+;******************************************************************
+check_bullet_shields:
+   lda bullet_active
+   beq @done
+
+   ; --- Y quick check (same band for all shields) ---
+   ; (1) bullet_y+8 > SHIELD_Y
+   lda bullet_y_lo
+   clc
+   adc #8
+   sta zp_scratch_lo
+   lda bullet_y_hi
+   adc #0
+   sta zp_scratch_hi
+   lda zp_scratch_lo
+   sec
+   sbc #<SHIELD_Y
+   lda zp_scratch_hi
+   sbc #>SHIELD_Y
+   bmi @done              ; bullet bottom above shield top
+
+   ; (2) bullet_y < SHIELD_Y+16
+   lda bullet_y_lo
+   sec
+   sbc #<(SHIELD_Y + 16)
+   lda bullet_y_hi
+   sbc #>(SHIELD_Y + 16)
+   bpl @done              ; bullet top at or below shield bottom
+
+   ; --- Y overlaps: scan each shield ---
+   ldx #0
+@sld_loop:
+   lda shield_damage, x
+   cmp #4
+   beq @next_sld          ; destroyed, skip
+
+   ; X check (1): bullet_x+8 > shield_x[x]
+   lda bullet_x_lo
+   clc
+   adc #8
+   sta zp_scratch_lo
+   lda bullet_x_hi
+   adc #0
+   sta zp_scratch_hi
+   lda zp_scratch_lo
+   sec
+   sbc shield_x_lo, x
+   lda zp_scratch_hi
+   sbc shield_x_hi, x
+   bmi @next_sld
+
+   ; X check (2): bullet_x < shield_x[x]+16
+   lda shield_x_lo, x
+   clc
+   adc #16
+   sta zp_scratch_lo
+   lda shield_x_hi, x
+   adc #0
+   sta zp_scratch_hi
+   lda bullet_x_lo
+   sec
+   sbc zp_scratch_lo
+   lda bullet_x_hi
+   sbc zp_scratch_hi
+   bpl @next_sld
+
+   ; --- HIT ---
+   jsr damage_shield      ; X = shield index
+   stz bullet_active
+   jsr update_bullet_sprite
+   rts
+
+@next_sld:
+   inx
+   cpx #4
+   bne @sld_loop
+@done:
+   rts
+
+;******************************************************************
+; check_invbullet_shields — test each active invader bullet vs all
+;   4 shields.  Same AABB logic as check_bullet_shields but loops
+;   over 3 bullet slots (ibul_active / ibul_x / ibul_y arrays).
+;
+;   Scratch: zp_scratch_lo/hi, zp_row (bullet slot index),
+;            zp_col (shield index during inner scan).
+;******************************************************************
+check_invbullet_shields:
+   ldx #0                 ; outer loop: invader bullet slot
+@ibul_loop:
+   lda ibul_active, x
+   beq @next_ibul
+   stx zp_row             ; save bullet slot
+
+   ; --- Y quick check ---
+   ; (1) ibul_y+8 > SHIELD_Y
+   lda ibul_y_lo, x
+   clc
+   adc #8
+   sta zp_scratch_lo
+   lda ibul_y_hi, x
+   adc #0
+   sta zp_scratch_hi
+   lda zp_scratch_lo
+   sec
+   sbc #<SHIELD_Y
+   lda zp_scratch_hi
+   sbc #>SHIELD_Y
+   bmi @next_ibul
+
+   ; (2) ibul_y < SHIELD_Y+16
+   ldx zp_row
+   lda ibul_y_lo, x
+   sec
+   sbc #<(SHIELD_Y + 16)
+   lda ibul_y_hi, x
+   sbc #>(SHIELD_Y + 16)
+   bpl @next_ibul
+
+   ; --- Y overlaps: scan shields with Y register ---
+   ldy #0
+@sld_scan:
+   lda shield_damage, y
+   cmp #4
+   beq @next_sld_y        ; destroyed
+
+   ; X check (1): ibul_x+8 > shield_x[y]
+   ldx zp_row
+   lda ibul_x_lo, x
+   clc
+   adc #8
+   sta zp_scratch_lo
+   lda ibul_x_hi, x
+   adc #0
+   sta zp_scratch_hi
+   lda zp_scratch_lo
+   sec
+   sbc shield_x_lo, y
+   lda zp_scratch_hi
+   sbc shield_x_hi, y
+   bmi @next_sld_y
+
+   ; X check (2): ibul_x < shield_x[y]+16
+   lda shield_x_lo, y
+   clc
+   adc #16
+   sta zp_scratch_lo
+   lda shield_x_hi, y
+   adc #0
+   sta zp_scratch_hi
+   ldx zp_row
+   lda ibul_x_lo, x
+   sec
+   sbc zp_scratch_lo
+   lda ibul_x_hi, x
+   sbc zp_scratch_hi
+   bpl @next_sld_y
+
+   ; --- HIT ---
+   tya                    ; shield index → A → X for damage_shield
+   tax
+   jsr damage_shield
+   ldx zp_row             ; restore bullet slot
+   stz ibul_active, x
+   jsr update_inv_bullet_sprite
+   ldx zp_row
+   bra @next_ibul         ; done with this bullet
+
+@next_sld_y:
+   iny
+   cpy #4
+   bne @sld_scan
+
+@next_ibul:
+   ldx zp_row
+   inx
+   cpx #3
+   beq @cis_done
+   jmp @ibul_loop
+@cis_done:
+   rts
+
+;******************************************************************
 ; update_hud — rewrite dynamic values each frame
 ;   Overwrites fixed screen positions; no full redraw needed
 ;******************************************************************
@@ -2127,6 +2492,15 @@ inv_speed_table:
 ; VERA sprite-attribute low-byte for each invader bullet slot (0-2)
 ; Sprite 5=$1FC28, 6=$1FC30, 7=$1FC38 — high byte always $FC
 ibul_spr_lo:    .byte $28, $30, $38
+
+; Shield X positions (4 shields evenly spread across play field, VERA coords)
+; Display pixels: 40, 120, 200, 280  (every 80 display px / 160 VERA px)
+shield_x_lo:    .byte <80,  <240, <400, <560
+shield_x_hi:    .byte >80,  >240, >400, >560
+
+; Shield sprite data addr[12:5] for each damage level (0=full … 3=dmg3)
+; VRAM_SHIELD_FULL=$00500>>5=$28  DMG1=$00580>>5=$2C  DMG2=$00600>>5=$30  DMG3=$00680>>5=$34
+shield_addr_b0: .byte $28, $2C, $30, $34
 
 ;******************************************************************
 ; Invader bullet sprite pixel data — 8x8 4bpp, 32 bytes
@@ -2348,5 +2722,98 @@ inv_c_spr_f1:
    .byte $00,$20,$00,$00,$00,$00,$02,$00  ; row 13
    .byte $00,$20,$00,$00,$00,$00,$02,$00  ; row 14
    .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+
+;******************************************************************
+; Shield sprite pixel data — 16x16 4bpp, 128 bytes each
+;
+;   Color 0 = transparent, Color 7 = dark green (palette entry 7,
+;   set to dark green by init_shields).
+;   Each byte encodes 2 pixels: high nibble = left, low nibble = right.
+;
+;   Damage progression: each level erodes 4 more rows from the top,
+;   replacing solid color-7 pixels with a 2-pixel checkerboard of
+;   color 7 and transparent.  Rows not yet eroded remain solid.
+;
+;   Checker A (odd bits lit):  $70 $07 $70 $07 $70 $07 $70 $07
+;   Checker B (even bits lit): $07 $70 $07 $70 $07 $70 $07 $70
+;   Solid row:                 $77 $77 $77 $77 $77 $77 $77 $77
+;
+;   shield_tile_full:  0  eroded rows (all 16 solid)
+;   shield_tile_dmg1:  4  eroded rows (rows 0–3  checker, 4–15 solid)
+;   shield_tile_dmg2:  8  eroded rows (rows 0–7  checker, 8–15 solid)
+;   shield_tile_dmg3: 12  eroded rows (rows 0–11 checker, 12–15 solid)
+;******************************************************************
+
+shield_tile_full:
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  0
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  1
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  2
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  3
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  4
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  5
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  6
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  7
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  8
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  9
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 10
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 11
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 12
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 13
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 14
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 15
+
+shield_tile_dmg1:
+   .byte $70,$07,$70,$07,$70,$07,$70,$07  ; row  0  checker A
+   .byte $07,$70,$07,$70,$07,$70,$07,$70  ; row  1  checker B
+   .byte $70,$07,$70,$07,$70,$07,$70,$07  ; row  2  checker A
+   .byte $07,$70,$07,$70,$07,$70,$07,$70  ; row  3  checker B
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  4  solid
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  5
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  6
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  7
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  8
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  9
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 10
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 11
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 12
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 13
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 14
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 15
+
+shield_tile_dmg2:
+   .byte $70,$07,$70,$07,$70,$07,$70,$07  ; row  0  checker A
+   .byte $07,$70,$07,$70,$07,$70,$07,$70  ; row  1  checker B
+   .byte $70,$07,$70,$07,$70,$07,$70,$07  ; row  2
+   .byte $07,$70,$07,$70,$07,$70,$07,$70  ; row  3
+   .byte $70,$07,$70,$07,$70,$07,$70,$07  ; row  4  checker A
+   .byte $07,$70,$07,$70,$07,$70,$07,$70  ; row  5  checker B
+   .byte $70,$07,$70,$07,$70,$07,$70,$07  ; row  6
+   .byte $07,$70,$07,$70,$07,$70,$07,$70  ; row  7
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  8  solid
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  9
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 10
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 11
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 12
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 13
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 14
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 15
+
+shield_tile_dmg3:
+   .byte $70,$07,$70,$07,$70,$07,$70,$07  ; row  0  checker A
+   .byte $07,$70,$07,$70,$07,$70,$07,$70  ; row  1  checker B
+   .byte $70,$07,$70,$07,$70,$07,$70,$07  ; row  2
+   .byte $07,$70,$07,$70,$07,$70,$07,$70  ; row  3
+   .byte $70,$07,$70,$07,$70,$07,$70,$07  ; row  4
+   .byte $07,$70,$07,$70,$07,$70,$07,$70  ; row  5
+   .byte $70,$07,$70,$07,$70,$07,$70,$07  ; row  6
+   .byte $07,$70,$07,$70,$07,$70,$07,$70  ; row  7
+   .byte $70,$07,$70,$07,$70,$07,$70,$07  ; row  8
+   .byte $07,$70,$07,$70,$07,$70,$07,$70  ; row  9
+   .byte $70,$07,$70,$07,$70,$07,$70,$07  ; row 10
+   .byte $07,$70,$07,$70,$07,$70,$07,$70  ; row 11
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 12  solid
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 13
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 14
+   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 15
 
 ;******************************************************************
