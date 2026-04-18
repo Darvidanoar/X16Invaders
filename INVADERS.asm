@@ -62,6 +62,9 @@ inv_fire_timer: .res 1           ; frames until next fire attempt
 ; --- Player lives & invincibility ---
 lives:          .res 1           ; remaining lives (0-3)
 inv_hit_timer:  .res 1           ; invincibility frames remaining after being hit (0=vulnerable)
+hi_score_lo:    .res 1           ; hi-score BCD byte 0 (digits 1-2)
+hi_score_mid:   .res 1           ; hi-score BCD byte 1 (digits 3-4)
+hi_score_hi:    .res 1           ; hi-score BCD byte 2 (digits 5-6)
 
 ;******************************************************************
 .segment "ONCE"
@@ -202,6 +205,9 @@ start:
    stz score_lo
    stz score_mid
    stz score_hi
+   stz hi_score_lo
+   stz hi_score_mid
+   stz hi_score_hi
 
    ; Set initial player position before sprite init reads it
    jsr init_player
@@ -224,8 +230,61 @@ start:
 
    ; Upload invader sprite data, set palette, init grid state, place sprites
    jsr init_invaders
+   jsr hide_all_inv_sprites     ; hide all 55 during title screen
 
    jsr draw_title_screen
+
+;------------------------------------------------------------------
+; title_loop — wait for SPACE; blink "PRESS SPACE TO START"
+;------------------------------------------------------------------
+title_loop:
+   jsr wait_vsync
+   inc frame_count
+   jsr update_input
+
+   lda key_last
+   cmp #KEY_RUN_STOP
+   bne @tl_no_exit
+   jmp exit_game
+@tl_no_exit:
+
+   lda key_flags
+   and #KEY_FIRE
+   bne start_game
+
+   ; blink using frame_count bit 5 (~2 Hz)
+   lda frame_count
+   and #$20
+   bne @tl_on
+@tl_off:
+   lda #17
+   ldy #10
+   clc
+   jsr PLOT
+   ldx #20                      ; erase 20 chars of "PRESS SPACE TO START"
+@tl_erase: lda #' '
+   jsr CHROUT
+   dex
+   bne @tl_erase
+   jmp title_loop
+@tl_on:
+   lda #17
+   ldy #10
+   clc
+   jsr PLOT
+   ldx #0
+@tl_print: lda str_press_space, x
+   beq @tl_print_done
+   jsr CHROUT
+   inx
+   bra @tl_print
+@tl_print_done:
+   jmp title_loop
+
+start_game:
+   jsr update_invader_sprites   ; re-enable all 55 invaders at grid positions
+   lda #PETSCII_CLR
+   jsr CHROUT                   ; clear title text, leave sprites visible
 
 ;******************************************************************
 ; main_loop — one iteration per video frame (60 Hz)
@@ -1627,86 +1686,233 @@ player_hit:
    jmp exit_game             ; placeholder: Phase 6 will show a game-over screen
 
 ;******************************************************************
-; draw_title_screen — print static Phase 1 info to screen
-;   Called once at startup; static text stays until screen cleared
+; draw_title_screen — paint the title screen; called once before title_loop
+;
+;   Layout (40-col text, VERA Y=row*16):
+;     Row  1, col 14: "X16 INVADERS"      (12 chars, centred)
+;     Row  3, col 16: "HI-SCORE"          (8 chars, centred)
+;     Row  4, col 17: 000000              (6-digit BCD hi-score)
+;     Row  5, col  5: "?UFO? = ??? PTS"
+;     Row  7, col  9: "= 30 PTS"          + Type C sprite at X=96,Y=112
+;     Row 10, col  9: "= 20 PTS"          + Type B sprite at X=96,Y=160
+;     Row 13, col  9: "= 10 PTS"          + Type A sprite at X=96,Y=208
+;     Row 17, col 10: (PRESS SPACE TO START — blinked by title_loop)
+;     Row 19, col 12: "RUN/STOP TO QUIT"
 ;******************************************************************
 draw_title_screen:
-   ; Row 2, col 14: "X16 INVADERS"
-   lda #2
+   ; Row 1, col 14: "X16 INVADERS"
+   lda #1
    ldy #14
    clc
    jsr PLOT
    ldx #0
-@lp1: lda str_title,x
+@lp1: lda str_title_main, x
    beq @lp1_done
    jsr CHROUT
    inx
    bra @lp1
 @lp1_done:
 
-   ; Row 4, col 10: "PHASE 1 - FOUNDATION"
-   lda #4
-   ldy #10
+   ; Row 3, col 16: "HI-SCORE"
+   lda #3
+   ldy #16
    clc
    jsr PLOT
    ldx #0
-@lp2: lda str_subtitle,x
+@lp2: lda str_hi_score_lbl, x
    beq @lp2_done
    jsr CHROUT
    inx
    bra @lp2
 @lp2_done:
 
-   ; Row 8, col 2: status lines
-   lda #8
-   ldy #2
+   ; Row 4, col 17: hi-score 6 BCD digits (000000 at start)
+   lda #4
+   ldy #17
+   clc
+   jsr PLOT
+   lda hi_score_hi
+   jsr print_hex_byte
+   lda hi_score_mid
+   jsr print_hex_byte
+   lda hi_score_lo
+   jsr print_hex_byte
+
+   ; Row 5, col 5: "?UFO? = ??? PTS"
+   lda #5
+   ldy #5
    clc
    jsr PLOT
    ldx #0
-@lp3: lda str_status_vsync,x
+@lp3: lda str_ufo_score, x
    beq @lp3_done
    jsr CHROUT
    inx
    bra @lp3
 @lp3_done:
 
-   lda #10
-   ldy #2
+   ; Sample invader sprites (Types C, B, A) + score labels
+   jsr show_title_sprites
+
+   ; Row 19, col 12: "RUN/STOP TO QUIT"
+   lda #19
+   ldy #12
    clc
    jsr PLOT
    ldx #0
-@lp4: lda str_status_kbd,x
+@lp4: lda str_run_stop_hint, x
    beq @lp4_done
    jsr CHROUT
    inx
    bra @lp4
 @lp4_done:
 
-   lda #12
-   ldy #2
+   rts
+
+;******************************************************************
+; show_title_sprites — enable one sprite of each type at fixed
+;   title-screen positions and print score labels beside them.
+;
+;   In VERA 640x480 space, 1 text row/col = 16 VERA pixels.
+;   Sprites: X=96 (col 6), score labels at col 9.
+;   Sprite 11 (Type C): Y=112 → text row 7,  "= 30 PTS"
+;   Sprite 22 (Type B): Y=160 → text row 10, "= 20 PTS"
+;   Sprite 44 (Type A): Y=208 → text row 13, "= 10 PTS"
+;******************************************************************
+show_title_sprites:
+   stz VERA_ctrl
+   ; --- sprite 11 (Type C, squid/cyan): attr $1FC00+11*8=$1FC58 ---
+   ; addr[12:5] = VRAM_INV_C_F0>>5 = $00300>>5 = $18
+   lda #$11               ; stride=1, bank=1
+   sta VERA_addr_bank
+   lda #$FC
+   sta VERA_addr_high
+   lda #$58               ; low byte of $1FC58
+   sta VERA_addr_low
+   lda #$18               ; byte 0: data addr[12:5]
+   sta VERA_data0
+   lda #$00               ; byte 1: 4bpp, addr[16:13]=0
+   sta VERA_data0
+   lda #96                ; byte 2: X lo
+   sta VERA_data0
+   lda #0                 ; byte 3: X hi
+   sta VERA_data0
+   lda #112               ; byte 4: Y lo (row 7: 7*16=112)
+   sta VERA_data0
+   lda #0                 ; byte 5: Y hi
+   sta VERA_data0
+   lda #SPR_Z_FRONT       ; byte 6: z-depth=3
+   sta VERA_data0
+   lda #SPR_16x16_PAL0    ; byte 7: 16x16, palette 0
+   sta VERA_data0
+
+   lda #7
+   ldy #9
    clc
    jsr PLOT
    ldx #0
-@lp5: lda str_status_spr,x
-   beq @lp5_done
+@lp_c: lda str_score_c, x
+   beq @lp_c_done
    jsr CHROUT
    inx
-   bra @lp5
-@lp5_done:
+   bra @lp_c
+@lp_c_done:
 
-   ; Row 15, col 2: exit hint
-   lda #15
-   ldy #2
+   ; --- sprite 22 (Type B, octopus/magenta): attr $1FC00+22*8=$1FCB0 ---
+   ; addr[12:5] = VRAM_INV_B_F0>>5 = $00200>>5 = $10
+   lda #$11
+   sta VERA_addr_bank
+   lda #$FC
+   sta VERA_addr_high
+   lda #$B0               ; low byte of $1FCB0
+   sta VERA_addr_low
+   lda #$10               ; byte 0: addr[12:5]
+   sta VERA_data0
+   lda #$00
+   sta VERA_data0
+   lda #96                ; X
+   sta VERA_data0
+   lda #0
+   sta VERA_data0
+   lda #160               ; Y (row 10: 10*16=160)
+   sta VERA_data0
+   lda #0
+   sta VERA_data0
+   lda #SPR_Z_FRONT
+   sta VERA_data0
+   lda #SPR_16x16_PAL0
+   sta VERA_data0
+
+   lda #10
+   ldy #9
    clc
    jsr PLOT
    ldx #0
-@lp6: lda str_exit_hint,x
-   beq @lp6_done
+@lp_b: lda str_score_b, x
+   beq @lp_b_done
    jsr CHROUT
    inx
-   bra @lp6
-@lp6_done:
+   bra @lp_b
+@lp_b_done:
 
+   ; --- sprite 44 (Type A, crab/green): attr $1FC00+44*8=$1FD60 ---
+   ; addr[12:5] = VRAM_INV_A_F0>>5 = $00100>>5 = $08
+   lda #$11
+   sta VERA_addr_bank
+   lda #$FD               ; high byte of $1FD60
+   sta VERA_addr_high
+   lda #$60               ; low byte of $1FD60
+   sta VERA_addr_low
+   lda #$08               ; byte 0: addr[12:5]
+   sta VERA_data0
+   lda #$00
+   sta VERA_data0
+   lda #96                ; X
+   sta VERA_data0
+   lda #0
+   sta VERA_data0
+   lda #208               ; Y (row 13: 13*16=208)
+   sta VERA_data0
+   lda #0
+   sta VERA_data0
+   lda #SPR_Z_FRONT
+   sta VERA_data0
+   lda #SPR_16x16_PAL0
+   sta VERA_data0
+
+   lda #13
+   ldy #9
+   clc
+   jsr PLOT
+   ldx #0
+@lp_a: lda str_score_a, x
+   beq @lp_a_done
+   jsr CHROUT
+   inx
+   bra @lp_a
+@lp_a_done:
+
+   rts
+
+;******************************************************************
+; hide_all_inv_sprites — set z-depth=0 for all 55 invader sprites
+;   Uses VERA stride=8 to write only byte 6 (z-depth) of each block.
+;   First invader sprite byte 6: $1FC00 + 11*8 + 6 = $1FC5E
+;******************************************************************
+hide_all_inv_sprites:
+   stz VERA_ctrl
+   lda #$41               ; stride=8 (code $4 in high nibble), bank=1
+   sta VERA_addr_bank
+   lda #$FC
+   sta VERA_addr_high
+   lda #$5E               ; low byte of $1FC5E  ($1FC58+6)
+   sta VERA_addr_low
+   lda #0                 ; z-depth=0 → disabled
+   ldx #55
+@loop:
+   sta VERA_data0         ; writes byte 6; addr auto-advances by 8
+   dex
+   bne @loop
    rts
 
 ;******************************************************************
@@ -1779,18 +1985,22 @@ print_hex_nybble:
 ;******************************************************************
 ; String data — null-terminated, PETSCII uppercase
 ;******************************************************************
-str_title:
+str_title_main:
    .byte "X16 INVADERS", 0
-str_subtitle:
-   .byte "PHASE 3 - INVADER GRID", 0
-str_status_vsync:
-   .byte "VSYNC : WAI (60HZ IRQ)", 0
-str_status_kbd:
-   .byte "KEYBOARD: JOYSTICK + GETIN", 0
-str_status_spr:
-   .byte "SPRITES : ENABLED", 0
-str_exit_hint:
-   .byte "PRESS RUN/STOP TO EXIT", 0
+str_hi_score_lbl:
+   .byte "HI-SCORE", 0
+str_ufo_score:
+   .byte "?UFO? = ??? PTS", 0
+str_score_c:
+   .byte "= 30 PTS", 0
+str_score_b:
+   .byte "= 20 PTS", 0
+str_score_a:
+   .byte "= 10 PTS", 0
+str_press_space:
+   .byte "PRESS SPACE TO START", 0
+str_run_stop_hint:
+   .byte "RUN/STOP TO QUIT", 0
 str_frame_lbl:
    .byte "FRAME   : $", 0
 str_key_lbl:
