@@ -3184,41 +3184,45 @@ snd_update_ufo_drone:
    rts
 
 ;******************************************************************
-; update_hud — rewrite dynamic values each frame
-;   Overwrites fixed screen positions; no full redraw needed
+; update_hud — rewrite dynamic HUD values each frame
+;   Row 29, col  1: LIVES: N
+;   Row 29, col 20: WAVE: N
+;   Overwrites fixed positions; no full redraw needed.
 ;******************************************************************
 update_hud:
-   ; Frame counter at row 19, col 2
-   lda #19
-   ldy #2
+   ; --- lives count: row 29, col 1 ---
+   lda #29
+   ldy #1
    clc
    jsr PLOT
    ldx #0
-@fc_lbl: lda str_frame_lbl,x
-   beq @fc_val
+@lv_lbl: lda str_lives_lbl,x
+   beq @lv_val
    jsr CHROUT
    inx
-   bra @fc_lbl
-@fc_val:
-   lda frame_count
-   jsr print_hex_byte
-
-   ; Last key at row 21, col 2
-   lda #21
-   ldy #2
-   clc
-   jsr PLOT
-   ldx #0
-@kl_lbl: lda str_key_lbl,x
-   beq @kl_val
-   jsr CHROUT
-   inx
-   bra @kl_lbl
-@kl_val:
-   lda key_last
-   jsr print_hex_byte
+   bra @lv_lbl
+@lv_val:
+   lda lives
+   jsr print_dec_byte
    lda #' '
-   jsr CHROUT                    ; erase stale digit if value shrank
+   jsr CHROUT                    ; erase any stale digit
+
+   ; --- wave number: row 29, col 20 ---
+   lda #29
+   ldy #20
+   clc
+   jsr PLOT
+   ldx #0
+@wv_lbl: lda str_wave_lbl,x
+   beq @wv_val
+   jsr CHROUT
+   inx
+   bra @wv_lbl
+@wv_val:
+   lda wave
+   jsr print_dec_byte
+   lda #' '
+   jsr CHROUT                    ; erase any stale digit
 
    rts
 
@@ -3283,10 +3287,8 @@ str_wave_continue:
    .byte "PRESS SPACE TO CONTINUE", 0
 str_run_stop_hint:
    .byte "RUN/STOP TO QUIT", 0
-str_frame_lbl:
-   .byte "FRAME   : $", 0
-str_key_lbl:
-   .byte "LAST KEY: $", 0
+str_lives_lbl:
+   .byte "LIVES: ", 0
 
 ;******************************************************************
 ; player_spr_data — 16x16 4bpp sprite, 128 bytes
