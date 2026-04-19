@@ -17,6 +17,8 @@ I spent a lot of time trying to get claude to fix an issue where the player char
 
 3. While breaking down the work into phases has worked well, Phase 4 turned out to be a little abitious. After a couple of attempts resulting in my usage maxing out, I ended up asking claude to build each item, one at a time.  Some of the steps seemed quite challenging to me, so this made sense to do each item in phase 4 individually.  Usage for the two sessions this ran across seemed much lower.  However, when I tallied up the usage (29% + 71%), it was exactly 100% (with some bug fixing included).
 
+4. Overall, the game seems to work very well.  However, having scanned various parts of the code, there seem to be several instances where the code simply jumps out of a subroutine without ever executing an rts.  More close examination of the code is required to confirm this.
+
 ---
 
 ![X16Invaders](/Invaders.png)
