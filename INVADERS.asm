@@ -80,6 +80,8 @@ ufo_x_hi:       .res 1           ; UFO X position high byte
 ufo_timer_lo:   .res 1           ; countdown to next UFO appearance (frames, low byte)
 ufo_timer_hi:   .res 1           ; countdown to next UFO appearance (frames, high byte)
 shot_count:     .res 1           ; player bullets fired mod 8 → UFO score table index
+march_beat:     .res 1           ; current march note index (0-3, cycles)
+march_snd_timer:.res 1           ; frames remaining for current march note (0=silent)
 
 ;******************************************************************
 .segment "ONCE"
@@ -164,6 +166,23 @@ UFO_TIMER_INIT     = 600         ; frames between UFO appearances (≈10 sec at 
 ; Wave progression
 WAVE_CLEAR_FRAMES  = 180         ; auto-advance delay after wave clear (≈3 sec at 60 Hz)
 WAVE_SPEED_STEP    = 5           ; inv_move_speed decreases by this each wave
+
+; VERA PSG voice 0 — march beat (base addr $1F9C0)
+; 4-note cycle: ~120 Hz, ~100 Hz, ~80 Hz, ~100 Hz
+; freq_reg = freq_hz * 25000000 / (512 * 131072) ≈ freq_hz * 2.684
+VRAM_PSG_VOICE0    = VRAM_psg + 0    ; $1F9C0 — voice 0 registers (march)
+PSG_MARCH_VOL      = $FF             ; stereo, full volume
+PSG_WAVE_PULSE     = %00000000       ; pulse waveform (bits 7:6 = 00)
+MARCH_NOTE_FRAMES  = 6               ; frames to hold each march note (~100ms)
+; Note frequencies: 120Hz→322=$0142, 100Hz→268=$010C, 80Hz→215=$00D7
+MARCH_FREQ0_L      = $42             ; note 0: 120 Hz
+MARCH_FREQ0_H      = $01
+MARCH_FREQ1_L      = $0C             ; note 1: 100 Hz
+MARCH_FREQ1_H      = $01
+MARCH_FREQ2_L      = $D7             ; note 2:  80 Hz
+MARCH_FREQ2_H      = $00
+MARCH_FREQ3_L      = $0C             ; note 3: 100 Hz
+MARCH_FREQ3_H      = $01
 
 ; VERA PSG voice 3 — UFO drone (base addr $1F9C0 + 3*4 = $1F9CC)
 ; PSG byte layout: 0=FREQ_L, 1=FREQ_H, 2=volume([7]=R,[6]=L,[5:0]=vol 0-63), 3=waveform([7:6])
@@ -264,6 +283,8 @@ start:
    lda #>UFO_TIMER_INIT
    sta ufo_timer_hi
    stz shot_count
+   stz march_beat
+   stz march_snd_timer
    lda #1
    sta wave
    lda #INV_MOVE_SPEED_INIT
@@ -422,6 +443,7 @@ main_loop:
    jmp wave_clear_screen
 @no_wave_clear:
 
+   jsr snd_tick_march            ; silence march note when timer expires
    jsr update_hud                ; refresh text readouts
 
    jmp main_loop
@@ -884,6 +906,7 @@ step_invaders:
    sta inv_drop_flag
 
 @sprites_done:
+   jsr snd_march_step
    jsr update_invader_sprites
    rts
 
@@ -1811,6 +1834,7 @@ player_hit:
 ;******************************************************************
 game_over_screen:
    jsr snd_stop_ufo_drone    ; silence drone if UFO was active
+   jsr snd_stop_march        ; silence march beat
 
    jsr update_hi_score       ; copy score → hi_score if score is higher
 
@@ -2003,9 +2027,10 @@ restart_game:
    lda #INV_FIRE_TIMER_INIT
    sta inv_fire_timer
 
-   ; reset UFO state and silence drone
+   ; reset UFO state and silence all sounds
    stz ufo_active
    jsr snd_stop_ufo_drone
+   jsr snd_stop_march
    jsr update_ufo_sprite
    lda #<UFO_TIMER_INIT
    sta ufo_timer_lo
@@ -2035,6 +2060,7 @@ restart_game:
 ;******************************************************************
 wave_clear_screen:
    jsr snd_stop_ufo_drone    ; silence drone (UFO already gone but guard)
+   jsr snd_stop_march        ; silence march beat
    stz ufo_active
    jsr update_ufo_sprite
 
@@ -3222,6 +3248,60 @@ snd_update_ufo_drone:
    rts
 
 ;******************************************************************
+; snd_march_step — advance march_beat and play next note on PSG voice 0
+;   Called once per invader march step (from step_invaders).
+;   Increments beat index mod 4, writes freq/vol/wave to voice 0,
+;   and arms march_snd_timer so snd_tick_march will silence it.
+;******************************************************************
+snd_march_step:
+   inc march_beat
+   lda march_beat
+   and #$03
+   sta march_beat
+   tax                            ; X = note index 0-3
+   stz VERA_ctrl
+   VERA_SET_ADDR VRAM_PSG_VOICE0, 1
+   lda march_freq_lo, x
+   sta VERA_data0                 ; byte 0: FREQ_L
+   lda march_freq_hi, x
+   sta VERA_data0                 ; byte 1: FREQ_H
+   lda #PSG_MARCH_VOL
+   sta VERA_data0                 ; byte 2: volume (stereo, full)
+   lda #PSG_WAVE_PULSE
+   sta VERA_data0                 ; byte 3: pulse waveform
+   lda #MARCH_NOTE_FRAMES
+   sta march_snd_timer
+   rts
+
+;******************************************************************
+; snd_tick_march — decrement march note timer; silence voice 0 when it expires
+;   Call once per frame from main_loop.
+;******************************************************************
+snd_tick_march:
+   lda march_snd_timer
+   beq @done
+   dec march_snd_timer
+   bne @done
+   stz VERA_ctrl
+   VERA_SET_ADDR (VRAM_PSG_VOICE0 + 2), 1
+   lda #$00
+   sta VERA_data0                 ; zero volume → silent
+@done:
+   rts
+
+;******************************************************************
+; snd_stop_march — immediately silence PSG voice 0 and clear timer
+;   Call when leaving gameplay (game over, wave clear, restart).
+;******************************************************************
+snd_stop_march:
+   stz march_snd_timer
+   stz VERA_ctrl
+   VERA_SET_ADDR (VRAM_PSG_VOICE0 + 2), 1
+   lda #$00
+   sta VERA_data0
+   rts
+
+;******************************************************************
 ; update_hud — rewrite dynamic HUD values each frame
 ;   Row  1, col  0: 6-digit BCD score
 ;   Row  1, col 16: 6-digit BCD hi-score
@@ -3478,6 +3558,11 @@ inv_speed_table:
 ; VERA sprite-attribute low-byte for each invader bullet slot (0-2)
 ; Sprite 5=$1FC28, 6=$1FC30, 7=$1FC38 — high byte always $FC
 ibul_spr_lo:    .byte $28, $30, $38
+
+; March beat frequency tables — 4-note cycle: ~120Hz, ~100Hz, ~80Hz, ~100Hz
+; freq_reg ≈ freq_hz * 2.684  (25MHz / 512 / 131072)
+march_freq_lo: .byte MARCH_FREQ0_L, MARCH_FREQ1_L, MARCH_FREQ2_L, MARCH_FREQ3_L
+march_freq_hi: .byte MARCH_FREQ0_H, MARCH_FREQ1_H, MARCH_FREQ2_H, MARCH_FREQ3_H
 
 ; UFO score tables indexed by (shot_count & 7) — two-byte BCD pairs
 ; Scores: 50, 100, 150, 300, 100, 50, 300, 150
