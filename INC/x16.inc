@@ -230,6 +230,8 @@ SCREEN                        := $FFED
 PLOT                          := $FFF0
 IOBASE                        := $FFF3
 
+EXTAPI                        := $FEAB
+
 ; BASIC Vectors
 BASIC_PANIC       := $C000
 BASIC_INIT        := $C003
