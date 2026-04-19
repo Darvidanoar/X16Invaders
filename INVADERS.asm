@@ -82,6 +82,8 @@ ufo_timer_hi:   .res 1           ; countdown to next UFO appearance (frames, hig
 shot_count:     .res 1           ; player bullets fired mod 8 → UFO score table index
 march_beat:     .res 1           ; current march note index (0-3, cycles)
 march_snd_timer:.res 1           ; frames remaining for current march note (0=silent)
+fire_snd_timer: .res 1           ; frames remaining for fire sound (0=silent)
+exp_snd_timer:  .res 1           ; frames remaining for explosion sound (0=silent)
 
 ;******************************************************************
 .segment "ONCE"
@@ -184,6 +186,20 @@ MARCH_FREQ2_H      = $00
 MARCH_FREQ3_L      = $0C             ; note 3: 100 Hz
 MARCH_FREQ3_H      = $01
 
+; VERA PSG voice 1 — player fire sound ($1F9C0 + 1*4 = $1F9C4)
+; ~800 Hz pulse wave: 800 * 2.684 ≈ 2147 = $0863
+VRAM_PSG_VOICE1    = VRAM_psg + 4    ; $1F9C4
+PSG_FIRE_FREQ_L    = $63             ; freq low byte (~800 Hz)
+PSG_FIRE_FREQ_H    = $08             ; freq high byte
+FIRE_NOTE_FRAMES   = 5               ; frames to hold fire tone (~83ms)
+
+; VERA PSG voice 2 — explosion noise burst ($1F9C0 + 2*4 = $1F9C8)
+VRAM_PSG_VOICE2    = VRAM_psg + 8    ; $1F9C8
+PSG_WAVE_NOISE     = %11000000       ; noise waveform (bits 7:6 = 11)
+PSG_EXP_FREQ_L     = $40             ; low noise clock rate → deep rumble
+PSG_EXP_FREQ_H     = $00
+EXP_NOTE_FRAMES    = 20              ; frames to hold explosion noise (~333ms)
+
 ; VERA PSG voice 3 — UFO drone (base addr $1F9C0 + 3*4 = $1F9CC)
 ; PSG byte layout: 0=FREQ_L, 1=FREQ_H, 2=volume([7]=R,[6]=L,[5:0]=vol 0-63), 3=waveform([7:6])
 ; Waveform codes: 00=pulse, 01=sawtooth, 10=triangle, 11=noise
@@ -285,6 +301,8 @@ start:
    stz shot_count
    stz march_beat
    stz march_snd_timer
+   stz fire_snd_timer
+   stz exp_snd_timer
    lda #1
    sta wave
    lda #INV_MOVE_SPEED_INIT
@@ -444,6 +462,8 @@ main_loop:
 @no_wave_clear:
 
    jsr snd_tick_march            ; silence march note when timer expires
+   jsr snd_tick_fire             ; silence fire tone when timer expires
+   jsr snd_tick_exp              ; silence explosion noise when timer expires
    jsr update_hud                ; refresh text readouts
 
    jmp main_loop
@@ -1169,6 +1189,7 @@ fire_bullet:
    sta bullet_active
    inc shot_count
    jsr update_bullet_sprite
+   jsr snd_fire
    rts
 
 ;******************************************************************
@@ -1479,6 +1500,7 @@ start_explosion:
    sta VERA_data0               ; byte 6: z-depth=3 → enabled, in front
    lda #EXPLODE_FRAMES
    sta exp_timer
+   jsr snd_explosion
    rts
 
 ;******************************************************************
@@ -1835,6 +1857,8 @@ player_hit:
 game_over_screen:
    jsr snd_stop_ufo_drone    ; silence drone if UFO was active
    jsr snd_stop_march        ; silence march beat
+   jsr snd_stop_fire         ; silence fire tone
+   jsr snd_stop_exp          ; silence explosion noise
 
    jsr update_hi_score       ; copy score → hi_score if score is higher
 
@@ -2031,6 +2055,8 @@ restart_game:
    stz ufo_active
    jsr snd_stop_ufo_drone
    jsr snd_stop_march
+   jsr snd_stop_fire
+   jsr snd_stop_exp
    jsr update_ufo_sprite
    lda #<UFO_TIMER_INIT
    sta ufo_timer_lo
@@ -2061,6 +2087,8 @@ restart_game:
 wave_clear_screen:
    jsr snd_stop_ufo_drone    ; silence drone (UFO already gone but guard)
    jsr snd_stop_march        ; silence march beat
+   jsr snd_stop_fire         ; silence fire tone
+   jsr snd_stop_exp          ; silence explosion noise
    stz ufo_active
    jsr update_ufo_sprite
 
@@ -3297,6 +3325,98 @@ snd_stop_march:
    stz march_snd_timer
    stz VERA_ctrl
    VERA_SET_ADDR (VRAM_PSG_VOICE0 + 2), 1
+   lda #$00
+   sta VERA_data0
+   rts
+
+;******************************************************************
+; snd_fire — play short high-pitched pulse on PSG voice 1 (~800 Hz, 5 frames)
+;   Called from fire_bullet.
+;******************************************************************
+snd_fire:
+   stz VERA_ctrl
+   VERA_SET_ADDR VRAM_PSG_VOICE1, 1
+   lda #PSG_FIRE_FREQ_L
+   sta VERA_data0                 ; byte 0: FREQ_L
+   lda #PSG_FIRE_FREQ_H
+   sta VERA_data0                 ; byte 1: FREQ_H
+   lda #PSG_MARCH_VOL             ; reuse full-volume constant
+   sta VERA_data0                 ; byte 2: volume
+   lda #PSG_WAVE_PULSE
+   sta VERA_data0                 ; byte 3: pulse waveform
+   lda #FIRE_NOTE_FRAMES
+   sta fire_snd_timer
+   rts
+
+;******************************************************************
+; snd_tick_fire — decrement fire timer; silence voice 1 when it expires
+;   Call once per frame from main_loop.
+;******************************************************************
+snd_tick_fire:
+   lda fire_snd_timer
+   beq @done
+   dec fire_snd_timer
+   bne @done
+   stz VERA_ctrl
+   VERA_SET_ADDR (VRAM_PSG_VOICE1 + 2), 1
+   lda #$00
+   sta VERA_data0
+@done:
+   rts
+
+;******************************************************************
+; snd_stop_fire — immediately silence PSG voice 1 and clear timer
+;******************************************************************
+snd_stop_fire:
+   stz fire_snd_timer
+   stz VERA_ctrl
+   VERA_SET_ADDR (VRAM_PSG_VOICE1 + 2), 1
+   lda #$00
+   sta VERA_data0
+   rts
+
+;******************************************************************
+; snd_explosion — play low-frequency noise burst on PSG voice 2 (20 frames)
+;   Called from start_explosion (covers invader kills, UFO, player hit).
+;******************************************************************
+snd_explosion:
+   stz VERA_ctrl
+   VERA_SET_ADDR VRAM_PSG_VOICE2, 1
+   lda #PSG_EXP_FREQ_L
+   sta VERA_data0                 ; byte 0: FREQ_L (slow noise clock → deep rumble)
+   lda #PSG_EXP_FREQ_H
+   sta VERA_data0                 ; byte 1: FREQ_H
+   lda #PSG_MARCH_VOL             ; reuse full-volume constant
+   sta VERA_data0                 ; byte 2: volume
+   lda #PSG_WAVE_NOISE
+   sta VERA_data0                 ; byte 3: noise waveform
+   lda #EXP_NOTE_FRAMES
+   sta exp_snd_timer
+   rts
+
+;******************************************************************
+; snd_tick_exp — decrement explosion timer; silence voice 2 when it expires
+;   Call once per frame from main_loop.
+;******************************************************************
+snd_tick_exp:
+   lda exp_snd_timer
+   beq @done
+   dec exp_snd_timer
+   bne @done
+   stz VERA_ctrl
+   VERA_SET_ADDR (VRAM_PSG_VOICE2 + 2), 1
+   lda #$00
+   sta VERA_data0
+@done:
+   rts
+
+;******************************************************************
+; snd_stop_exp — immediately silence PSG voice 2 and clear timer
+;******************************************************************
+snd_stop_exp:
+   stz exp_snd_timer
+   stz VERA_ctrl
+   VERA_SET_ADDR (VRAM_PSG_VOICE2 + 2), 1
    lda #$00
    sta VERA_data0
    rts
