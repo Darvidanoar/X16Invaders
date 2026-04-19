@@ -480,9 +480,9 @@ Phase 6 — Game States & Polish
   [x] Fire and explosion sounds
 
 Phase 7 — Testing & Tuning
-  [ ] Difficulty balance (speed curve, fire rate)
-  [ ] Edge-case collision fixes
-  [ ] Verify on real X16 hardware if possible
+  [ ] Stop player from firing while dead
+  [ ] Pause the game for five seconds with 'GAME OVER' text in the centre of the screen at the end of the game.
+  [ ] Reset the shields when starting a new wave
 
 
 --------------------------------------------------------------
