@@ -85,6 +85,9 @@ march_snd_timer:.res 1           ; frames remaining for current march note (0=si
 fire_snd_timer: .res 1           ; frames remaining for fire sound (0=silent)
 exp_snd_timer:  .res 1           ; frames remaining for explosion sound (0=silent)
 
+UFO_DRONE_FREQ: .res 2           ; store the current UFO Drone Frequency (will oscillate high-low)
+UFO_FREQ_DIR:   .res 1           ; direction of ascending/descending ufo tone (00=down, ff=up)
+
 ;******************************************************************
 .segment "ONCE"
 .segment "CODE"
@@ -174,7 +177,7 @@ WAVE_SPEED_STEP    = 5           ; inv_move_speed decreases by this each wave
 ; freq_reg = freq_hz * 25000000 / (512 * 131072) ≈ freq_hz * 2.684
 VRAM_PSG_VOICE0    = VRAM_psg + 0    ; $1F9C0 — voice 0 registers (march)
 PSG_MARCH_VOL      = $FF             ; stereo, full volume
-PSG_WAVE_PULSE     = %00000000       ; pulse waveform (bits 7:6 = 00)
+PSG_WAVE_PULSE     = %11000000       ; pulse waveform (bits 7:6 = 00)
 MARCH_NOTE_FRAMES  = 6               ; frames to hold each march note (~100ms)
 ; Note frequencies: 120Hz→322=$0142, 100Hz→268=$010C, 80Hz→215=$00D7
 MARCH_FREQ0_L      = $42             ; note 0: 120 Hz
@@ -189,8 +192,8 @@ MARCH_FREQ3_H      = $01
 ; VERA PSG voice 1 — player fire sound ($1F9C0 + 1*4 = $1F9C4)
 ; ~800 Hz pulse wave: 800 * 2.684 ≈ 2147 = $0863
 VRAM_PSG_VOICE1    = VRAM_psg + 4    ; $1F9C4
-PSG_FIRE_FREQ_L    = $63             ; freq low byte (~800 Hz)
-PSG_FIRE_FREQ_H    = $08             ; freq high byte
+PSG_FIRE_FREQ_L    = $63             ; freq low byte (~900 Hz)
+PSG_FIRE_FREQ_H    = $7F             ; freq high byte
 FIRE_NOTE_FRAMES   = 5               ; frames to hold fire tone (~83ms)
 
 ; VERA PSG voice 2 — explosion noise burst ($1F9C0 + 2*4 = $1F9C8)
@@ -206,9 +209,10 @@ EXP_NOTE_FRAMES    = 20              ; frames to hold explosion noise (~333ms)
 ; freq_hz ≈ freq_reg * 25000000 / (512 * 131072)  →  freq_reg ≈ freq_hz * 2.684
 VRAM_PSG_VOICE3    = VRAM_psg + 12   ; $1F9CC — voice 3 registers
 PSG_VOL_FULL       = $FF             ; R enable + L enable + volume 63
+PSG_VOL_HALF       = $DF             ; R enable + L enable + volume 63
 PSG_WAVE_SAW       = %01000000       ; sawtooth waveform (bits 7:6 = 01)
-UFO_DRONE_FREQ1    = 1074            ; ≈400 Hz  ($0432)
-UFO_DRONE_FREQ2    = 1611            ; ≈600 Hz  ($064B)
+UFO_DRONE_FREQ1    = $0400            ; ≈400 Hz  ($0432)
+UFO_DRONE_FREQ2    = $0600            ; ≈600 Hz  ($064B)
 
 ; Shields
 SHIELD_Y           = 352        ; VERA Y coordinate for all 4 shields (176 display pixels)
@@ -2249,8 +2253,8 @@ print_dec_byte:
 ; Called once after screen clear, before main_loop.
 ;******************************************************************
 draw_score_labels:
-   lda #0
-   ldy #0
+   ldx #1
+   ldy #1
    clc
    jsr PLOT
    ldx #0
@@ -2260,8 +2264,8 @@ draw_score_labels:
    inx
    bra @sl1
 @sl1d:
-   lda #0
-   ldy #16
+   ldx #1
+   ldy #63
    clc
    jsr PLOT
    ldx #0
@@ -2289,7 +2293,7 @@ draw_score_labels:
 ;******************************************************************
 draw_title_screen:
    ; Row 1, col 14: "X16 INVADERS"
-   lda #1
+   ldx #1
    ldy #14
    clc
    jsr PLOT
@@ -2302,7 +2306,7 @@ draw_title_screen:
 @lp1_done:
 
    ; Row 3, col 16: "HI-SCORE"
-   lda #3
+   ldx #3
    ldy #16
    clc
    jsr PLOT
@@ -3224,13 +3228,21 @@ check_bullet_ufo:
 ;   Called once when UFO spawns.
 ;******************************************************************
 snd_start_ufo_drone:
+   ; set starting UFO_DRONE_FREQ
+   lda #<UFO_DRONE_FREQ1
+   sta UFO_DRONE_FREQ
+   lda #>UFO_DRONE_FREQ1
+   sta UFO_DRONE_FREQ + 1
+   lda #$ff
+   sta UFO_FREQ_DIR
+   ; set VERA
    stz VERA_ctrl
    VERA_SET_ADDR VRAM_PSG_VOICE3, 1
-   lda #<UFO_DRONE_FREQ1
+   lda UFO_DRONE_FREQ
    sta VERA_data0               ; byte 0: FREQ_L
-   lda #>UFO_DRONE_FREQ1
+   lda UFO_DRONE_FREQ + 1
    sta VERA_data0               ; byte 1: FREQ_H
-   lda #PSG_VOL_FULL
+   lda #PSG_VOL_HALF
    sta VERA_data0               ; byte 2: volume
    lda #PSG_WAVE_SAW
    sta VERA_data0               ; byte 3: waveform
@@ -3256,23 +3268,41 @@ snd_stop_ufo_drone:
 snd_update_ufo_drone:
    stz VERA_ctrl
    VERA_SET_ADDR VRAM_PSG_VOICE3, 1
-   lda frame_count
-   and #$08                     ; bit 3: 0 for 8 frames, 1 for 8 frames
-   bne @freq2
-   lda #<UFO_DRONE_FREQ1
-   sta VERA_data0               ; byte 0: FREQ_L (freq1)
-   lda #>UFO_DRONE_FREQ1
-   bra @rest
-@freq2:
-   lda #<UFO_DRONE_FREQ2
-   sta VERA_data0               ; byte 0: FREQ_L (freq2)
-   lda #>UFO_DRONE_FREQ2
-@rest:
+   lda UFO_DRONE_FREQ
+   sta VERA_data0               ; byte 0: FREQ_L
+   lda UFO_DRONE_FREQ + 1
    sta VERA_data0               ; byte 1: FREQ_H
-   lda #PSG_VOL_FULL
+   lda #PSG_VOL_HALF
    sta VERA_data0               ; byte 2: volume
    lda #PSG_WAVE_SAW
    sta VERA_data0               ; byte 3: waveform
+   ; change the frequency
+   lda UFO_FREQ_DIR
+   beq @ufo_tone_down
+   lda #$10
+   clc
+   adc UFO_DRONE_FREQ
+   sta UFO_DRONE_FREQ
+   lda #$00
+   adc UFO_DRONE_FREQ + 1
+   sta UFO_DRONE_FREQ + 1
+   cmp #>UFO_DRONE_FREQ2
+   bne @ufo_update_done
+   stz UFO_FREQ_DIR
+   jmp @ufo_update_done
+@ufo_tone_down:
+   lda UFO_DRONE_FREQ
+   sec
+   sbc #$10
+   sta UFO_DRONE_FREQ
+   lda UFO_DRONE_FREQ + 1
+   sbc #$00
+   sta UFO_DRONE_FREQ + 1
+   cmp #>UFO_DRONE_FREQ1
+   bne @ufo_update_done
+   lda #$ff
+   sta UFO_FREQ_DIR
+@ufo_update_done:
    rts
 
 ;******************************************************************
@@ -3433,7 +3463,7 @@ snd_stop_exp:
 update_hud:
    ; --- score: row 1, col 0 (Plot: Set X to Row, Set Y to Col) ---
    ldx #1
-   ldy #0
+   ldy #10
    clc
    jsr PLOT
    lda score_hi
@@ -3445,7 +3475,7 @@ update_hud:
 
    ; --- hi-score: row 1, col 16  (Plot: Set X to Row, Set Y to Col) ---
    ldx #1
-   ldy #16
+   ldy #73
    clc
    jsr PLOT
    lda hi_score_hi
@@ -3527,7 +3557,7 @@ str_title_main:
 str_score_title:
    .byte "SCORE", 0
 str_hi_score_lbl:
-   .byte "HI-SCORE", 0
+   .byte "HISCORE", 0
 str_ufo_score:
    .byte "?UFO? = ??? PTS", 0
 str_score_c:

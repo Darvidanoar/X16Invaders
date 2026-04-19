@@ -474,10 +474,10 @@ Phase 6 — Game States & Polish
   [x] Game over screen
   [x] Wave clear / next wave
   [x] Lives display (sprite icons or text)
-  [ ] Score BCD display on Layer 1
-  [ ] Hi-score tracking (RAM only; no save)
-  [ ] March sounds (VERA PSG)
-  [ ] Fire and explosion sounds
+  [x] Score BCD display on Layer 1
+  [x] Hi-score tracking (RAM only; no save)
+  [x] March sounds (VERA PSG)
+  [x] Fire and explosion sounds
 
 Phase 7 — Testing & Tuning
   [ ] Difficulty balance (speed curve, fire rate)

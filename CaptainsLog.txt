@@ -60,3 +60,6 @@ Phase 6
 - please write the phase 6 code for: Wave clear / next wave (total used session tokens used: 45%)
 - please write the phase 6 code for: Lives display (sprite icons or text) (total used session tokens used: 50%)
 - please write the phase 6 code for: Score BCD display on Layer 1 (total used session tokens used: 65%)
+- please write the phase 6 code for: Hi-score tracking (RAM only; no save) (total used session tokens used: 67%)
+- please write the phase 6 code for: March sounds (VERA PSG) (total used session tokens used: 74%)
+- please write the phase 6 code for: Fire and explosion sounds (total used session tokens used: 79%)
