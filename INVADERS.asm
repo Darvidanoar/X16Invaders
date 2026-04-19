@@ -346,6 +346,7 @@ start_game:
    jsr init_shields             ; upload shield tiles, init damage counters, place sprites
    lda #PETSCII_CLR
    jsr CHROUT                   ; clear title text, leave sprites visible
+   jsr draw_score_labels        ; paint "SCORE" / "HI-SCORE" headings
 
 ;******************************************************************
 ; main_loop — one iteration per video frame (60 Hz)
@@ -2013,6 +2014,7 @@ restart_game:
 
    lda #PETSCII_CLR
    jsr CHROUT
+   jsr draw_score_labels
    jmp main_loop
 
 ;******************************************************************
@@ -2154,6 +2156,7 @@ next_wave:
 
    lda #PETSCII_CLR
    jsr CHROUT
+   jsr draw_score_labels
    jmp main_loop
 
 ;******************************************************************
@@ -2179,6 +2182,35 @@ print_dec_byte:
    pla                       ; units digit (0-9; carry=0)
    adc #$30
    jsr CHROUT
+   rts
+
+;******************************************************************
+; draw_score_labels — paint "SCORE" (row 0, col 0) and "HI-SCORE" (row 0, col 16)
+; Called once after screen clear, before main_loop.
+;******************************************************************
+draw_score_labels:
+   lda #0
+   ldy #0
+   clc
+   jsr PLOT
+   ldx #0
+@sl1: lda str_score_title, x
+   beq @sl1d
+   jsr CHROUT
+   inx
+   bra @sl1
+@sl1d:
+   lda #0
+   ldy #16
+   clc
+   jsr PLOT
+   ldx #0
+@sl2: lda str_hi_score_lbl, x
+   beq @sl2d
+   jsr CHROUT
+   inx
+   bra @sl2
+@sl2d:
    rts
 
 ;******************************************************************
@@ -3185,11 +3217,38 @@ snd_update_ufo_drone:
 
 ;******************************************************************
 ; update_hud — rewrite dynamic HUD values each frame
+;   Row  1, col  0: 6-digit BCD score
+;   Row  1, col 16: 6-digit BCD hi-score
 ;   Row 29, col  1: LIVES: N
 ;   Row 29, col 20: WAVE: N
 ;   Overwrites fixed positions; no full redraw needed.
+;   Note: KERNAL PLOT convention for X16: A = row, Y = col, CLC.
 ;******************************************************************
 update_hud:
+   ; --- score: row 1, col 0 ---
+   lda #1
+   ldy #0
+   clc
+   jsr PLOT
+   lda score_hi
+   jsr print_hex_byte
+   lda score_mid
+   jsr print_hex_byte
+   lda score_lo
+   jsr print_hex_byte
+
+   ; --- hi-score: row 1, col 16 ---
+   lda #1
+   ldy #16
+   clc
+   jsr PLOT
+   lda hi_score_hi
+   jsr print_hex_byte
+   lda hi_score_mid
+   jsr print_hex_byte
+   lda hi_score_lo
+   jsr print_hex_byte
+
    ; --- lives count: row 29, col 1 ---
    lda #29
    ldy #1
@@ -3259,6 +3318,8 @@ print_hex_nybble:
 ;******************************************************************
 str_title_main:
    .byte "X16 INVADERS", 0
+str_score_title:
+   .byte "SCORE", 0
 str_hi_score_lbl:
    .byte "HI-SCORE", 0
 str_ufo_score:
