@@ -15,9 +15,11 @@ I decided to start this project by asking Claude to write a plan before we start
 2. When things aren't working, it pays to put the emulator in debug mode and find out where the issue really is.
 I spent a lot of time trying to get claude to fix an issue where the player character movement was not working.  This turned out to be that the code was stuck in a loop waiting for a vsync and not even making it to the player movement part of the code.
 
-3. While breaking down the work into phases has worked well, Phase 4 turned out to be a little abitious. After a couple of attempts resulting in my usage maxing out, I ended up asking claude to build each item, one at a time.  Some of the steps seemed quite challenging to me, so this made sense to do each item in phase 4 individually.  Usage for the two sessions this ran across seemed much lower.  However, when I tallied up the usage (29% + 71%), it was exactly 100% (with some bug fixing included).
+3. While breaking down the work into phases has worked well, Phase 4 turned out to be a little ambitious. After a couple of attempts resulting in my usage maxing out, I ended up asking claude to build each step, one at a time.  Some of the steps seemed quite challenging to me, so this made sense to do each step in phase 4 individually.  Usage for the two sessions this ran across seemed much lower.  However, when I tallied up the usage (29% + 71%), it was exactly 100% (with some bug fixing included).
 
-4. Overall, the game seems to work very well.  However, having scanned various parts of the code, there seem to be several instances where the code simply jumps out of a subroutine without ever executing an rts.  More close examination of the code is required to confirm this.
+4. Having claude do the coding in snall steps is much more cost effective, but running out of tokens still happens.  If this was a serious piece of work, I'd definitely want to be on a better plan. 
+
+5. Overall, the game seems to work very well.  However, having scanned various parts of the code, there seem to be several instances where the code simply jumps out of a subroutine without ever executing an rts.  More close examination of the code is required to confirm this.
 
 ---
 
