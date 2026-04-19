@@ -2146,13 +2146,12 @@ wave_clear_screen:
    jsr snd_stop_exp          ; silence explosion noise
    stz ufo_active
    jsr update_ufo_sprite
-   stz shield_damage         ; reset shields
 
    lda #PETSCII_CLR
    jsr CHROUT
 
-   lda #9
-   ldy #15
+   ldx #9
+   ldy #35
    clc
    jsr PLOT
    ldx #0
@@ -2163,8 +2162,8 @@ wave_clear_screen:
    bra @wc1
 @wc1d:
 
-   lda #11
-   ldy #15
+   ldx #11
+   ldy #32
    clc
    jsr PLOT
    ldx #0
@@ -2177,8 +2176,8 @@ wave_clear_screen:
    lda wave
    jsr print_dec_byte
 
-   lda #14
-   ldy #8
+   ldx #14
+   ldy #30
    clc
    jsr PLOT
    ldx #0
@@ -2270,6 +2269,13 @@ next_wave:
 
    ; reset invader grid to full, using new wave_init_speed
    jsr init_invaders
+
+   ; reset shields
+   ; --- reset damage counters ---
+   stz shield_damage+0
+   stz shield_damage+1
+   stz shield_damage+2
+   stz shield_damage+3    
 
    lda #PETSCII_CLR
    jsr CHROUT
