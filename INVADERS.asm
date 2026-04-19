@@ -1845,6 +1845,42 @@ player_hit:
    rts
 
 @game_over:
+   jsr snd_stop_ufo_drone
+   jsr snd_stop_march
+   jsr snd_stop_fire
+   jsr snd_stop_exp
+
+   ; print "GAME OVER" centred on the play field (row 30, col 35 in 80×60 text mode)
+   ldx #30
+   ldy #35
+   clc
+   jsr PLOT
+   ldx #0
+@go_ctr_lp:
+   lda str_game_over, x
+   beq @go_ctr_done
+   jsr CHROUT
+   inx
+   bra @go_ctr_lp
+@go_ctr_done:
+
+   ; wait 300 frames (≈ 5 seconds at 60 Hz) using 16-bit countdown in scratch
+   lda #<300
+   sta zp_scratch_lo
+   lda #>300
+   sta zp_scratch_hi
+@go_pause:
+   jsr wait_vsync
+   sec
+   lda zp_scratch_lo
+   sbc #1
+   sta zp_scratch_lo
+   lda zp_scratch_hi
+   sbc #0
+   sta zp_scratch_hi
+   ora zp_scratch_lo
+   bne @go_pause
+
    jmp game_over_screen
 
 ;******************************************************************
