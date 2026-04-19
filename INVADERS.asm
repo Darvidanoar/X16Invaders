@@ -415,11 +415,13 @@ main_loop:
    jsr move_player               ; apply movement, clamp to boundaries
    jsr update_player_sprite      ; write new X to VERA sprite 1
 
-   ; --- fire player bullet (SPACE pressed and bullet not already active) ---
+   ; --- fire player bullet (SPACE pressed, bullet inactive, and player not dead) ---
    lda key_flags
    and #KEY_FIRE
    beq @skip_fire
    lda bullet_active
+   bne @skip_fire
+   lda inv_hit_timer
    bne @skip_fire
    jsr fire_bullet
 @skip_fire:
