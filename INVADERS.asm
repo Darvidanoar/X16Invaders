@@ -119,7 +119,8 @@ CHARSET_UPPER   = 1              ; Commodore upper/graphics: $41-$5A = A-Z
 CHARSET_LOWER   = 2              ; Commodore lower/upper:    $41-$5A = a-z (lowercase)
 
 ; Key codes (PETSCII)
-KEY_RUN_STOP    = $03            ; RUN/STOP — exit game
+; KEY_RUN_STOP    = $03            ; RUN/STOP — exit game
+CHAR_Q          = $51            ; Q — exit game
 
 ; Input flag bits (key_flags)
 KEY_LEFT        = %00000001
@@ -346,7 +347,7 @@ title_loop:
    jsr update_input
 
    lda key_last
-   cmp #KEY_RUN_STOP
+   cmp #CHAR_Q
    bne @tl_no_exit
    jmp exit_game
 @tl_no_exit:
@@ -360,8 +361,8 @@ title_loop:
    and #$20
    bne @tl_on
 @tl_off:
-   lda #17
-   ldy #10
+   ldx #33
+   ldy #30
    clc
    jsr PLOT
    ldx #20                      ; erase 20 chars of "PRESS SPACE TO START"
@@ -371,8 +372,8 @@ title_loop:
    bne @tl_erase
    jmp title_loop
 @tl_on:
-   lda #17
-   ldy #10
+   ldx #33
+   ldy #30
    clc
    jsr PLOT
    ldx #0
@@ -402,7 +403,7 @@ main_loop:
    jsr update_input              ; fills key_flags (joystick) + key_last (GETIN)
 
    lda key_last
-   cmp #KEY_RUN_STOP
+   cmp #CHAR_Q
    beq exit_game
 
    ; --- invincibility timer ---
@@ -496,10 +497,10 @@ wait_vsync:
 ;     KEY_LEFT  — left arrow held
 ;     KEY_RIGHT — right arrow held
 ;     KEY_FIRE  — space bar pressed
-;   key_last   — raw PETSCII from GETIN (RUN/STOP etc.)
+;   key_last   — raw PETSCII from GETIN (Q etc.)
 ;
 ;   JOYSTICK_GET(0) = keyboard-as-joystick; gives smooth held-key
-;   movement with no repeat delay.  GETIN handles space and RUN/STOP.
+;   movement with no repeat delay.  GETIN handles space and Q.
 ;******************************************************************
 update_input:
    stz key_flags
@@ -525,7 +526,7 @@ update_input:
    sta key_flags
 @not_left:
 
-   ; --- GETIN — discrete events: fire, RUN/STOP, arrow fallback ---
+   ; --- GETIN — discrete events: fire, Q, arrow fallback ---
 @getin_drain:
    jsr GETIN
    beq @getin_done               ; buffer empty
@@ -1849,14 +1850,14 @@ player_hit:
 ;******************************************************************
 ; game_over_screen — update hi-score, draw GAME OVER, wait for input
 ;   SPACE     → restart_game (full state reset + main_loop)
-;   RUN/STOP  → exit to BASIC
+;   Q  → exit to BASIC
 ;
 ;   Layout (40-col text):
 ;     Row  9, col 15: "GAME OVER"
 ;     Row 11, col 13: "SCORE: " + 6 BCD digits
 ;     Row 12, col 12: "HI-SCORE: " + 6 BCD digits
 ;     Row 15, col 11: "SPACE = PLAY AGAIN"  (blinks)
-;     Row 17, col 12: "RUN/STOP TO QUIT"
+;     Row 17, col 12: "Q TO QUIT"
 ;******************************************************************
 game_over_screen:
    jsr snd_stop_ufo_drone    ; silence drone if UFO was active
@@ -1923,8 +1924,8 @@ game_over_screen:
    jsr print_hex_byte
 
    ; (Plot: Set X to Row, Set Y to Col)
-   ldx #17
-   ldy #32
+   ldx #37
+   ldy #35
    clc
    jsr PLOT
    ldx #0
@@ -1944,7 +1945,7 @@ game_over_loop:
    jsr update_input
 
    lda key_last
-   cmp #KEY_RUN_STOP
+   cmp #CHAR_Q
    beq @go_quit
 
    lda key_flags
@@ -2080,7 +2081,7 @@ restart_game:
 
 ;******************************************************************
 ; wave_clear_screen — display wave-clear message; SPACE or 3-sec
-;   timer advances to next_wave; RUN/STOP exits to BASIC.
+;   timer advances to next_wave; Q exits to BASIC.
 ;   Keeps player X, lives, score, and shield state intact.
 ;
 ;   Layout:
@@ -2148,7 +2149,7 @@ wave_clear_loop:
    jsr update_input
 
    lda key_last
-   cmp #KEY_RUN_STOP
+   cmp #CHAR_Q
    beq @wc_quit
 
    lda key_flags
@@ -2289,12 +2290,12 @@ draw_score_labels:
 ;     Row 10, col  9: "= 20 PTS"          + Type B sprite at X=96,Y=160
 ;     Row 13, col  9: "= 10 PTS"          + Type A sprite at X=96,Y=208
 ;     Row 17, col 10: (PRESS SPACE TO START — blinked by title_loop)
-;     Row 19, col 12: "RUN/STOP TO QUIT"
+;     Row 19, col 12: "Q TO QUIT"
 ;******************************************************************
 draw_title_screen:
    ; Row 1, col 14: "X16 INVADERS"
-   ldx #1
-   ldy #14
+   ldx #2
+   ldy #34
    clc
    jsr PLOT
    ldx #0
@@ -2306,8 +2307,8 @@ draw_title_screen:
 @lp1_done:
 
    ; Row 3, col 16: "HI-SCORE"
-   ldx #3
-   ldy #16
+   ldx #1
+   ldy #63
    clc
    jsr PLOT
    ldx #0
@@ -2319,8 +2320,8 @@ draw_title_screen:
 @lp2_done:
 
    ; Row 4, col 17: hi-score 6 BCD digits (000000 at start)
-   lda #4
-   ldy #17
+   ldx #1
+   ldy #73
    clc
    jsr PLOT
    lda hi_score_hi
@@ -2331,8 +2332,8 @@ draw_title_screen:
    jsr print_hex_byte
 
    ; Row 5, col 5: "?UFO? = ??? PTS"
-   lda #5
-   ldy #5
+   ldx #9
+   ldy #9
    clc
    jsr PLOT
    ldx #0
@@ -2346,9 +2347,9 @@ draw_title_screen:
    ; Sample invader sprites (Types C, B, A) + score labels
    jsr show_title_sprites
 
-   ; Row 19, col 12: "RUN/STOP TO QUIT"  (Plot: Set X to Row, Set Y to Col)
-   ldx #19
-   ldy #32
+   ; Row 19, col 12: "Q TO QUIT"  (Plot: Set X to Row, Set Y to Col)
+   ldx #37
+   ldy #35
    clc
    jsr PLOT
    ldx #0
@@ -2398,8 +2399,8 @@ show_title_sprites:
    lda #SPR_16x16_PAL0    ; byte 7: 16x16, palette 0
    sta VERA_data0
 
-   lda #7
-   ldy #9
+   ldx #15
+   ldy #15
    clc
    jsr PLOT
    ldx #0
@@ -2435,8 +2436,8 @@ show_title_sprites:
    lda #SPR_16x16_PAL0
    sta VERA_data0
 
-   lda #10
-   ldy #9
+   ldx #21
+   ldy #15
    clc
    jsr PLOT
    ldx #0
@@ -2472,8 +2473,8 @@ show_title_sprites:
    lda #SPR_16x16_PAL0
    sta VERA_data0
 
-   lda #13
-   ldy #9
+   ldx #27
+   ldy #15
    clc
    jsr PLOT
    ldx #0
@@ -3583,7 +3584,7 @@ str_wave_lbl:
 str_wave_continue:
    .byte "PRESS SPACE TO CONTINUE", 0
 str_run_stop_hint:
-   .byte "RUN/STOP TO QUIT", 0
+   .byte "Q TO QUIT", 0
 str_lives_lbl:
    .byte "LIVES: ", 0
 
@@ -3788,10 +3789,10 @@ ufo_spr_data:
    .byte $00,$00,$00,$55,$55,$00,$00,$00  ; row 1  dome top
    .byte $00,$00,$55,$55,$55,$55,$00,$00  ; row 2  dome
    .byte $55,$55,$55,$55,$55,$55,$55,$55  ; row 3  wide body
-   .byte $05,$05,$05,$05,$05,$05,$05,$05  ; row 4  detail
+   .byte $50,$50,$50,$50,$05,$05,$05,$05  ; row 4  detail
    .byte $55,$55,$55,$55,$55,$55,$55,$55  ; row 5  wide body
    .byte $00,$55,$55,$55,$55,$55,$55,$00  ; row 6  underside
-   .byte $00,$00,$55,$55,$00,$55,$55,$00  ; row 7  engine pods
+   .byte $00,$05,$50,$05,$50,$05,$50,$00  ; row 7  engine pods
    .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 8
    .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 9
    .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 10
