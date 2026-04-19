@@ -69,6 +69,10 @@ hi_score_hi:    .res 1           ; hi-score BCD byte 2 (digits 5-6)
 ; --- Shield state ---
 shield_damage:  .res 4           ; damage level per shield: 0=intact … 7=dmg7, 8=destroyed
 
+; --- Wave progression ---
+wave:           .res 1           ; current wave number (1-based)
+wave_init_speed: .res 1          ; starting inv_move_speed for current wave
+
 ; --- UFO state ---
 ufo_active:     .res 1           ; 0=inactive, 1=active
 ufo_x_lo:       .res 1           ; UFO X position low byte (VERA coords)
@@ -156,6 +160,10 @@ VRAM_UFO           = $01500      ; UFO pixel data (128 bytes, 16x16 4bpp, after 
 UFO_Y              = 32          ; VERA Y coord (= display pixel 16, top of play field)
 UFO_SPEED          = 2           ; VERA pixels per frame rightward (1 display pixel/frame)
 UFO_TIMER_INIT     = 600         ; frames between UFO appearances (≈10 sec at 60 Hz)
+
+; Wave progression
+WAVE_CLEAR_FRAMES  = 180         ; auto-advance delay after wave clear (≈3 sec at 60 Hz)
+WAVE_SPEED_STEP    = 5           ; inv_move_speed decreases by this each wave
 
 ; VERA PSG voice 3 — UFO drone (base addr $1F9C0 + 3*4 = $1F9CC)
 ; PSG byte layout: 0=FREQ_L, 1=FREQ_H, 2=volume([7]=R,[6]=L,[5:0]=vol 0-63), 3=waveform([7:6])
@@ -256,6 +264,10 @@ start:
    lda #>UFO_TIMER_INIT
    sta ufo_timer_hi
    stz shot_count
+   lda #1
+   sta wave
+   lda #INV_MOVE_SPEED_INIT
+   sta wave_init_speed
 
    ; Set initial player position before sprite init reads it
    jsr init_player
@@ -402,6 +414,12 @@ main_loop:
    lda inv_move_speed
    sta inv_move_timer
 @skip_inv_step:
+
+   ; --- check wave clear (all 55 invaders dead) ---
+   lda inv_count
+   bne @no_wave_clear
+   jmp wave_clear_screen
+@no_wave_clear:
 
    jsr update_hud                ; refresh text readouts
 
@@ -782,7 +800,7 @@ init_invaders:
 
    lda #INV_COUNT_INIT
    sta inv_count
-   lda #INV_MOVE_SPEED_INIT
+   lda wave_init_speed
    sta inv_move_speed
    sta inv_move_timer
 
@@ -1947,6 +1965,10 @@ restart_game:
    stz score_lo
    stz score_mid
    stz score_hi
+   lda #1
+   sta wave
+   lda #INV_MOVE_SPEED_INIT
+   sta wave_init_speed
 
    jsr init_player           ; resets player_x, lives=3, inv_hit_timer=0
 
@@ -1992,6 +2014,172 @@ restart_game:
    lda #PETSCII_CLR
    jsr CHROUT
    jmp main_loop
+
+;******************************************************************
+; wave_clear_screen — display wave-clear message; SPACE or 3-sec
+;   timer advances to next_wave; RUN/STOP exits to BASIC.
+;   Keeps player X, lives, score, and shield state intact.
+;
+;   Layout:
+;     Row  9, col 15: "WAVE CLEAR"
+;     Row 11, col 15: "WAVE: N"    (N = wave just completed)
+;     Row 14, col  8: "PRESS SPACE TO CONTINUE"
+;******************************************************************
+wave_clear_screen:
+   jsr snd_stop_ufo_drone    ; silence drone (UFO already gone but guard)
+   stz ufo_active
+   jsr update_ufo_sprite
+
+   lda #PETSCII_CLR
+   jsr CHROUT
+
+   lda #9
+   ldy #15
+   clc
+   jsr PLOT
+   ldx #0
+@wc1: lda str_wave_clear, x
+   beq @wc1d
+   jsr CHROUT
+   inx
+   bra @wc1
+@wc1d:
+
+   lda #11
+   ldy #15
+   clc
+   jsr PLOT
+   ldx #0
+@wc2: lda str_wave_lbl, x
+   beq @wc2d
+   jsr CHROUT
+   inx
+   bra @wc2
+@wc2d:
+   lda wave
+   jsr print_dec_byte
+
+   lda #14
+   ldy #8
+   clc
+   jsr PLOT
+   ldx #0
+@wc3: lda str_wave_continue, x
+   beq @wc3d
+   jsr CHROUT
+   inx
+   bra @wc3
+@wc3d:
+
+   lda #WAVE_CLEAR_FRAMES
+   sta zp_scratch_lo         ; countdown timer (fits in 1 byte: 180 < 256)
+
+;------------------------------------------------------------------
+; wave_clear_loop — wait for SPACE or timer expiry
+;------------------------------------------------------------------
+wave_clear_loop:
+   jsr wait_vsync
+   jsr update_input
+
+   lda key_last
+   cmp #KEY_RUN_STOP
+   beq @wc_quit
+
+   lda key_flags
+   and #KEY_FIRE
+   bne @wc_advance
+
+   dec zp_scratch_lo
+   bne wave_clear_loop       ; timer not yet zero
+   ; fall through when timer expires
+
+@wc_advance:
+   jmp next_wave
+
+@wc_quit:
+   lda #PETSCII_CLR
+   jsr CHROUT
+   jmp ENTER_BASIC
+
+;******************************************************************
+; next_wave — advance wave counter, reduce speed, reset grid, resume play
+;   Keeps: player X, lives, score, shields.
+;   Clears: bullets, invaders, explosion, UFO.
+;******************************************************************
+next_wave:
+   inc wave
+
+   ; new wave_init_speed = max(current - WAVE_SPEED_STEP, INV_MOVE_SPEED_MIN)
+   lda wave_init_speed
+   sec
+   sbc #WAVE_SPEED_STEP
+   cmp #INV_MOVE_SPEED_MIN
+   bcs @speed_ok
+   lda #INV_MOVE_SPEED_MIN
+@speed_ok:
+   sta wave_init_speed
+
+   ; deactivate player bullet
+   stz bullet_active
+   jsr update_bullet_sprite
+
+   ; reset explosion
+   stz exp_timer
+   stz VERA_ctrl
+   VERA_SET_ADDR (EXPLODE_SPRITE_ATTR + 6), 1
+   lda #$00
+   sta VERA_data0
+
+   ; deactivate invader bullets
+   stz ibul_active+0
+   stz ibul_active+1
+   stz ibul_active+2
+   ldx #0
+@nw_ibul:
+   jsr update_inv_bullet_sprite
+   inx
+   cpx #3
+   bne @nw_ibul
+   lda #INV_FIRE_TIMER_INIT
+   sta inv_fire_timer
+
+   ; reset UFO timer (UFO already inactive from wave_clear_screen)
+   lda #<UFO_TIMER_INIT
+   sta ufo_timer_lo
+   lda #>UFO_TIMER_INIT
+   sta ufo_timer_hi
+
+   ; reset invader grid to full, using new wave_init_speed
+   jsr init_invaders
+
+   lda #PETSCII_CLR
+   jsr CHROUT
+   jmp main_loop
+
+;******************************************************************
+; print_dec_byte — print .A as 1 or 2 decimal digits (values 0-99)
+;   Suppresses leading zero for single-digit numbers.
+;   Clobbers: A, X.  Carry is cleared on exit.
+;******************************************************************
+print_dec_byte:
+   ldx #0
+@pdb_loop:
+   cmp #10
+   bcc @pdb_units            ; A < 10 → done dividing
+   inx
+   sbc #10                   ; carry is set by cmp, so sbc = A - 10
+   bra @pdb_loop
+@pdb_units:
+   pha                       ; save units digit
+   txa                       ; tens digit count
+   beq @pdb_skip_tens        ; zero → suppress leading zero
+   adc #$30                  ; carry=0 here (from last bcc), so adc = X + $30
+   jsr CHROUT
+@pdb_skip_tens:
+   pla                       ; units digit (0-9; carry=0)
+   adc #$30
+   jsr CHROUT
+   rts
 
 ;******************************************************************
 ; draw_title_screen — paint the title screen; called once before title_loop
@@ -3087,6 +3275,12 @@ str_hi_score_go:
    .byte "HI-SCORE: ", 0
 str_play_again:
    .byte "SPACE = PLAY AGAIN", 0
+str_wave_clear:
+   .byte "WAVE CLEAR", 0
+str_wave_lbl:
+   .byte "WAVE: ", 0
+str_wave_continue:
+   .byte "PRESS SPACE TO CONTINUE", 0
 str_run_stop_hint:
    .byte "RUN/STOP TO QUIT", 0
 str_frame_lbl:
