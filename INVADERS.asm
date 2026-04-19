@@ -122,6 +122,7 @@ PLAYER_SPEED    = 4              ; pixels per frame
 SPRITE1_ATTR    = $1FC08 ; sprite 1 attribute base ($1FC00=sprite 0, reserved for KERNAL mouse)
 SPR_Z_FRONT     = %00001100     ; byte 6: z-depth = %11 in bits 3-2 (in front of all layers)
 SPR_16x16_PAL0  = %01010000     ; byte 7: width=1(16px), height=1(16px), palette_off=0
+SPR_32x16_PAL0  = %10010000     ; byte 7: width=2(32px), height=1(16px), palette_off=0
 SPR_8x8_PAL0    = %00000000     ; byte 7: width=0(8px),  height=0(8px),  palette_off=0
 
 ; Explosion sprite (slot 4)
@@ -143,14 +144,14 @@ INV_HIT_FRAMES     = 120        ; invincibility duration after being hit (2 sec 
 ; Shields
 SHIELD_Y           = 352        ; VERA Y coordinate for all 4 shields (176 display pixels)
 SHIELD_SPR_BASE    = $1FE10     ; sprite slot 66 attr ($1FC00 + 66*8); slots 8-65 in use
-VRAM_SHIELD_FULL   = $00500     ; 128-byte 16x16 4bpp tile: intact
-VRAM_SHIELD_DMG1   = $00580     ; 25% damaged
-VRAM_SHIELD_DMG2   = $00600     ; 50% damaged
-VRAM_SHIELD_DMG3   = $00680     ; 62% damaged
-VRAM_SHIELD_DMG4   = $00700     ; 75% damaged
-VRAM_SHIELD_DMG5   = $00780     ; heavily damaged
-VRAM_SHIELD_DMG6   = $00800     ; severely damaged
-VRAM_SHIELD_DMG7   = $00880     ; nearly destroyed
+VRAM_SHIELD_FULL   = $00500     ; 256-byte 32x16 4bpp tile: intact
+VRAM_SHIELD_DMG1   = $00600     ; 12% damaged
+VRAM_SHIELD_DMG2   = $00700     ; 25% damaged
+VRAM_SHIELD_DMG3   = $00800     ; 37% damaged
+VRAM_SHIELD_DMG4   = $00900     ; 50% damaged
+VRAM_SHIELD_DMG5   = $00A00     ; 62% damaged
+VRAM_SHIELD_DMG6   = $00B00     ; 75% damaged
+VRAM_SHIELD_DMG7   = $00C00     ; nearly destroyed
 
 ; Player bullet
 BULLET_SPRITE_ATTR = $1FC10     ; sprite 2 attribute base (player bullet)
@@ -1943,7 +1944,7 @@ hide_all_inv_sprites:
 ;   all 4 shields (slots 66–69, base $1FE10).
 ;
 ;   Sprite positions: X = shield_x_lo/hi[n], Y = SHIELD_Y (352)
-;   Each shield sprite: 16x16, palette 0 (entry 7 = dark green).
+;   Each shield sprite: 32x16, palette 0 (entry 7 = dark green).
 ;******************************************************************
 init_shields:
    stz VERA_ctrl
@@ -1956,69 +1957,109 @@ init_shields:
    lda #$00
    sta VERA_data0
 
-   ; --- upload shield_tile_full → $00500 ---
+   ; --- upload shield_tile_full → $00500 (256 bytes: two 128-byte passes) ---
    VERA_SET_ADDR VRAM_SHIELD_FULL, 1
    ldx #128
-@up_s0: lda shield_tile_full - 128, x
+@up_s0a: lda shield_tile_full - 128, x
    sta VERA_data0
    inx
-   bne @up_s0
+   bne @up_s0a
+   ldx #128
+@up_s0b: lda shield_tile_full, x
+   sta VERA_data0
+   inx
+   bne @up_s0b
 
-   ; --- upload shield_tile_dmg1 → $00580 ---
+   ; --- upload shield_tile_dmg1 → $00600 ---
    VERA_SET_ADDR VRAM_SHIELD_DMG1, 1
    ldx #128
-@up_s1: lda shield_tile_dmg1 - 128, x
+@up_s1a: lda shield_tile_dmg1 - 128, x
    sta VERA_data0
    inx
-   bne @up_s1
+   bne @up_s1a
+   ldx #128
+@up_s1b: lda shield_tile_dmg1, x
+   sta VERA_data0
+   inx
+   bne @up_s1b
 
-   ; --- upload shield_tile_dmg2 → $00600 ---
+   ; --- upload shield_tile_dmg2 → $00700 ---
    VERA_SET_ADDR VRAM_SHIELD_DMG2, 1
    ldx #128
-@up_s2: lda shield_tile_dmg2 - 128, x
+@up_s2a: lda shield_tile_dmg2 - 128, x
    sta VERA_data0
    inx
-   bne @up_s2
+   bne @up_s2a
+   ldx #128
+@up_s2b: lda shield_tile_dmg2, x
+   sta VERA_data0
+   inx
+   bne @up_s2b
 
-   ; --- upload shield_tile_dmg3 → $00680 ---
+   ; --- upload shield_tile_dmg3 → $00800 ---
    VERA_SET_ADDR VRAM_SHIELD_DMG3, 1
    ldx #128
-@up_s3: lda shield_tile_dmg3 - 128, x
+@up_s3a: lda shield_tile_dmg3 - 128, x
    sta VERA_data0
    inx
-   bne @up_s3
+   bne @up_s3a
+   ldx #128
+@up_s3b: lda shield_tile_dmg3, x
+   sta VERA_data0
+   inx
+   bne @up_s3b
 
-   ; --- upload shield_tile_dmg4 → $00700 ---
+   ; --- upload shield_tile_dmg4 → $00900 ---
    VERA_SET_ADDR VRAM_SHIELD_DMG4, 1
    ldx #128
-@up_s4: lda shield_tile_dmg4 - 128, x
+@up_s4a: lda shield_tile_dmg4 - 128, x
    sta VERA_data0
    inx
-   bne @up_s4
+   bne @up_s4a
+   ldx #128
+@up_s4b: lda shield_tile_dmg4, x
+   sta VERA_data0
+   inx
+   bne @up_s4b
 
-   ; --- upload shield_tile_dmg5 → $00780 ---
+   ; --- upload shield_tile_dmg5 → $00A00 ---
    VERA_SET_ADDR VRAM_SHIELD_DMG5, 1
    ldx #128
-@up_s5: lda shield_tile_dmg5 - 128, x
+@up_s5a: lda shield_tile_dmg5 - 128, x
    sta VERA_data0
    inx
-   bne @up_s5
+   bne @up_s5a
+   ldx #128
+@up_s5b: lda shield_tile_dmg5, x
+   sta VERA_data0
+   inx
+   bne @up_s5b
 
-   ; --- upload shield_tile_dmg6 → $00800 ---
+   ; --- upload shield_tile_dmg6 → $00B00 ---
    VERA_SET_ADDR VRAM_SHIELD_DMG6, 1
    ldx #128
-@up_s6: lda shield_tile_dmg6 - 128, x
+@up_s6a: lda shield_tile_dmg6 - 128, x
    sta VERA_data0
    inx
-   bne @up_s6
+   bne @up_s6a
+   ldx #128
+@up_s6b: lda shield_tile_dmg6, x
+   sta VERA_data0
+   inx
+   bne @up_s6b
 
-   ; --- upload shield_tile_dmg7 → $00880 ---
+   ; --- upload shield_tile_dmg7 → $00C00 ---
    VERA_SET_ADDR VRAM_SHIELD_DMG7, 1
    ldx #128
-@up_s7: lda shield_tile_dmg7 - 128, x
+@up_s7a: lda shield_tile_dmg7 - 128, x
    sta VERA_data0
    inx
-   bne @up_s7
+   bne @up_s7a
+   ldx #128
+@up_s7b: lda shield_tile_dmg7, x
+   sta VERA_data0
+   inx
+   bne @up_s7b
 
    ; --- reset damage counters ---
    stz shield_damage+0
@@ -2037,7 +2078,7 @@ init_shields:
 
    ldx #0
 @spr_init:
-   lda #$28               ; byte 0: addr[12:5] = VRAM_SHIELD_FULL>>5 = $00500>>5
+   lda #$28               ; byte 0: addr[12:5] = VRAM_SHIELD_FULL>>5 = $00500>>5 = $28
    sta VERA_data0
    lda #$00               ; byte 1: 4bpp, addr[16:13]=0
    sta VERA_data0
@@ -2051,7 +2092,7 @@ init_shields:
    sta VERA_data0
    lda #SPR_Z_FRONT       ; byte 6: z-depth=3 (in front of all layers)
    sta VERA_data0
-   lda #SPR_16x16_PAL0    ; byte 7: 16x16, palette 0
+   lda #SPR_32x16_PAL0    ; byte 7: 32x16, palette 0
    sta VERA_data0
    inx
    cpx #4
@@ -2185,10 +2226,10 @@ check_bullet_shields:
    sbc shield_x_hi, x
    bmi @next_sld
 
-   ; X check (2): bullet_x < shield_x[x]+16
+   ; X check (2): bullet_x < shield_x[x]+32
    lda shield_x_lo, x
    clc
-   adc #16
+   adc #32
    sta zp_scratch_lo
    lda shield_x_hi, x
    adc #0
@@ -2276,10 +2317,10 @@ check_invbullet_shields:
    sbc shield_x_hi, y
    bmi @next_sld_y
 
-   ; X check (2): ibul_x < shield_x[y]+16
+   ; X check (2): ibul_x < shield_x[y]+32
    lda shield_x_lo, y
    clc
-   adc #16
+   adc #32
    sta zp_scratch_lo
    lda shield_x_hi, y
    adc #0
@@ -2535,9 +2576,9 @@ shield_x_lo:    .byte <80,  <240, <400, <560
 shield_x_hi:    .byte >80,  >240, >400, >560
 
 ; Shield sprite data addr[12:5] for each damage level (0=full … 7=dmg7)
-; $00500>>5=$28  $00580>>5=$2C  $00600>>5=$30  $00680>>5=$34
-; $00700>>5=$38  $00780>>5=$3C  $00800>>5=$40  $00880>>5=$44
-shield_addr_b0: .byte $28, $2C, $30, $34, $38, $3C, $40, $44
+; $00500>>5=$28  $00600>>5=$30  $00700>>5=$38  $00800>>5=$40
+; $00900>>5=$48  $00A00>>5=$50  $00B00>>5=$58  $00C00>>5=$60
+shield_addr_b0: .byte $28, $30, $38, $40, $48, $50, $58, $60
 
 ;******************************************************************
 ; Invader bullet sprite pixel data — 8x8 4bpp, 32 bytes
@@ -2775,163 +2816,164 @@ inv_c_spr_f1:
 ;   Checker B (even bits lit): $07 $70 $07 $70 $07 $70 $07 $70
 ;   Solid row:                 $77 $77 $77 $77 $77 $77 $77 $77
 ;
-;   Classic Space Invaders arch/bunker shape (16x16, 4bpp, color index 7)
+;   Classic Space Invaders arch/bunker shape (32x16, 4bpp, color index 7)
 ;   Dome narrows upward (rows 0-1); solid body (rows 2-9); arch cut
-;   from rows 10-13 with 4px legs; solid base rows 14-15 (16px wide).
+;   from rows 10-13 with 8px legs; solid base rows 14-15 (32px wide).
 ;   Damage progression: dome erodes first, then body, then arch/base.
+;   Each row = 16 bytes (32 pixels × 4bpp).
 ;
-;   shield_tile_full:  intact bunker — dome 12px/14px, solid body, arch, solid base
+;   shield_tile_full:  intact bunker — dome 24px/28px, solid body, arch, solid base
 ;   shield_tile_dmg1:  two holes in dome top row
-;   shield_tile_dmg2:  dome top shrunk to 8px, second dome row holed
-;   shield_tile_dmg3:  dome top 6px, first body hole
-;   shield_tile_dmg4:  dome nearly gone, more body holes, arch 3px legs
-;   shield_tile_dmg5:  dome gone, heavy body damage, arch 2px legs, base hole
-;   shield_tile_dmg6:  severe body fragmentation, arch 1px legs, base holes
+;   shield_tile_dmg2:  dome top shrunk to 20px, second dome row holed
+;   shield_tile_dmg3:  dome top 16px, dome row 1 holed, first body hole
+;   shield_tile_dmg4:  dome 8px/16px, body 3 holes, arch 6px legs
+;   shield_tile_dmg5:  dome gone/4px, body heavy, arch 4px legs, base hole
+;   shield_tile_dmg6:  severe body fragmentation, arch 2px legs, base holes
 ;   shield_tile_dmg7:  ruins — side pillars only, base largely gone
 ;******************************************************************
 
 shield_tile_full:
-   .byte $00,$77,$77,$77,$77,$77,$77,$00  ; row  0  dome 12px
-   .byte $07,$77,$77,$77,$77,$77,$77,$70  ; row  1  dome 14px
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  2  solid body
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  3
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  4
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  5
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  6
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  7
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  8
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  9
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 10  arch: 4px legs, 8px gap
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 11
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 12
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 13
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 14  solid base 16px
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 15
+   .byte $00,$00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00,$00  ; r0  dome 24px
+   .byte $00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00  ; r1  dome 28px
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r2  solid body
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r3
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r4
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r5
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r6
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r7
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r9
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r10 arch 8px legs
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r11
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r12
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r13
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14 solid base
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
 
 shield_tile_dmg1:
-   .byte $00,$77,$70,$77,$77,$07,$77,$00  ; row  0  dome: holes at pos 5,10
-   .byte $07,$77,$77,$77,$77,$77,$77,$70  ; row  1  dome: intact
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  2  solid body
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  3
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  4
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  5
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  6
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  7
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  8
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  9
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 10  arch: 4px legs
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 11
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 12
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 13
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 14  solid base
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 15
+   .byte $00,$00,$77,$77,$00,$77,$77,$77,$77,$77,$77,$00,$77,$77,$00,$00  ; r0  dome: holes at pos 8-9, 22-23
+   .byte $00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00  ; r1  dome: intact
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r2  solid body
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r3
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r4
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r5
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r6
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r7
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r9
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r10 arch: 8px legs
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r11
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r12
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r13
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14 solid base
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
 
 shield_tile_dmg2:
-   .byte $00,$00,$77,$77,$77,$77,$00,$00  ; row  0  dome: shrunk to 8px
-   .byte $00,$77,$70,$77,$77,$07,$77,$00  ; row  1  dome: 12px with holes
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  2  solid body
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  3
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  4
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  5
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  6
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  7
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  8
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  9
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 10  arch: 4px legs
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 11
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 12
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 13
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 14  solid base
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 15
+   .byte $00,$00,$00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00,$00,$00  ; r0  dome: 20px
+   .byte $00,$77,$77,$77,$77,$00,$77,$77,$77,$77,$77,$00,$77,$77,$77,$00  ; r1  dome: holes at 10-11, 22-23
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r2  solid body
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r3
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r4
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r5
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r6
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r7
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r9
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r10 arch: 8px legs
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r11
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r12
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r13
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14 solid base
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
 
 shield_tile_dmg3:
-   .byte $00,$00,$07,$77,$77,$70,$00,$00  ; row  0  dome: 6px
-   .byte $00,$07,$77,$77,$77,$77,$70,$00  ; row  1  dome: 10px
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  2  solid body
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  3
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  4
-   .byte $77,$77,$77,$70,$07,$77,$77,$77  ; row  5  body: 2px hole at center
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  6
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  7
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  8
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  9
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 10  arch: 4px legs
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 11
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 12
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 13
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 14  solid base
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 15
+   .byte $00,$00,$00,$00,$77,$77,$77,$77,$77,$77,$77,$77,$00,$00,$00,$00  ; r0  dome: 16px
+   .byte $00,$77,$77,$77,$00,$77,$77,$77,$77,$77,$77,$00,$77,$77,$77,$00  ; r1  dome: holes at 8-9, 22-23
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r2  solid body
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r3
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r4
+   .byte $77,$77,$77,$77,$77,$77,$77,$70,$07,$77,$77,$77,$77,$77,$77,$77  ; r5  body: 2px hole at center
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r6
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r7
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r9
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r10 arch: 8px legs
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r11
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r12
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r13
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14 solid base
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
 
 shield_tile_dmg4:
-   .byte $00,$00,$00,$07,$70,$00,$00,$00  ; row  0  dome: 2px remnant
-   .byte $00,$00,$07,$77,$77,$70,$00,$00  ; row  1  dome: 6px
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  2  solid
-   .byte $77,$77,$77,$70,$07,$77,$77,$77  ; row  3  body: center hole
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  4
-   .byte $77,$70,$77,$77,$77,$77,$07,$77  ; row  5  body: side holes
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  6
-   .byte $77,$77,$77,$70,$07,$77,$77,$77  ; row  7  body: center hole
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  8
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  9
-   .byte $77,$70,$00,$00,$00,$00,$07,$77  ; row 10  arch: 3px legs
-   .byte $77,$70,$00,$00,$00,$00,$07,$77  ; row 11
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 12  arch: 4px legs
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 13
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 14  solid base
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 15
+   .byte $00,$00,$00,$00,$00,$00,$77,$77,$77,$77,$00,$00,$00,$00,$00,$00  ; r0  dome: 8px
+   .byte $00,$00,$00,$00,$77,$77,$77,$77,$77,$77,$77,$77,$00,$00,$00,$00  ; r1  dome: 16px
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r2  solid
+   .byte $77,$77,$77,$77,$77,$77,$77,$70,$07,$77,$77,$77,$77,$77,$77,$77  ; r3  body: center hole
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r4
+   .byte $77,$77,$70,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$07,$77,$77  ; r5  body: side holes
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r6
+   .byte $77,$77,$77,$77,$77,$77,$77,$70,$07,$77,$77,$77,$77,$77,$77,$77  ; r7  body: center hole
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r9
+   .byte $77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77  ; r10 arch: 6px legs
+   .byte $77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77  ; r11
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r12 arch: 8px legs
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r13
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14 solid base
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
 
 shield_tile_dmg5:
-   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row  0  dome: gone
-   .byte $00,$00,$00,$07,$70,$00,$00,$00  ; row  1  dome: 2px remnant
-   .byte $00,$00,$07,$77,$77,$70,$00,$00  ; row  2  top: 6px fragment
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  3  solid
-   .byte $77,$77,$77,$70,$07,$77,$77,$77  ; row  4  body: center hole
-   .byte $77,$77,$07,$77,$77,$70,$77,$77  ; row  5  body: near-center holes
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  6
-   .byte $77,$70,$77,$77,$77,$77,$07,$77  ; row  7  body: side holes
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  8
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row  9
-   .byte $77,$00,$00,$00,$00,$00,$00,$77  ; row 10  arch: 2px legs
-   .byte $77,$00,$00,$00,$00,$00,$00,$77  ; row 11
-   .byte $77,$70,$00,$00,$00,$00,$07,$77  ; row 12  arch: 3px legs
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 13  arch: 4px legs
-   .byte $77,$77,$77,$70,$07,$77,$77,$77  ; row 14  base: center hole
-   .byte $77,$77,$77,$77,$77,$77,$77,$77  ; row 15  base: solid
+   .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r0  dome: gone
+   .byte $00,$00,$00,$00,$00,$00,$00,$77,$77,$00,$00,$00,$00,$00,$00,$00  ; r1  dome: 4px remnant
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r2  solid
+   .byte $77,$77,$77,$77,$77,$77,$77,$70,$07,$77,$77,$77,$77,$77,$77,$77  ; r3  body: center hole
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r4
+   .byte $77,$77,$77,$70,$07,$77,$77,$77,$77,$77,$77,$70,$07,$77,$77,$77  ; r5  body: pair holes
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r6
+   .byte $77,$77,$70,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$07,$77,$77  ; r7  body: side holes
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r9
+   .byte $77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77  ; r10 arch: 4px legs
+   .byte $77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77  ; r11
+   .byte $77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77  ; r12 arch: 6px legs
+   .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r13 arch: 8px legs
+   .byte $77,$77,$77,$77,$77,$77,$77,$70,$07,$77,$77,$77,$77,$77,$77,$77  ; r14 base: center hole
+   .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15 base: solid
 
 shield_tile_dmg6:
-   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row  0  gone
-   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row  1  gone
-   .byte $00,$00,$07,$77,$77,$70,$00,$00  ; row  2  fragment
-   .byte $77,$77,$00,$77,$77,$00,$77,$77  ; row  3  body: two 2px gaps
-   .byte $77,$70,$77,$00,$00,$77,$07,$77  ; row  4  body: 4px center gap
-   .byte $77,$77,$77,$00,$00,$77,$77,$77  ; row  5  body: 4px center gap
-   .byte $77,$70,$07,$77,$77,$70,$07,$77  ; row  6  body: scattered holes
-   .byte $77,$77,$07,$00,$00,$70,$77,$77  ; row  7  body: holes
-   .byte $77,$00,$77,$77,$77,$77,$00,$77  ; row  8  body: side gaps
-   .byte $77,$70,$07,$77,$77,$70,$07,$77  ; row  9  body: holes
-   .byte $70,$00,$00,$00,$00,$00,$00,$07  ; row 10  arch: 1px legs
-   .byte $77,$00,$00,$00,$00,$00,$00,$77  ; row 11  arch: 2px legs
-   .byte $77,$70,$00,$00,$00,$00,$07,$77  ; row 12  arch: 3px legs
-   .byte $77,$77,$00,$00,$00,$00,$77,$77  ; row 13  arch: 4px legs
-   .byte $77,$77,$07,$77,$77,$70,$77,$77  ; row 14  base: side holes
-   .byte $77,$77,$77,$70,$07,$77,$77,$77  ; row 15  base: center hole
+   .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r0  gone
+   .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r1  gone
+   .byte $00,$00,$00,$00,$00,$77,$77,$77,$77,$77,$00,$00,$00,$00,$00,$00  ; r2  dome fragment
+   .byte $77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77  ; r3  side pillars
+   .byte $77,$77,$00,$77,$77,$77,$00,$00,$00,$00,$77,$77,$77,$00,$77,$77  ; r4  pillars + fragments
+   .byte $77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77  ; r5  body: wide gap
+   .byte $77,$70,$07,$77,$77,$77,$00,$00,$00,$00,$77,$77,$77,$70,$07,$77  ; r6  fragmented
+   .byte $77,$77,$00,$00,$77,$00,$00,$00,$00,$00,$00,$77,$00,$00,$77,$77  ; r7
+   .byte $77,$00,$00,$77,$77,$00,$00,$00,$00,$00,$00,$77,$77,$00,$00,$77  ; r8  side sections
+   .byte $77,$70,$07,$77,$00,$00,$77,$77,$77,$77,$00,$00,$77,$70,$07,$77  ; r9  scattered
+   .byte $77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77  ; r10 arch: 2px legs
+   .byte $77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77  ; r11
+   .byte $77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77  ; r12 arch: 4px legs
+   .byte $77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77  ; r13 arch: 6px legs
+   .byte $77,$77,$77,$70,$07,$77,$77,$77,$77,$77,$77,$70,$07,$77,$77,$77  ; r14 base: two holes
+   .byte $77,$77,$00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00,$77  ; r15 base: side gaps
 
 shield_tile_dmg7:
-   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row  0  gone
-   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row  1  gone
-   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row  2  gone
-   .byte $07,$70,$00,$00,$00,$00,$07,$70  ; row  3  top of side pillars
-   .byte $77,$70,$00,$07,$70,$00,$07,$77  ; row  4  pillar tops + inner remnants
-   .byte $77,$00,$00,$77,$77,$00,$00,$77  ; row  5  pillar + inner arch top
-   .byte $70,$00,$07,$77,$77,$70,$00,$07  ; row  6  inner arch body
-   .byte $07,$00,$77,$00,$00,$77,$00,$70  ; row  7  inner arch
-   .byte $77,$00,$07,$00,$00,$70,$00,$77  ; row  8  pillar stubs + dots
-   .byte $70,$00,$77,$00,$00,$77,$00,$07  ; row  9  fragments
-   .byte $07,$00,$00,$00,$00,$00,$00,$70  ; row 10  arch: dots only
-   .byte $77,$00,$00,$00,$00,$00,$00,$77  ; row 11  arch: 2px legs
-   .byte $70,$00,$00,$00,$00,$00,$00,$07  ; row 12  arch: 1px legs
-   .byte $77,$70,$00,$00,$00,$00,$07,$77  ; row 13  arch: 3px legs
-   .byte $77,$70,$77,$00,$00,$77,$07,$77  ; row 14  base: middle gone
-   .byte $07,$77,$77,$00,$00,$77,$77,$70  ; row 15  base: crumbling
+   .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r0  gone
+   .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r1  gone
+   .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r2  gone
+   .byte $77,$70,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$07,$77  ; r3  pillar tops 3px
+   .byte $77,$77,$00,$00,$07,$70,$00,$00,$00,$00,$07,$70,$00,$00,$77,$77  ; r4  pillars + inner dots
+   .byte $77,$00,$00,$00,$77,$77,$00,$00,$00,$00,$77,$77,$00,$00,$00,$77  ; r5  pillars + arch top
+   .byte $00,$00,$07,$77,$77,$00,$00,$00,$00,$00,$00,$77,$77,$70,$00,$00  ; r6  arch body fragments
+   .byte $07,$00,$77,$77,$00,$00,$77,$00,$00,$77,$00,$00,$77,$77,$00,$70  ; r7
+   .byte $77,$00,$00,$07,$00,$00,$77,$00,$00,$77,$00,$00,$70,$00,$00,$77  ; r8  pillar stubs
+   .byte $70,$00,$07,$00,$00,$77,$77,$00,$00,$77,$77,$00,$00,$70,$00,$07  ; r9  fragments
+   .byte $70,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$07  ; r10 arch: 1px dots
+   .byte $77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77  ; r11 arch: 2px
+   .byte $70,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$07  ; r12 arch: 1px
+   .byte $77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77  ; r13 arch: 4px
+   .byte $77,$77,$77,$00,$00,$77,$77,$77,$77,$77,$77,$00,$00,$77,$77,$77  ; r14 base: two 4px gaps
+   .byte $07,$77,$77,$77,$77,$77,$00,$00,$00,$00,$77,$77,$77,$77,$77,$70  ; r15 base: crumbling
 
 ;******************************************************************
