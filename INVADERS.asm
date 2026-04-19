@@ -478,9 +478,9 @@ main_loop:
 
 ;------------------------------------------------------------------
 exit_game:
+   jsr hide_all_sprites
    lda #PETSCII_CLR
    jsr CHROUT
-   
    jmp ENTER_BASIC
 
 ;******************************************************************
@@ -2026,6 +2026,7 @@ game_over_loop:
    jmp game_over_loop
 
 @go_quit:
+   jsr hide_all_sprites
    lda #PETSCII_CLR
    jsr CHROUT
    jmp ENTER_BASIC
@@ -2208,6 +2209,7 @@ wave_clear_loop:
    jmp next_wave
 
 @wc_quit:
+   jsr hide_all_sprites
    lda #PETSCII_CLR
    jsr CHROUT
    jmp ENTER_BASIC
@@ -2546,6 +2548,27 @@ hide_all_inv_sprites:
    sta VERA_addr_low
    lda #0                 ; z-depth=0 → disabled
    ldx #55
+@loop:
+   sta VERA_data0         ; writes byte 6; addr auto-advances by 8
+   dex
+   bne @loop
+   rts
+
+;******************************************************************
+; hide_all_sprites — set z-depth=0 for all 128 VERA sprite slots.
+;   Writes 0 to byte 6 of every slot starting at $1FC06, stride=8.
+;   Call before returning to BASIC so no sprites linger on screen.
+;******************************************************************
+hide_all_sprites:
+   stz VERA_ctrl
+   lda #$41               ; stride=8, bank=1
+   sta VERA_addr_bank
+   lda #$FC
+   sta VERA_addr_high
+   lda #$06               ; byte 6 of sprite 0 ($1FC06)
+   sta VERA_addr_low
+   lda #0                 ; z-depth=0 → disabled
+   ldx #128
 @loop:
    sta VERA_data0         ; writes byte 6; addr auto-advances by 8
    dex
