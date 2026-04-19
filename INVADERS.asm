@@ -69,6 +69,14 @@ hi_score_hi:    .res 1           ; hi-score BCD byte 2 (digits 5-6)
 ; --- Shield state ---
 shield_damage:  .res 4           ; damage level per shield: 0=intact … 7=dmg7, 8=destroyed
 
+; --- UFO state ---
+ufo_active:     .res 1           ; 0=inactive, 1=active
+ufo_x_lo:       .res 1           ; UFO X position low byte (VERA coords)
+ufo_x_hi:       .res 1           ; UFO X position high byte
+ufo_timer_lo:   .res 1           ; countdown to next UFO appearance (frames, low byte)
+ufo_timer_hi:   .res 1           ; countdown to next UFO appearance (frames, high byte)
+shot_count:     .res 1           ; player bullets fired mod 8 → UFO score table index
+
 ;******************************************************************
 .segment "ONCE"
 .segment "CODE"
@@ -141,6 +149,13 @@ INV_FIRE_TIMER_INIT = 90        ; frames before first shot
 ; Player lives
 LIVES_INIT         = 3          ; starting lives
 INV_HIT_FRAMES     = 120        ; invincibility duration after being hit (2 sec at 60 Hz)
+
+; UFO saucer (sprite slot 3)
+UFO_SPRITE_ATTR    = $1FC18      ; sprite 3 attribute base ($1FC00 + 3*8)
+VRAM_UFO           = $01500      ; UFO pixel data (128 bytes, 16x16 4bpp, after shield tiles)
+UFO_Y              = 32          ; VERA Y coord (= display pixel 16, top of play field)
+UFO_SPEED          = 2           ; VERA pixels per frame rightward (1 display pixel/frame)
+UFO_TIMER_INIT     = 600         ; frames between UFO appearances (≈10 sec at 60 Hz)
 
 ; Shields
 SHIELD_Y           = 352        ; VERA Y coordinate for all 4 shields (176 display pixels)
@@ -225,6 +240,12 @@ start:
    stz hi_score_lo
    stz hi_score_mid
    stz hi_score_hi
+   stz ufo_active
+   lda #<UFO_TIMER_INIT
+   sta ufo_timer_lo
+   lda #>UFO_TIMER_INIT
+   sta ufo_timer_hi
+   stz shot_count
 
    ; Set initial player position before sprite init reads it
    jsr init_player
@@ -359,6 +380,10 @@ main_loop:
 
    ; --- invader bullet vs shield collision ---
    jsr check_invbullet_shields
+
+   ; --- UFO spawn/move and player bullet collision ---
+   jsr update_ufo
+   jsr check_bullet_ufo
 
    ; --- Invader march timer ---
    dec inv_move_timer
@@ -503,6 +528,11 @@ init_sprites:
    sta VERA_data0
    lda #$00                               ; R=$0
    sta VERA_data0
+   ; entry 5 = red    (R=$F, G=0, B=0)
+   lda #$00                               ; G=$0, B=$0
+   sta VERA_data0
+   lda #$0F                               ; R=$F
+   sta VERA_data0
    ; --- disable sprite 0 (KERNAL mouse cursor) ---
    VERA_SET_ADDR (VRAM_sprattr + 6), 1   ; sprite 0 byte 6 = z-depth
    lda #$00                               ; z-depth=0 → disabled
@@ -634,6 +664,34 @@ init_sprites:
    stz ibul_active+2
    lda #INV_FIRE_TIMER_INIT
    sta inv_fire_timer
+
+   ; --- upload UFO pixel data → VRAM $01500 ---
+   VERA_SET_ADDR VRAM_UFO, 1
+   ldx #128
+@up_ufo: lda ufo_spr_data-128,x
+   sta VERA_data0
+   inx
+   bne @up_ufo
+
+   ; --- write sprite 3 (UFO) attributes (initially disabled) ---
+   ; addr[12:5] = VRAM_UFO>>5 = $01500>>5 = $A8
+   VERA_SET_ADDR UFO_SPRITE_ATTR, 1
+   lda #$A8                     ; byte 0: addr[12:5]
+   sta VERA_data0
+   lda #$00                     ; byte 1: 4bpp, addr[16:13]=0
+   sta VERA_data0
+   lda #$00                     ; byte 2: X lo
+   sta VERA_data0
+   lda #$00                     ; byte 3: X hi
+   sta VERA_data0
+   lda #<UFO_Y                  ; byte 4: Y lo
+   sta VERA_data0
+   lda #>UFO_Y                  ; byte 5: Y hi
+   sta VERA_data0
+   lda #$00                     ; byte 6: z-depth=0 → disabled
+   sta VERA_data0
+   lda #SPR_16x16_PAL0          ; byte 7: 16x16, palette 0
+   sta VERA_data0
 
    rts
 
@@ -1057,6 +1115,7 @@ fire_bullet:
 
    lda #1
    sta bullet_active
+   inc shot_count
    jsr update_bullet_sprite
    rts
 
@@ -2439,6 +2498,219 @@ check_invbullet_shields:
    rts
 
 ;******************************************************************
+; add_score_bcd — add a 2-byte BCD pair to the score
+;   A = BCD low byte (units/tens), Y = BCD mid byte (hundreds/thousands)
+;******************************************************************
+add_score_bcd:
+   sed
+   clc
+   adc score_lo
+   sta score_lo
+   tya
+   adc score_mid
+   sta score_mid
+   lda score_hi
+   adc #0
+   sta score_hi
+   cld
+   rts
+
+;******************************************************************
+; update_ufo — per-frame UFO logic: spawn timer + movement
+;
+;   Inactive: 16-bit ufo_timer counts down each frame.
+;   On zero: UFO spawns at left edge (X=0), timer reset to
+;             UFO_TIMER_INIT + (prng() & $7F) for next cycle.
+;   Active: move right UFO_SPEED VERA pixels/frame.
+;           Deactivate when X >= 640 (off right edge).
+;   Updates VERA sprite 3 after any state change.
+;******************************************************************
+update_ufo:
+   lda ufo_active
+   bne @move_ufo
+
+   ; --- timer countdown (16-bit decrement) ---
+   lda ufo_timer_lo
+   bne @dec_lo
+   lda ufo_timer_hi
+   beq @spawn                   ; both zero → spawn (guard against stuck state)
+   dec ufo_timer_hi
+   lda #$FF
+   sta ufo_timer_lo
+   rts
+@dec_lo:
+   dec ufo_timer_lo
+   lda ufo_timer_lo
+   ora ufo_timer_hi
+   bne @ufo_done                ; timer not yet zero
+
+@spawn:
+   lda #1
+   sta ufo_active
+   stz ufo_x_lo
+   stz ufo_x_hi
+   ; next timer = UFO_TIMER_INIT + (prng() & $7F) so interval varies by 0-127 frames
+   jsr prng
+   and #$7F
+   clc
+   adc #<UFO_TIMER_INIT
+   sta ufo_timer_lo
+   lda #>UFO_TIMER_INIT
+   adc #0
+   sta ufo_timer_hi
+   jsr update_ufo_sprite
+   rts
+
+   ; --- move UFO right ---
+@move_ufo:
+   lda ufo_x_lo
+   clc
+   adc #UFO_SPEED
+   sta ufo_x_lo
+   lda ufo_x_hi
+   adc #0
+   sta ufo_x_hi
+   ; deactivate if X high byte >= 3 (≥ 768, safely off the 640-wide screen)
+   ; simpler guard: X hi > 0 means X >= 256; combined with lo check
+   cmp #>640                    ; A = new hi; >640 = 2
+   bcc @ufo_on_screen           ; hi < 2 → still visible
+   bne @ufo_off_screen          ; hi > 2 → gone
+   lda ufo_x_lo
+   cmp #<640
+   bcc @ufo_on_screen           ; hi=2, lo < 128 → past edge but close; still off
+@ufo_off_screen:
+   stz ufo_active
+   jsr update_ufo_sprite
+   rts
+@ufo_on_screen:
+   jsr update_ufo_sprite
+@ufo_done:
+   rts
+
+;******************************************************************
+; update_ufo_sprite — write sprite 3 (UFO) position + enable/disable
+;   addr[12:5] = VRAM_UFO>>5 = $01500>>5 = $A8
+;   Writes bytes 2-6; bytes 0-1 and 7 set once at init.
+;******************************************************************
+update_ufo_sprite:
+   stz VERA_ctrl
+   VERA_SET_ADDR (UFO_SPRITE_ATTR + 2), 1
+   lda ufo_x_lo
+   sta VERA_data0               ; byte 2: X[7:0]
+   lda ufo_x_hi
+   and #$03
+   sta VERA_data0               ; byte 3: X[9:8]
+   lda #<UFO_Y
+   sta VERA_data0               ; byte 4: Y[7:0]
+   lda #>UFO_Y
+   sta VERA_data0               ; byte 5: Y[9:8]
+   lda ufo_active
+   beq @z_off
+   lda #SPR_Z_FRONT
+   bra @write_z
+@z_off:
+   lda #0
+@write_z:
+   sta VERA_data0               ; byte 6: z-depth
+   rts
+
+;******************************************************************
+; check_bullet_ufo — AABB test: player bullet vs. UFO sprite (16x16)
+;   Bullet rect: (bullet_x, bullet_y)+(7,7);  UFO rect: (ufo_x, UFO_Y)+(15,15)
+;   On hit: bullet deactivated, UFO killed, score added, explosion started.
+;   Scratch: zp_scratch_lo/hi, zp_x_lo/hi, zp_row_y_lo/hi
+;******************************************************************
+check_bullet_ufo:
+   lda bullet_active
+   bne :+
+   rts
+:  lda ufo_active
+   bne :+
+   rts
+:
+
+   ; --- Y check 1: bullet_y+8 > UFO_Y ---
+   lda bullet_y_lo
+   clc
+   adc #8
+   sta zp_scratch_lo
+   lda bullet_y_hi
+   adc #0
+   sta zp_scratch_hi
+   lda zp_scratch_lo
+   sec
+   sbc #<UFO_Y
+   lda zp_scratch_hi
+   sbc #>UFO_Y
+   bmi @done                    ; bullet bottom above UFO top → no hit
+
+   ; --- Y check 2: bullet_y < UFO_Y+16 ---
+   lda bullet_y_lo
+   sec
+   sbc #<(UFO_Y + 16)
+   lda bullet_y_hi
+   sbc #>(UFO_Y + 16)
+   bpl @done                    ; bullet top at or below UFO bottom → no hit
+
+   ; --- X check 1: bullet_x+8 > ufo_x ---
+   lda bullet_x_lo
+   clc
+   adc #8
+   sta zp_scratch_lo
+   lda bullet_x_hi
+   adc #0
+   sta zp_scratch_hi
+   lda zp_scratch_lo
+   sec
+   sbc ufo_x_lo
+   lda zp_scratch_hi
+   sbc ufo_x_hi
+   bmi @done                    ; bullet right edge left of UFO left edge → no hit
+
+   ; --- X check 2: bullet_x < ufo_x+16 ---
+   lda ufo_x_lo
+   clc
+   adc #16
+   sta zp_scratch_lo
+   lda ufo_x_hi
+   adc #0
+   sta zp_scratch_hi
+   lda bullet_x_lo
+   sec
+   sbc zp_scratch_lo
+   lda bullet_x_hi
+   sbc zp_scratch_hi
+   bpl @done                    ; bullet left edge at or right of UFO right edge → no hit
+
+   ; --- HIT ---
+   lda ufo_x_lo
+   sta zp_x_lo
+   lda ufo_x_hi
+   sta zp_x_hi
+   lda #<UFO_Y
+   sta zp_row_y_lo
+   lda #>UFO_Y
+   sta zp_row_y_hi
+   jsr start_explosion
+
+   stz bullet_active
+   jsr update_bullet_sprite
+
+   stz ufo_active
+   jsr update_ufo_sprite
+
+   ; score: ufo_score table indexed by shot_count & 7
+   lda shot_count
+   and #$07
+   tax
+   lda ufo_score_lo, x
+   ldy ufo_score_hi, x
+   jsr add_score_bcd
+
+@done:
+   rts
+
+;******************************************************************
 ; update_hud — rewrite dynamic values each frame
 ;   Overwrites fixed screen positions; no full redraw needed
 ;******************************************************************
@@ -2651,6 +2923,11 @@ inv_speed_table:
 ; Sprite 5=$1FC28, 6=$1FC30, 7=$1FC38 — high byte always $FC
 ibul_spr_lo:    .byte $28, $30, $38
 
+; UFO score tables indexed by (shot_count & 7) — two-byte BCD pairs
+; Scores: 50, 100, 150, 300, 100, 50, 300, 150
+ufo_score_lo:   .byte $50, $00, $50, $00, $00, $50, $00, $50
+ufo_score_hi:   .byte $00, $01, $01, $03, $01, $00, $03, $01
+
 ; Shield X positions (4 shields evenly spread across play field, VERA coords)
 ; Display pixels: 40, 120, 200, 280  (every 80 display px / 160 VERA px)
 shield_x_lo:    .byte <80,  <240, <400, <560
@@ -2698,6 +2975,40 @@ explosion_pixels:
    .byte $00,$70,$07,$00,$00,$70,$07,$00   ; row 13
    .byte $00,$07,$00,$07,$70,$00,$70,$00   ; row 14
    .byte $00,$00,$07,$00,$00,$70,$00,$00   ; row 15
+
+;******************************************************************
+; ufo_spr_data — 16x16 4bpp, 128 bytes, stored at VRAM $01500
+;
+;   Color 0 = transparent, Color 5 = red (saucer body)
+;   Each byte encodes 2 pixels: high nibble = left, low nibble = right
+;
+;   Classic flying-saucer silhouette:
+;     Row 1: ......5555......  dome top  (cols  6-9)
+;     Row 2: ....55555555....  dome      (cols  4-11)
+;     Row 3: 5555555555555555  wide body (all 16 cols)
+;     Row 4: .5.5.5.5.5.5.5.5 body detail (odd cols lit)
+;     Row 5: 5555555555555555  wide body
+;     Row 6: ..555555555555..  underside (cols  2-13)
+;     Row 7: ....5555..5555..  engine pods (cols 4-7, 10-13)
+;     Rows 0,8-15: transparent
+;******************************************************************
+ufo_spr_data:
+   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0  blank
+   .byte $00,$00,$00,$55,$55,$00,$00,$00  ; row 1  dome top
+   .byte $00,$00,$55,$55,$55,$55,$00,$00  ; row 2  dome
+   .byte $55,$55,$55,$55,$55,$55,$55,$55  ; row 3  wide body
+   .byte $05,$05,$05,$05,$05,$05,$05,$05  ; row 4  detail
+   .byte $55,$55,$55,$55,$55,$55,$55,$55  ; row 5  wide body
+   .byte $00,$55,$55,$55,$55,$55,$55,$00  ; row 6  underside
+   .byte $00,$00,$55,$55,$00,$55,$55,$00  ; row 7  engine pods
+   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 8
+   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 9
+   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 10
+   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 11
+   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 12
+   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 13
+   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 14
+   .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
 
 ;******************************************************************
 ; Invader sprite pixel data — 16x16 4bpp, 128 bytes each
