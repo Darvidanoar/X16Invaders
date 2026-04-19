@@ -863,7 +863,7 @@ Current file: INVADERS.asm
 0009EA  1  21 9F A9 80  
 0009F1  1  A2 00           ldx #0
 0009F3  1               @upload:
-0009F3  1  BD 07 1C        lda player_spr_data,x
+0009F3  1  BD 06 1C        lda player_spr_data,x
 0009F6  1  8D 23 9F        sta VERA_data0
 0009F9  1  E8              inx
 0009FA  1  E0 80           cpx #128
@@ -898,7 +898,7 @@ Current file: INVADERS.asm
 000A41  1  21 9F A9 00  
 000A48  1  A2 00           ldx #0
 000A4A  1               @up_bullet:
-000A4A  1  BD 87 1C        lda bullet_spr_data,x
+000A4A  1  BD 86 1C        lda bullet_spr_data,x
 000A4D  1  8D 23 9F        sta VERA_data0
 000A50  1  E8              inx
 000A51  1  E0 20           cpx #32
@@ -931,7 +931,7 @@ Current file: INVADERS.asm
 000A94  1  21 9F A9 40  
 000A9B  1  A2 00           ldx #0
 000A9D  1               @up_exp:
-000A9D  1  BD 59 1D        lda explosion_pixels,x
+000A9D  1  BD 58 1D        lda explosion_pixels,x
 000AA0  1  8D 23 9F        sta VERA_data0
 000AA3  1  E8              inx
 000AA4  1  E0 80           cpx #128
@@ -967,7 +967,7 @@ Current file: INVADERS.asm
 000AE9  1  21 9F A9 20  
 000AF0  1  A2 00           ldx #0
 000AF2  1               @up_ibul:
-000AF2  1  BD 39 1D        lda inv_bullet_spr_data,x
+000AF2  1  BD 38 1D        lda inv_bullet_spr_data,x
 000AF5  1  8D 23 9F        sta VERA_data0
 000AF8  1  E8              inx
 000AF9  1  E0 20           cpx #32
@@ -1005,7 +1005,7 @@ Current file: INVADERS.asm
 000B3B  1  9F A9 15 8D  
 000B3F  1  21 9F A9 00  
 000B46  1  A2 80           ldx #128
-000B48  1  BD 59 1D     @up_ufo: lda ufo_spr_data-128,x
+000B48  1  BD 58 1D     @up_ufo: lda ufo_spr_data-128,x
 000B4B  1  8D 23 9F        sta VERA_data0
 000B4E  1  E8              inx
 000B4F  1  D0 F7           bne @up_ufo
@@ -1045,7 +1045,7 @@ Current file: INVADERS.asm
 000B90  1  9F A9 01 8D  
 000B94  1  21 9F A9 00  
 000B9B  1  A2 80           ldx #128
-000B9D  1  BD D9 1D     @up_af0: lda inv_a_spr_f0-128,x
+000B9D  1  BD D8 1D     @up_af0: lda inv_a_spr_f0-128,x
 000BA0  1  8D 23 9F        sta VERA_data0
 000BA3  1  E8              inx
 000BA4  1  D0 F7           bne @up_af0
@@ -1055,7 +1055,7 @@ Current file: INVADERS.asm
 000BAA  1  9F A9 01 8D  
 000BAE  1  21 9F A9 80  
 000BB5  1  A2 80           ldx #128
-000BB7  1  BD 59 1E     @up_af1: lda inv_a_spr_f1-128,x
+000BB7  1  BD 58 1E     @up_af1: lda inv_a_spr_f1-128,x
 000BBA  1  8D 23 9F        sta VERA_data0
 000BBD  1  E8              inx
 000BBE  1  D0 F7           bne @up_af1
@@ -1065,7 +1065,7 @@ Current file: INVADERS.asm
 000BC4  1  9F A9 02 8D  
 000BC8  1  21 9F A9 00  
 000BCF  1  A2 80           ldx #128
-000BD1  1  BD D9 1E     @up_bf0: lda inv_b_spr_f0-128,x
+000BD1  1  BD D8 1E     @up_bf0: lda inv_b_spr_f0-128,x
 000BD4  1  8D 23 9F        sta VERA_data0
 000BD7  1  E8              inx
 000BD8  1  D0 F7           bne @up_bf0
@@ -1075,7 +1075,7 @@ Current file: INVADERS.asm
 000BDE  1  9F A9 02 8D  
 000BE2  1  21 9F A9 80  
 000BE9  1  A2 80           ldx #128
-000BEB  1  BD 59 1F     @up_bf1: lda inv_b_spr_f1-128,x
+000BEB  1  BD 58 1F     @up_bf1: lda inv_b_spr_f1-128,x
 000BEE  1  8D 23 9F        sta VERA_data0
 000BF1  1  E8              inx
 000BF2  1  D0 F7           bne @up_bf1
@@ -1085,7 +1085,7 @@ Current file: INVADERS.asm
 000BF8  1  9F A9 03 8D  
 000BFC  1  21 9F A9 00  
 000C03  1  A2 80           ldx #128
-000C05  1  BD D9 1F     @up_cf0: lda inv_c_spr_f0-128,x
+000C05  1  BD D8 1F     @up_cf0: lda inv_c_spr_f0-128,x
 000C08  1  8D 23 9F        sta VERA_data0
 000C0B  1  E8              inx
 000C0C  1  D0 F7           bne @up_cf0
@@ -1095,7 +1095,7 @@ Current file: INVADERS.asm
 000C12  1  9F A9 03 8D  
 000C16  1  21 9F A9 80  
 000C1D  1  A2 80           ldx #128
-000C1F  1  BD 59 20     @up_cf1: lda inv_c_spr_f1-128,x
+000C1F  1  BD 58 20     @up_cf1: lda inv_c_spr_f1-128,x
 000C22  1  8D 23 9F        sta VERA_data0
 000C25  1  E8              inx
 000C26  1  D0 F7           bne @up_cf1
@@ -1252,7 +1252,7 @@ Current file: INVADERS.asm
 000CDE  1               @row_loop:
 000CDE  1                  ; compute row Y: zp_row_y = zp_y_base + row_y_offsets[row]
 000CDE  1  A4 rr           ldy zp_row
-000CE0  1  B9 C7 1C        lda row_y_offsets,y
+000CE0  1  B9 C6 1C        lda row_y_offsets,y
 000CE3  1  18              clc
 000CE4  1  65 rr           adc zp_y_base_lo
 000CE6  1  85 rr           sta zp_row_y_lo
@@ -1264,10 +1264,10 @@ Current file: INVADERS.asm
 000CEE  1  A4 rr           ldy zp_row
 000CF0  1  A5 rr           lda inv_anim_frame
 000CF2  1  F0 05           beq @use_f0
-000CF4  1  B9 AC 1C        lda inv_addr_b0_f1,y
+000CF4  1  B9 AB 1C        lda inv_addr_b0_f1,y
 000CF7  1  80 03           bra @got_b0
 000CF9  1               @use_f0:
-000CF9  1  B9 A7 1C        lda inv_addr_b0_f0,y
+000CF9  1  B9 A6 1C        lda inv_addr_b0_f0,y
 000CFC  1               @got_b0:
 000CFC  1  85 rr           sta zp_addr_b0
 000CFE  1               
@@ -1293,13 +1293,13 @@ Current file: INVADERS.asm
 000D0C  1                  ; --- determine z-depth from alive bitmap ---
 000D0C  1                  ; index = inv_row_base[row] + col; byte = index>>3; bit = index&7
 000D0C  1  A4 rr           ldy zp_row
-000D0E  1  B9 CC 1C        lda inv_row_base,y
+000D0E  1  B9 CB 1C        lda inv_row_base,y
 000D11  1  18              clc
 000D12  1  65 rr           adc zp_col
 000D14  1  A8              tay                   ; Y = invader index
 000D15  1  29 07           and #$07
 000D17  1  AA              tax                   ; X = bit index
-000D18  1  BD D1 1C        lda bit_masks,x
+000D18  1  BD D0 1C        lda bit_masks,x
 000D1B  1  48              pha                   ; save bit mask
 000D1C  1  98              tya
 000D1D  1  4A              lsr
@@ -1318,11 +1318,11 @@ Current file: INVADERS.asm
 000D2F  1               
 000D2F  1                  ; --- compute sprite X = inv_grid_x + col_x_offsets[col] ---
 000D2F  1  A4 rr           ldy zp_col
-000D31  1  B9 B1 1C        lda col_x_lo,y
+000D31  1  B9 B0 1C        lda col_x_lo,y
 000D34  1  18              clc
 000D35  1  65 rr           adc inv_grid_x_lo
 000D37  1  85 rr           sta zp_x_lo
-000D39  1  B9 BC 1C        lda col_x_hi,y
+000D39  1  B9 BB 1C        lda col_x_hi,y
 000D3C  1  65 rr           adc inv_grid_x_hi
 000D3E  1  85 rr           sta zp_x_hi
 000D40  1               
@@ -1555,7 +1555,7 @@ Current file: INVADERS.asm
 000E89  1               @row_loop:
 000E89  1                  ; row Y = y_base + row_y_offsets[row]
 000E89  1  A4 rr           ldy zp_row
-000E8B  1  B9 C7 1C        lda row_y_offsets,y
+000E8B  1  B9 C6 1C        lda row_y_offsets,y
 000E8E  1  18              clc
 000E8F  1  65 rr           adc zp_y_base_lo
 000E91  1  85 rr           sta zp_row_y_lo
@@ -1625,13 +1625,13 @@ Current file: INVADERS.asm
 000ED9  1               @col_loop:
 000ED9  1                  ; skip if invader is dead
 000ED9  1  A4 rr           ldy zp_row
-000EDB  1  B9 CC 1C        lda inv_row_base,y
+000EDB  1  B9 CB 1C        lda inv_row_base,y
 000EDE  1  18              clc
 000EDF  1  65 rr           adc zp_col
 000EE1  1  A8              tay                   ; Y = invader index
 000EE2  1  29 07           and #$07
 000EE4  1  AA              tax
-000EE5  1  BD D1 1C        lda bit_masks,x
+000EE5  1  BD D0 1C        lda bit_masks,x
 000EE8  1  48              pha
 000EE9  1  98              tya
 000EEA  1  4A              lsr
@@ -1644,11 +1644,11 @@ Current file: INVADERS.asm
 000EF4  1               
 000EF4  1                  ; compute inv_x = inv_grid_x + col_x_offsets[col]
 000EF4  1  A4 rr           ldy zp_col
-000EF6  1  B9 B1 1C        lda col_x_lo,y
+000EF6  1  B9 B0 1C        lda col_x_lo,y
 000EF9  1  18              clc
 000EFA  1  65 rr           adc inv_grid_x_lo
 000EFC  1  85 rr           sta zp_x_lo
-000EFE  1  B9 BC 1C        lda col_x_hi,y
+000EFE  1  B9 BB 1C        lda col_x_hi,y
 000F01  1  65 rr           adc inv_grid_x_hi
 000F03  1  85 rr           sta zp_x_hi
 000F05  1               
@@ -1703,13 +1703,13 @@ Current file: INVADERS.asm
 000F44  1               kill_invader_hit:
 000F44  1                  ; --- clear alive bit ---
 000F44  1  A4 rr           ldy zp_row
-000F46  1  B9 CC 1C        lda inv_row_base,y
+000F46  1  B9 CB 1C        lda inv_row_base,y
 000F49  1  18              clc
 000F4A  1  65 rr           adc zp_col
 000F4C  1  A8              tay                   ; Y = invader index
 000F4D  1  29 07           and #$07
 000F4F  1  AA              tax
-000F50  1  BD D1 1C        lda bit_masks,x       ; bit mask for this invader
+000F50  1  BD D0 1C        lda bit_masks,x       ; bit mask for this invader
 000F53  1  48              pha
 000F54  1  98              tya
 000F55  1  4A              lsr
@@ -1734,12 +1734,12 @@ Current file: INVADERS.asm
 000F6C  1               
 000F6C  1                  ; --- update inv_move_speed: proportional to remaining count ---
 000F6C  1  A6 rr           ldx inv_count
-000F6E  1  BD DE 1C        lda inv_speed_table,x
+000F6E  1  BD DD 1C        lda inv_speed_table,x
 000F71  1  85 rr           sta inv_move_speed
 000F73  1               
 000F73  1                  ; --- add score for this row's invader type ---
 000F73  1  A4 rr           ldy zp_row
-000F75  1  B9 D9 1C        lda score_by_row_bcd,y
+000F75  1  B9 D8 1C        lda score_by_row_bcd,y
 000F78  1  20 7C 0F        jsr add_score
 000F7B  1  60              rts
 000F7C  1               
@@ -1881,7 +1881,7 @@ Current file: INVADERS.asm
 001035  1  8D 22 9F        sta VERA_addr_bank
 001038  1  A9 FC           lda #$FC
 00103A  1  8D 21 9F        sta VERA_addr_high
-00103D  1  BD 16 1D        lda ibul_spr_lo,x
+00103D  1  BD 15 1D        lda ibul_spr_lo,x
 001040  1  18              clc
 001041  1  69 02           adc #2                         ; point to byte 2 (X position)
 001043  1  8D 20 9F        sta VERA_addr_low
@@ -1941,13 +1941,13 @@ Current file: INVADERS.asm
 00108C  1  85 rr           sta zp_row
 00108E  1               @row_scan:
 00108E  1  A4 rr           ldy zp_row
-001090  1  B9 CC 1C        lda inv_row_base,y
+001090  1  B9 CB 1C        lda inv_row_base,y
 001093  1  18              clc
 001094  1  65 rr           adc zp_col
 001096  1  A8              tay                            ; Y = invader index
 001097  1  29 07           and #$07
 001099  1  AA              tax                            ; X = bit position
-00109A  1  BD D1 1C        lda bit_masks,x
+00109A  1  BD D0 1C        lda bit_masks,x
 00109D  1  48              pha
 00109E  1  98              tya
 00109F  1  4A              lsr
@@ -1972,11 +1972,11 @@ Current file: INVADERS.asm
 0010B8  1               
 0010B8  1                  ; spawn X = inv_grid_x + col_x_offsets[col]  (16-bit, matching update_invader_sprites)
 0010B8  1  A4 rr           ldy zp_col
-0010BA  1  B9 B1 1C        lda col_x_lo,y
+0010BA  1  B9 B0 1C        lda col_x_lo,y
 0010BD  1  18              clc
 0010BE  1  65 rr           adc inv_grid_x_lo
 0010C0  1  95 rr           sta ibul_x_lo,x
-0010C2  1  B9 BC 1C        lda col_x_hi,y
+0010C2  1  B9 BB 1C        lda col_x_hi,y
 0010C5  1  65 rr           adc inv_grid_x_hi
 0010C7  1  95 rr           sta ibul_x_hi,x
 0010C9  1                  ; add +4 as a separate 16-bit step to centre the 8px bullet in the 16px invader
@@ -1999,7 +1999,7 @@ Current file: INVADERS.asm
 0010E1  1  85 rr           sta zp_y_base_hi
 0010E3  1                  ; step 2: spawn_y = y_base + row_y_offsets[row]
 0010E3  1  A4 rr           ldy zp_row
-0010E5  1  B9 C7 1C        lda row_y_offsets,y
+0010E5  1  B9 C6 1C        lda row_y_offsets,y
 0010E8  1  18              clc
 0010E9  1  65 rr           adc zp_y_base_lo
 0010EB  1  95 rr           sta ibul_y_lo,x
@@ -2151,8 +2151,9 @@ Current file: INVADERS.asm
 001198  1  A9 93           lda #PETSCII_CLR
 00119A  1  20 D2 FF        jsr CHROUT
 00119D  1               
-00119D  1  A9 09           lda #9
-00119F  1  A0 0F           ldy #15
+00119D  1                  ; (Plot: Set X to Row, Set Y to Col)
+00119D  1  A2 09           ldx #9
+00119F  1  A0 23           ldy #35
 0011A1  1  18              clc
 0011A2  1  20 F0 FF        jsr PLOT
 0011A5  1  A2 00           ldx #0
@@ -2163,8 +2164,9 @@ Current file: INVADERS.asm
 0011B0  1  80 F5           bra @go1
 0011B2  1               @go1d:
 0011B2  1               
-0011B2  1  A9 0B           lda #11
-0011B4  1  A0 0D           ldy #13
+0011B2  1                  ; (Plot: Set X to Row, Set Y to Col)
+0011B2  1  A2 0B           ldx #11
+0011B4  1  A0 21           ldy #33
 0011B6  1  18              clc
 0011B7  1  20 F0 FF        jsr PLOT
 0011BA  1  A2 00           ldx #0
@@ -2181,8 +2183,9 @@ Current file: INVADERS.asm
 0011D1  1  A5 rr           lda score_lo
 0011D3  1  20 19 1B        jsr print_hex_byte
 0011D6  1               
-0011D6  1  A9 0C           lda #12
-0011D8  1  A0 0C           ldy #12
+0011D6  1                  ; (Plot: Set X to Row, Set Y to Col)
+0011D6  1  A2 0C           ldx #12
+0011D8  1  A0 20           ldy #32
 0011DA  1  18              clc
 0011DB  1  20 F0 FF        jsr PLOT
 0011DE  1  A2 00           ldx #0
@@ -2199,12 +2202,13 @@ Current file: INVADERS.asm
 0011F5  1  A5 rr           lda hi_score_lo
 0011F7  1  20 19 1B        jsr print_hex_byte
 0011FA  1               
-0011FA  1  A9 11           lda #17
-0011FC  1  A0 0C           ldy #12
+0011FA  1                  ; (Plot: Set X to Row, Set Y to Col)
+0011FA  1  A2 11           ldx #17
+0011FC  1  A0 20           ldy #32
 0011FE  1  18              clc
 0011FF  1  20 F0 FF        jsr PLOT
 001202  1  A2 00           ldx #0
-001204  1  BD EE 1B     @go4: lda str_run_stop_hint, x
+001204  1  BD ED 1B     @go4: lda str_run_stop_hint, x
 001207  1  F0 06           beq @go4d
 001209  1  20 D2 FF        jsr CHROUT
 00120C  1  E8              inx
@@ -2231,8 +2235,9 @@ Current file: INVADERS.asm
 001225  1  29 20           and #$20                  ; bit 5: flips every 32 frames ≈ 2 Hz blink
 001227  1  D0 15           bne @go_show
 001229  1               @go_hide:
-001229  1  A9 0F           lda #15
-00122B  1  A0 0B           ldy #11
+001229  1                  ;   (Plot: Set X to Row, Set Y to Col)
+001229  1  A2 14           ldx #20
+00122B  1  A0 20           ldy #32
 00122D  1  18              clc
 00122E  1  20 F0 FF        jsr PLOT
 001231  1  A2 12           ldx #18
@@ -2242,12 +2247,13 @@ Current file: INVADERS.asm
 001239  1  D0 F8           bne @go_erase
 00123B  1  4C 0F 12        jmp game_over_loop
 00123E  1               @go_show:
-00123E  1  A9 0F           lda #15
-001240  1  A0 0B           ldy #11
+00123E  1                  ;   (Plot: Set X to Row, Set Y to Col)
+00123E  1  A2 14           ldx #20
+001240  1  A0 20           ldy #32
 001242  1  18              clc
 001243  1  20 F0 FF        jsr PLOT
 001246  1  A2 00           ldx #0
-001248  1  BD B1 1B     @go_print: lda str_play_again, x
+001248  1  BD B0 1B     @go_print: lda str_play_again, x
 00124B  1  F0 06           beq @go_pd
 00124D  1  20 D2 FF        jsr CHROUT
 001250  1  E8              inx
@@ -2374,7 +2380,7 @@ Current file: INVADERS.asm
 0012FD  1  18              clc
 0012FE  1  20 F0 FF        jsr PLOT
 001301  1  A2 00           ldx #0
-001303  1  BD C4 1B     @wc1: lda str_wave_clear, x
+001303  1  BD C3 1B     @wc1: lda str_wave_clear, x
 001306  1  F0 06           beq @wc1d
 001308  1  20 D2 FF        jsr CHROUT
 00130B  1  E8              inx
@@ -2386,7 +2392,7 @@ Current file: INVADERS.asm
 001312  1  18              clc
 001313  1  20 F0 FF        jsr PLOT
 001316  1  A2 00           ldx #0
-001318  1  BD CF 1B     @wc2: lda str_wave_lbl, x
+001318  1  BD CE 1B     @wc2: lda str_wave_lbl, x
 00131B  1  F0 06           beq @wc2d
 00131D  1  20 D2 FF        jsr CHROUT
 001320  1  E8              inx
@@ -2400,7 +2406,7 @@ Current file: INVADERS.asm
 00132C  1  18              clc
 00132D  1  20 F0 FF        jsr PLOT
 001330  1  A2 00           ldx #0
-001332  1  BD D6 1B     @wc3: lda str_wave_continue, x
+001332  1  BD D5 1B     @wc3: lda str_wave_continue, x
 001335  1  F0 06           beq @wc3d
 001337  1  20 D2 FF        jsr CHROUT
 00133A  1  E8              inx
@@ -2618,13 +2624,13 @@ Current file: INVADERS.asm
 001455  1                  ; Sample invader sprites (Types C, B, A) + score labels
 001455  1  20 6E 14        jsr show_title_sprites
 001458  1               
-001458  1                  ; Row 19, col 12: "RUN/STOP TO QUIT"
-001458  1  A9 13           lda #19
-00145A  1  A0 0C           ldy #12
+001458  1                  ; Row 19, col 12: "RUN/STOP TO QUIT"  (Plot: Set X to Row, Set Y to Col)
+001458  1  A2 13           ldx #19
+00145A  1  A0 20           ldy #32
 00145C  1  18              clc
 00145D  1  20 F0 FF        jsr PLOT
 001460  1  A2 00           ldx #0
-001462  1  BD EE 1B     @lp4: lda str_run_stop_hint, x
+001462  1  BD ED 1B     @lp4: lda str_run_stop_hint, x
 001465  1  F0 06           beq @lp4_done
 001467  1  20 D2 FF        jsr CHROUT
 00146A  1  E8              inx
@@ -2805,22 +2811,22 @@ Current file: INVADERS.asm
 001593  1  9F A9 05 8D  
 001597  1  21 9F A9 00  
 00159E  1  A2 80           ldx #128
-0015A0  1  BD D9 20     @up_s0a: lda shield_tile_full - 128, x
+0015A0  1  BD D8 20     @up_s0a: lda shield_tile_full - 128, x
 0015A3  1  8D 23 9F        sta VERA_data0
 0015A6  1  E8              inx
 0015A7  1  D0 F7           bne @up_s0a
 0015A9  1  A2 80           ldx #128
-0015AB  1  BD 59 21     @up_s0b: lda shield_tile_full, x
+0015AB  1  BD 58 21     @up_s0b: lda shield_tile_full, x
 0015AE  1  8D 23 9F        sta VERA_data0
 0015B1  1  E8              inx
 0015B2  1  D0 F7           bne @up_s0b
 0015B4  1  A2 80           ldx #128
-0015B6  1  BD D9 21     @up_s0c: lda shield_tile_full + 128, x
+0015B6  1  BD D8 21     @up_s0c: lda shield_tile_full + 128, x
 0015B9  1  8D 23 9F        sta VERA_data0
 0015BC  1  E8              inx
 0015BD  1  D0 F7           bne @up_s0c
 0015BF  1  A2 80           ldx #128
-0015C1  1  BD 59 22     @up_s0d: lda shield_tile_full + 256, x
+0015C1  1  BD 58 22     @up_s0d: lda shield_tile_full + 256, x
 0015C4  1  8D 23 9F        sta VERA_data0
 0015C7  1  E8              inx
 0015C8  1  D0 F7           bne @up_s0d
@@ -2830,22 +2836,22 @@ Current file: INVADERS.asm
 0015CE  1  9F A9 07 8D  
 0015D2  1  21 9F A9 00  
 0015D9  1  A2 80           ldx #128
-0015DB  1  BD D9 22     @up_s1a: lda shield_tile_dmg1 - 128, x
+0015DB  1  BD D8 22     @up_s1a: lda shield_tile_dmg1 - 128, x
 0015DE  1  8D 23 9F        sta VERA_data0
 0015E1  1  E8              inx
 0015E2  1  D0 F7           bne @up_s1a
 0015E4  1  A2 80           ldx #128
-0015E6  1  BD 59 23     @up_s1b: lda shield_tile_dmg1, x
+0015E6  1  BD 58 23     @up_s1b: lda shield_tile_dmg1, x
 0015E9  1  8D 23 9F        sta VERA_data0
 0015EC  1  E8              inx
 0015ED  1  D0 F7           bne @up_s1b
 0015EF  1  A2 80           ldx #128
-0015F1  1  BD D9 23     @up_s1c: lda shield_tile_dmg1 + 128, x
+0015F1  1  BD D8 23     @up_s1c: lda shield_tile_dmg1 + 128, x
 0015F4  1  8D 23 9F        sta VERA_data0
 0015F7  1  E8              inx
 0015F8  1  D0 F7           bne @up_s1c
 0015FA  1  A2 80           ldx #128
-0015FC  1  BD 59 24     @up_s1d: lda shield_tile_dmg1 + 256, x
+0015FC  1  BD 58 24     @up_s1d: lda shield_tile_dmg1 + 256, x
 0015FF  1  8D 23 9F        sta VERA_data0
 001602  1  E8              inx
 001603  1  D0 F7           bne @up_s1d
@@ -2855,22 +2861,22 @@ Current file: INVADERS.asm
 001609  1  9F A9 09 8D  
 00160D  1  21 9F A9 00  
 001614  1  A2 80           ldx #128
-001616  1  BD D9 24     @up_s2a: lda shield_tile_dmg2 - 128, x
+001616  1  BD D8 24     @up_s2a: lda shield_tile_dmg2 - 128, x
 001619  1  8D 23 9F        sta VERA_data0
 00161C  1  E8              inx
 00161D  1  D0 F7           bne @up_s2a
 00161F  1  A2 80           ldx #128
-001621  1  BD 59 25     @up_s2b: lda shield_tile_dmg2, x
+001621  1  BD 58 25     @up_s2b: lda shield_tile_dmg2, x
 001624  1  8D 23 9F        sta VERA_data0
 001627  1  E8              inx
 001628  1  D0 F7           bne @up_s2b
 00162A  1  A2 80           ldx #128
-00162C  1  BD D9 25     @up_s2c: lda shield_tile_dmg2 + 128, x
+00162C  1  BD D8 25     @up_s2c: lda shield_tile_dmg2 + 128, x
 00162F  1  8D 23 9F        sta VERA_data0
 001632  1  E8              inx
 001633  1  D0 F7           bne @up_s2c
 001635  1  A2 80           ldx #128
-001637  1  BD 59 26     @up_s2d: lda shield_tile_dmg2 + 256, x
+001637  1  BD 58 26     @up_s2d: lda shield_tile_dmg2 + 256, x
 00163A  1  8D 23 9F        sta VERA_data0
 00163D  1  E8              inx
 00163E  1  D0 F7           bne @up_s2d
@@ -2880,22 +2886,22 @@ Current file: INVADERS.asm
 001644  1  9F A9 0B 8D  
 001648  1  21 9F A9 00  
 00164F  1  A2 80           ldx #128
-001651  1  BD D9 26     @up_s3a: lda shield_tile_dmg3 - 128, x
+001651  1  BD D8 26     @up_s3a: lda shield_tile_dmg3 - 128, x
 001654  1  8D 23 9F        sta VERA_data0
 001657  1  E8              inx
 001658  1  D0 F7           bne @up_s3a
 00165A  1  A2 80           ldx #128
-00165C  1  BD 59 27     @up_s3b: lda shield_tile_dmg3, x
+00165C  1  BD 58 27     @up_s3b: lda shield_tile_dmg3, x
 00165F  1  8D 23 9F        sta VERA_data0
 001662  1  E8              inx
 001663  1  D0 F7           bne @up_s3b
 001665  1  A2 80           ldx #128
-001667  1  BD D9 27     @up_s3c: lda shield_tile_dmg3 + 128, x
+001667  1  BD D8 27     @up_s3c: lda shield_tile_dmg3 + 128, x
 00166A  1  8D 23 9F        sta VERA_data0
 00166D  1  E8              inx
 00166E  1  D0 F7           bne @up_s3c
 001670  1  A2 80           ldx #128
-001672  1  BD 59 28     @up_s3d: lda shield_tile_dmg3 + 256, x
+001672  1  BD 58 28     @up_s3d: lda shield_tile_dmg3 + 256, x
 001675  1  8D 23 9F        sta VERA_data0
 001678  1  E8              inx
 001679  1  D0 F7           bne @up_s3d
@@ -2905,22 +2911,22 @@ Current file: INVADERS.asm
 00167F  1  9F A9 0D 8D  
 001683  1  21 9F A9 00  
 00168A  1  A2 80           ldx #128
-00168C  1  BD D9 28     @up_s4a: lda shield_tile_dmg4 - 128, x
+00168C  1  BD D8 28     @up_s4a: lda shield_tile_dmg4 - 128, x
 00168F  1  8D 23 9F        sta VERA_data0
 001692  1  E8              inx
 001693  1  D0 F7           bne @up_s4a
 001695  1  A2 80           ldx #128
-001697  1  BD 59 29     @up_s4b: lda shield_tile_dmg4, x
+001697  1  BD 58 29     @up_s4b: lda shield_tile_dmg4, x
 00169A  1  8D 23 9F        sta VERA_data0
 00169D  1  E8              inx
 00169E  1  D0 F7           bne @up_s4b
 0016A0  1  A2 80           ldx #128
-0016A2  1  BD D9 29     @up_s4c: lda shield_tile_dmg4 + 128, x
+0016A2  1  BD D8 29     @up_s4c: lda shield_tile_dmg4 + 128, x
 0016A5  1  8D 23 9F        sta VERA_data0
 0016A8  1  E8              inx
 0016A9  1  D0 F7           bne @up_s4c
 0016AB  1  A2 80           ldx #128
-0016AD  1  BD 59 2A     @up_s4d: lda shield_tile_dmg4 + 256, x
+0016AD  1  BD 58 2A     @up_s4d: lda shield_tile_dmg4 + 256, x
 0016B0  1  8D 23 9F        sta VERA_data0
 0016B3  1  E8              inx
 0016B4  1  D0 F7           bne @up_s4d
@@ -2930,22 +2936,22 @@ Current file: INVADERS.asm
 0016BA  1  9F A9 0F 8D  
 0016BE  1  21 9F A9 00  
 0016C5  1  A2 80           ldx #128
-0016C7  1  BD D9 2A     @up_s5a: lda shield_tile_dmg5 - 128, x
+0016C7  1  BD D8 2A     @up_s5a: lda shield_tile_dmg5 - 128, x
 0016CA  1  8D 23 9F        sta VERA_data0
 0016CD  1  E8              inx
 0016CE  1  D0 F7           bne @up_s5a
 0016D0  1  A2 80           ldx #128
-0016D2  1  BD 59 2B     @up_s5b: lda shield_tile_dmg5, x
+0016D2  1  BD 58 2B     @up_s5b: lda shield_tile_dmg5, x
 0016D5  1  8D 23 9F        sta VERA_data0
 0016D8  1  E8              inx
 0016D9  1  D0 F7           bne @up_s5b
 0016DB  1  A2 80           ldx #128
-0016DD  1  BD D9 2B     @up_s5c: lda shield_tile_dmg5 + 128, x
+0016DD  1  BD D8 2B     @up_s5c: lda shield_tile_dmg5 + 128, x
 0016E0  1  8D 23 9F        sta VERA_data0
 0016E3  1  E8              inx
 0016E4  1  D0 F7           bne @up_s5c
 0016E6  1  A2 80           ldx #128
-0016E8  1  BD 59 2C     @up_s5d: lda shield_tile_dmg5 + 256, x
+0016E8  1  BD 58 2C     @up_s5d: lda shield_tile_dmg5 + 256, x
 0016EB  1  8D 23 9F        sta VERA_data0
 0016EE  1  E8              inx
 0016EF  1  D0 F7           bne @up_s5d
@@ -2955,22 +2961,22 @@ Current file: INVADERS.asm
 0016F5  1  9F A9 11 8D  
 0016F9  1  21 9F A9 00  
 001700  1  A2 80           ldx #128
-001702  1  BD D9 2C     @up_s6a: lda shield_tile_dmg6 - 128, x
+001702  1  BD D8 2C     @up_s6a: lda shield_tile_dmg6 - 128, x
 001705  1  8D 23 9F        sta VERA_data0
 001708  1  E8              inx
 001709  1  D0 F7           bne @up_s6a
 00170B  1  A2 80           ldx #128
-00170D  1  BD 59 2D     @up_s6b: lda shield_tile_dmg6, x
+00170D  1  BD 58 2D     @up_s6b: lda shield_tile_dmg6, x
 001710  1  8D 23 9F        sta VERA_data0
 001713  1  E8              inx
 001714  1  D0 F7           bne @up_s6b
 001716  1  A2 80           ldx #128
-001718  1  BD D9 2D     @up_s6c: lda shield_tile_dmg6 + 128, x
+001718  1  BD D8 2D     @up_s6c: lda shield_tile_dmg6 + 128, x
 00171B  1  8D 23 9F        sta VERA_data0
 00171E  1  E8              inx
 00171F  1  D0 F7           bne @up_s6c
 001721  1  A2 80           ldx #128
-001723  1  BD 59 2E     @up_s6d: lda shield_tile_dmg6 + 256, x
+001723  1  BD 58 2E     @up_s6d: lda shield_tile_dmg6 + 256, x
 001726  1  8D 23 9F        sta VERA_data0
 001729  1  E8              inx
 00172A  1  D0 F7           bne @up_s6d
@@ -2980,22 +2986,22 @@ Current file: INVADERS.asm
 001730  1  9F A9 13 8D  
 001734  1  21 9F A9 00  
 00173B  1  A2 80           ldx #128
-00173D  1  BD D9 2E     @up_s7a: lda shield_tile_dmg7 - 128, x
+00173D  1  BD D8 2E     @up_s7a: lda shield_tile_dmg7 - 128, x
 001740  1  8D 23 9F        sta VERA_data0
 001743  1  E8              inx
 001744  1  D0 F7           bne @up_s7a
 001746  1  A2 80           ldx #128
-001748  1  BD 59 2F     @up_s7b: lda shield_tile_dmg7, x
+001748  1  BD 58 2F     @up_s7b: lda shield_tile_dmg7, x
 00174B  1  8D 23 9F        sta VERA_data0
 00174E  1  E8              inx
 00174F  1  D0 F7           bne @up_s7b
 001751  1  A2 80           ldx #128
-001753  1  BD D9 2F     @up_s7c: lda shield_tile_dmg7 + 128, x
+001753  1  BD D8 2F     @up_s7c: lda shield_tile_dmg7 + 128, x
 001756  1  8D 23 9F        sta VERA_data0
 001759  1  E8              inx
 00175A  1  D0 F7           bne @up_s7c
 00175C  1  A2 80           ldx #128
-00175E  1  BD 59 30     @up_s7d: lda shield_tile_dmg7 + 256, x
+00175E  1  BD 58 30     @up_s7d: lda shield_tile_dmg7 + 256, x
 001761  1  8D 23 9F        sta VERA_data0
 001764  1  E8              inx
 001765  1  D0 F7           bne @up_s7d
@@ -3021,9 +3027,9 @@ Current file: INVADERS.asm
 001782  1  8D 23 9F        sta VERA_data0
 001785  1  A9 00           lda #$00               ; byte 1: 4bpp, addr[16:13]=0
 001787  1  8D 23 9F        sta VERA_data0
-00178A  1  BD 29 1D        lda shield_x_lo, x     ; byte 2: X lo
+00178A  1  BD 28 1D        lda shield_x_lo, x     ; byte 2: X lo
 00178D  1  8D 23 9F        sta VERA_data0
-001790  1  BD 2D 1D        lda shield_x_hi, x     ; byte 3: X hi
+001790  1  BD 2C 1D        lda shield_x_hi, x     ; byte 3: X hi
 001793  1  8D 23 9F        sta VERA_data0
 001796  1  A9 60           lda #<SHIELD_Y         ; byte 4: Y lo
 001798  1  8D 23 9F        sta VERA_data0
@@ -3060,7 +3066,7 @@ Current file: INVADERS.asm
 0017C2  1  69 10           adc #$10               ; + low byte of $1FE10
 0017C4  1  8D 20 9F        sta VERA_addr_low
 0017C7  1  B4 rr           ldy shield_damage, x   ; Y = damage level (1-3)
-0017C9  1  B9 31 1D        lda shield_addr_b0, y  ; addr[12:5] for this tile
+0017C9  1  B9 30 1D        lda shield_addr_b0, y  ; addr[12:5] for this tile
 0017CC  1  8D 23 9F        sta VERA_data0
 0017CF  1  60              rts
 0017D0  1               
@@ -3160,17 +3166,17 @@ Current file: INVADERS.asm
 001839  1  85 rr           sta zp_scratch_hi
 00183B  1  A5 rr           lda zp_scratch_lo
 00183D  1  38              sec
-00183E  1  FD 29 1D        sbc shield_x_lo, x
+00183E  1  FD 28 1D        sbc shield_x_lo, x
 001841  1  A5 rr           lda zp_scratch_hi
-001843  1  FD 2D 1D        sbc shield_x_hi, x
+001843  1  FD 2C 1D        sbc shield_x_hi, x
 001846  1  30 23           bmi @next_sld
 001848  1               
 001848  1                  ; X check (2): bullet_x < shield_x[x]+32
-001848  1  BD 29 1D        lda shield_x_lo, x
+001848  1  BD 28 1D        lda shield_x_lo, x
 00184B  1  18              clc
 00184C  1  69 20           adc #32
 00184E  1  85 rr           sta zp_scratch_lo
-001850  1  BD 2D 1D        lda shield_x_hi, x
+001850  1  BD 2C 1D        lda shield_x_hi, x
 001853  1  69 00           adc #0
 001855  1  85 rr           sta zp_scratch_hi
 001857  1  A5 rr           lda bullet_x_lo
@@ -3251,17 +3257,17 @@ Current file: INVADERS.asm
 0018B4  1  85 rr           sta zp_scratch_hi
 0018B6  1  A5 rr           lda zp_scratch_lo
 0018B8  1  38              sec
-0018B9  1  F9 29 1D        sbc shield_x_lo, y
+0018B9  1  F9 28 1D        sbc shield_x_lo, y
 0018BC  1  A5 rr           lda zp_scratch_hi
-0018BE  1  F9 2D 1D        sbc shield_x_hi, y
+0018BE  1  F9 2C 1D        sbc shield_x_hi, y
 0018C1  1  30 2C           bmi @next_sld_y
 0018C3  1               
 0018C3  1                  ; X check (2): ibul_x < shield_x[y]+32
-0018C3  1  B9 29 1D        lda shield_x_lo, y
+0018C3  1  B9 28 1D        lda shield_x_lo, y
 0018C6  1  18              clc
 0018C7  1  69 20           adc #32
 0018C9  1  85 rr           sta zp_scratch_lo
-0018CB  1  B9 2D 1D        lda shield_x_hi, y
+0018CB  1  B9 2C 1D        lda shield_x_hi, y
 0018CE  1  69 00           adc #0
 0018D0  1  85 rr           sta zp_scratch_hi
 0018D2  1  A6 rr           ldx zp_row
@@ -3508,8 +3514,8 @@ Current file: INVADERS.asm
 001A28  1  A5 rr           lda shot_count
 001A2A  1  29 07           and #$07
 001A2C  1  AA              tax
-001A2D  1  BD 19 1D        lda ufo_score_lo, x
-001A30  1  BC 21 1D        ldy ufo_score_hi, x
+001A2D  1  BD 18 1D        lda ufo_score_lo, x
+001A30  1  BC 20 1D        ldy ufo_score_hi, x
 001A33  1  20 FF 18        jsr add_score_bcd
 001A36  1               
 001A36  1               @done:
@@ -3587,8 +3593,8 @@ Current file: INVADERS.asm
 001AAC  1               ;   Note: KERNAL PLOT convention for X16: A = row, Y = col, CLC.
 001AAC  1               ;******************************************************************
 001AAC  1               update_hud:
-001AAC  1                  ; --- score: row 1, col 0 ---
-001AAC  1  A9 01           lda #1
+001AAC  1                  ; --- score: row 1, col 0 (Plot: Set X to Row, Set Y to Col) ---
+001AAC  1  A2 01           ldx #1
 001AAE  1  A0 00           ldy #0
 001AB0  1  18              clc
 001AB1  1  20 F0 FF        jsr PLOT
@@ -3599,8 +3605,8 @@ Current file: INVADERS.asm
 001ABE  1  A5 rr           lda score_lo
 001AC0  1  20 19 1B        jsr print_hex_byte
 001AC3  1               
-001AC3  1                  ; --- hi-score: row 1, col 16 ---
-001AC3  1  A9 01           lda #1
+001AC3  1                  ; --- hi-score: row 1, col 16  (Plot: Set X to Row, Set Y to Col) ---
+001AC3  1  A2 01           ldx #1
 001AC5  1  A0 10           ldy #16
 001AC7  1  18              clc
 001AC8  1  20 F0 FF        jsr PLOT
@@ -3611,13 +3617,13 @@ Current file: INVADERS.asm
 001AD5  1  A5 rr           lda hi_score_lo
 001AD7  1  20 19 1B        jsr print_hex_byte
 001ADA  1               
-001ADA  1                  ; --- lives count: row 29, col 1 ---
-001ADA  1  A9 1D           lda #29
+001ADA  1                  ; --- lives count: row 58, col 1  (Plot: Set X to Row, Set Y to Col) ---
+001ADA  1  A2 3A           ldx #58
 001ADC  1  A0 01           ldy #1
 001ADE  1  18              clc
 001ADF  1  20 F0 FF        jsr PLOT
 001AE2  1  A2 00           ldx #0
-001AE4  1  BD FF 1B     @lv_lbl: lda str_lives_lbl,x
+001AE4  1  BD FE 1B     @lv_lbl: lda str_lives_lbl,x
 001AE7  1  F0 06           beq @lv_val
 001AE9  1  20 D2 FF        jsr CHROUT
 001AEC  1  E8              inx
@@ -3628,13 +3634,13 @@ Current file: INVADERS.asm
 001AF4  1  A9 20           lda #' '
 001AF6  1  20 D2 FF        jsr CHROUT                    ; erase any stale digit
 001AF9  1               
-001AF9  1                  ; --- wave number: row 29, col 20 ---
-001AF9  1  A9 1D           lda #29
+001AF9  1                  ; --- wave number: row 58, col 20  (Plot: Set X to Row, Set Y to Col) ---
+001AF9  1  A2 3A           ldx #58
 001AFB  1  A0 14           ldy #20
 001AFD  1  18              clc
 001AFE  1  20 F0 FF        jsr PLOT
 001B01  1  A2 00           ldx #0
-001B03  1  BD CF 1B     @wv_lbl: lda str_wave_lbl,x
+001B03  1  BD CE 1B     @wv_lbl: lda str_wave_lbl,x
 001B06  1  F0 06           beq @wv_val
 001B08  1  20 D2 FF        jsr CHROUT
 001B0B  1  E8              inx
@@ -3717,1404 +3723,1404 @@ Current file: INVADERS.asm
 001B9E  1  D3 C3 CF D2     .byte "SCORE: ", 0
 001BA2  1  C5 3A 20 00  
 001BA6  1               str_hi_score_go:
-001BA6  1  C8 C9 2D D3     .byte "HI-SCORE: ", 0
-001BAA  1  C3 CF D2 C5  
-001BAE  1  3A 20 00     
-001BB1  1               str_play_again:
-001BB1  1  D3 D0 C1 C3     .byte "SPACE = PLAY AGAIN", 0
-001BB5  1  C5 20 3D 20  
-001BB9  1  D0 CC C1 D9  
-001BC4  1               str_wave_clear:
-001BC4  1  D7 C1 D6 C5     .byte "WAVE CLEAR", 0
-001BC8  1  20 C3 CC C5  
-001BCC  1  C1 D2 00     
-001BCF  1               str_wave_lbl:
-001BCF  1  D7 C1 D6 C5     .byte "WAVE: ", 0
-001BD3  1  3A 20 00     
-001BD6  1               str_wave_continue:
-001BD6  1  D0 D2 C5 D3     .byte "PRESS SPACE TO CONTINUE", 0
-001BDA  1  D3 20 D3 D0  
-001BDE  1  C1 C3 C5 20  
-001BEE  1               str_run_stop_hint:
-001BEE  1  D2 D5 CE 2F     .byte "RUN/STOP TO QUIT", 0
-001BF2  1  D3 D4 CF D0  
-001BF6  1  20 D4 CF 20  
-001BFF  1               str_lives_lbl:
-001BFF  1  CC C9 D6 C5     .byte "LIVES: ", 0
-001C03  1  D3 3A 20 00  
-001C07  1               
-001C07  1               ;******************************************************************
-001C07  1               ; player_spr_data — 16x16 4bpp sprite, 128 bytes
-001C07  1               ;
-001C07  1               ;   Color 0 = transparent, Color 1 = white (default palette index 1)
-001C07  1               ;   Design: classic upward-pointing triangular ship with engine notches
-001C07  1               ;
-001C07  1               ;   Each byte encodes 2 pixels: high nibble = left, low nibble = right
-001C07  1               ;   Columns: 0123456789ABCDEF
-001C07  1               ;
-001C07  1               ;   Row  0:  .......1........   cannon tip
-001C07  1               ;   Row  1:  .......11.......
-001C07  1               ;   Row  2:  ......111.......
-001C07  1               ;   Row  3:  ......111.......
-001C07  1               ;   Row  4:  .....11111......
-001C07  1               ;   Row  5:  .....1111111....
-001C07  1               ;   Row  6:  ...111111111....
-001C07  1               ;   Row  7:  ..11111111111...
-001C07  1               ;   Row  8:  .1111111111111..
-001C07  1               ;   Row  9:  1111111111111111   full base
-001C07  1               ;   Row 10:  1111111111111111
-001C07  1               ;   Row 11:  1111111111111111
-001C07  1               ;   Row 12:  11..11111111..11   engine notches
-001C07  1               ;   Row 13:  11..11111111..11
-001C07  1               ;   Row 14:  ................
-001C07  1               ;   Row 15:  ................
-001C07  1               ;******************************************************************
-001C07  1               player_spr_data:
-001C07  1                  ; row 0
-001C07  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00
-001C0B  1  00 00 00 00  
-001C0F  1                  ; row 1
-001C0F  1  00 00 00 01     .byte $00,$00,$00,$01,$10,$00,$00,$00
-001C13  1  10 00 00 00  
-001C17  1                  ; row 2
-001C17  1  00 00 00 01     .byte $00,$00,$00,$01,$10,$00,$00,$00
-001C1B  1  10 00 00 00  
-001C1F  1                  ; row 3
-001C1F  1  00 00 00 01     .byte $00,$00,$00,$01,$10,$00,$00,$00
-001C23  1  10 00 00 00  
-001C27  1                  ; row 4
-001C27  1  00 00 01 11     .byte $00,$00,$01,$11,$11,$10,$00,$00
-001C2B  1  11 10 00 00  
-001C2F  1                  ; row 5
-001C2F  1  00 00 11 11     .byte $00,$00,$11,$11,$11,$11,$00,$00
-001C33  1  11 11 00 00  
-001C37  1                  ; row 6
-001C37  1  00 01 11 11     .byte $00,$01,$11,$11,$11,$11,$10,$00
-001C3B  1  11 11 10 00  
-001C3F  1                  ; row 7
-001C3F  1  00 01 11 11     .byte $00,$01,$11,$11,$11,$11,$10,$00
-001C43  1  11 11 10 00  
-001C47  1                  ; row 8
-001C47  1  01 11 11 11     .byte $01,$11,$11,$11,$11,$11,$11,$10
-001C4B  1  11 11 11 10  
-001C4F  1                  ; row 9
-001C4F  1  11 11 11 11     .byte $11,$11,$11,$11,$11,$11,$11,$11
-001C53  1  11 11 11 11  
-001C57  1                  ; row 10
-001C57  1  11 11 11 11     .byte $11,$11,$11,$11,$11,$11,$11,$11
-001C5B  1  11 11 11 11  
-001C5F  1                  ; row 11
-001C5F  1  11 11 11 11     .byte $11,$11,$11,$11,$11,$11,$11,$11
-001C63  1  11 11 11 11  
-001C67  1                  ; row 12  (engine notches: cols 2-3 and 12-13 transparent)
-001C67  1  11 00 11 11     .byte $11,$00,$11,$11,$11,$11,$00,$11
-001C6B  1  11 11 00 11  
-001C6F  1                  ; row 13
-001C6F  1  11 00 11 11     .byte $11,$00,$11,$11,$11,$11,$00,$11
-001C73  1  11 11 00 11  
-001C77  1                  ; row 14
-001C77  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00
-001C7B  1  00 00 00 00  
-001C7F  1                  ; row 15
-001C7F  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00
-001C83  1  00 00 00 00  
-001C87  1               
-001C87  1               ;******************************************************************
-001C87  1               ; bullet_spr_data — 8x8 4bpp, 32 bytes
-001C87  1               ;
-001C87  1               ;   Color 0 = transparent, Color 1 = white
-001C87  1               ;   Design: 2-pixel-wide vertical bar, centered in 8px columns 3-4
-001C87  1               ;
-001C87  1               ;   Each byte encodes 2 pixels: high nibble = left, low nibble = right
-001C87  1               ;   Columns:  0 1 | 2 3 | 4 5 | 6 7
-001C87  1               ;   Pattern:  . . | . 1 | 1 . | . .   → $00 $01 $10 $00
-001C87  1               ;   All 8 rows identical.
-001C87  1               ;******************************************************************
-001C87  1               bullet_spr_data:
-001C87  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 0
-001C8B  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 1
-001C8F  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 2
-001C93  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 3
-001C97  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 4
-001C9B  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 5
-001C9F  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 6
-001CA3  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 7
-001CA7  1               
-001CA7  1               ;******************************************************************
-001CA7  1               ; Lookup tables for update_invader_sprites
-001CA7  1               ;
-001CA7  1               ;   inv_addr_b0_f0/f1 — sprite data addr[12:5] for row 0-4, each frame
-001CA7  1               ;     Row 0 = Type C (squid),   VRAM $00300/$00380 → $18/$1C
-001CA7  1               ;     Rows 1-2 = Type B (octo), VRAM $00200/$00280 → $10/$14
-001CA7  1               ;     Rows 3-4 = Type A (crab), VRAM $00100/$00180 → $08/$0C
-001CA7  1               ;
-001CA7  1               ;   col_x_lo/hi — column X offset = col * INV_SPACING_X (=40), columns 0-10
-001CA7  1               ;   row_y_offsets — row Y offset = row * INV_SPACING_Y (=48), rows 0-4
-001CA7  1               ;******************************************************************
-001CA7  1  18 10 10 08  inv_addr_b0_f0: .byte $18, $10, $10, $08, $08   ; rows 0-4, frame 0
-001CAB  1  08           
-001CAC  1  1C 14 14 0C  inv_addr_b0_f1: .byte $1C, $14, $14, $0C, $0C   ; rows 0-4, frame 1
-001CB0  1  0C           
-001CB1  1               
-001CB1  1  00 28 50 78  col_x_lo:       .byte   0, 40, 80,120,160,200,240, 24, 64,104,144
-001CB5  1  A0 C8 F0 18  
-001CB9  1  40 68 90     
-001CBC  1  00 00 00 00  col_x_hi:       .byte   0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1
-001CC0  1  00 00 00 01  
-001CC4  1  01 01 01     
-001CC7  1               
-001CC7  1  00 30 60 90  row_y_offsets:  .byte   0, 48, 96,144,192          ; rows 0-4
-001CCB  1  C0           
-001CCC  1               
-001CCC  1               ; row * 11 base index into inv_alive bitmap (rows 0-4)
-001CCC  1  00 0B 16 21  inv_row_base:   .byte   0, 11, 22, 33, 44
-001CD0  1  2C           
-001CD1  1               
-001CD1  1               ; single-bit masks for bits 0-7
-001CD1  1  01 02 04 08  bit_masks:      .byte   1,  2,  4,  8, 16, 32, 64,128
-001CD5  1  10 20 40 80  
-001CD9  1               
-001CD9  1               ; BCD score per invader row (row 0=Type C, rows 1-2=Type B, rows 3-4=Type A)
-001CD9  1  30 20 20 10  score_by_row_bcd: .byte $30, $20, $20, $10, $10
-001CDD  1  10           
-001CDE  1               
-001CDE  1               ; March speed (frames/step) indexed by remaining invader count (0-55).
-001CDE  1               ; Formula: floor(5 + n*45/55) — speed=5 at 0-1 alive, speed=50 at 55 alive.
-001CDE  1               inv_speed_table:
-001CDE  1  05 05 06 07     .byte  5,  5,  6,  7,  8,  9,  9, 10, 11, 12, 13, 14   ; n=0-11
-001CE2  1  08 09 09 0A  
-001CE6  1  0B 0C 0D 0E  
-001CEA  1  0E 0F 10 11     .byte 14, 15, 16, 17, 18, 18, 19, 20, 21, 22, 23, 23   ; n=12-23
-001CEE  1  12 12 13 14  
-001CF2  1  15 16 17 17  
-001CF6  1  18 19 1A 1B     .byte 24, 25, 26, 27, 27, 28, 29, 30, 31, 32, 32, 33   ; n=24-35
-001CFA  1  1B 1C 1D 1E  
-001CFE  1  1F 20 20 21  
-001D02  1  22 23 24 24     .byte 34, 35, 36, 36, 37, 38, 39, 40, 41, 41, 42, 43   ; n=36-47
-001D06  1  25 26 27 28  
-001D0A  1  29 29 2A 2B  
-001D0E  1  2C 2D 2D 2E     .byte 44, 45, 45, 46, 47, 48, 49, 50                   ; n=48-55
-001D12  1  2F 30 31 32  
-001D16  1               
-001D16  1               ; VERA sprite-attribute low-byte for each invader bullet slot (0-2)
-001D16  1               ; Sprite 5=$1FC28, 6=$1FC30, 7=$1FC38 — high byte always $FC
-001D16  1  28 30 38     ibul_spr_lo:    .byte $28, $30, $38
-001D19  1               
-001D19  1               ; UFO score tables indexed by (shot_count & 7) — two-byte BCD pairs
-001D19  1               ; Scores: 50, 100, 150, 300, 100, 50, 300, 150
-001D19  1  50 00 50 00  ufo_score_lo:   .byte $50, $00, $50, $00, $00, $50, $00, $50
-001D1D  1  00 50 00 50  
-001D21  1  00 01 01 03  ufo_score_hi:   .byte $00, $01, $01, $03, $01, $00, $03, $01
-001D25  1  01 00 03 01  
-001D29  1               
-001D29  1               ; Shield X positions (4 shields evenly spread across play field, VERA coords)
-001D29  1               ; Display pixels: 40, 120, 200, 280  (every 80 display px / 160 VERA px)
-001D29  1  50 F0 90 30  shield_x_lo:    .byte <80,  <240, <400, <560
-001D2D  1  00 00 01 02  shield_x_hi:    .byte >80,  >240, >400, >560
-001D31  1               
-001D31  1               ; Shield sprite data addr[12:5] for each damage level (0=full … 7=dmg7)
-001D31  1               ; $00500>>5=$28  $00700>>5=$38  $00900>>5=$48  $00B00>>5=$58
-001D31  1               ; $00D00>>5=$68  $00F00>>5=$78  $01100>>5=$88  $01300>>5=$98
-001D31  1  28 38 48 58  shield_addr_b0: .byte $28, $38, $48, $58, $68, $78, $88, $98
-001D35  1  68 78 88 98  
-001D39  1               
-001D39  1               ;******************************************************************
-001D39  1               ; Invader bullet sprite pixel data — 8x8 4bpp, 32 bytes
-001D39  1               ; Zigzag pattern, colour 1 (white).  Each byte = 2 pixels (hi=left, lo=right).
-001D39  1               ;******************************************************************
-001D39  1               inv_bullet_spr_data:
-001D39  1  00 10 00 00     .byte $00,$10,$00,$00   ; row 0: . . 1 . | . . . .
-001D3D  1  00 10 00 00     .byte $00,$10,$00,$00   ; row 1
-001D41  1  00 01 00 00     .byte $00,$01,$00,$00   ; row 2: . . . 1 | . . . .
-001D45  1  00 01 00 00     .byte $00,$01,$00,$00   ; row 3
-001D49  1  00 10 00 00     .byte $00,$10,$00,$00   ; row 4
-001D4D  1  00 10 00 00     .byte $00,$10,$00,$00   ; row 5
-001D51  1  00 01 00 00     .byte $00,$01,$00,$00   ; row 6
-001D55  1  00 01 00 00     .byte $00,$01,$00,$00   ; row 7
-001D59  1               
-001D59  1               ;******************************************************************
-001D59  1               ; Explosion sprite pixel data — 16x16 4bpp, 128 bytes
-001D59  1               ; Color 1 = white (bright core), Color 6 = yellow (burst), 0 = transparent
-001D59  1               ; Starburst pattern, symmetric about centre.
-001D59  1               ;******************************************************************
-001D59  1               ; Color indices: 1=white (core), 7=yellow (burst, KERNAL default palette entry 7)
-001D59  1               explosion_pixels:
-001D59  1  00 00 07 00     .byte $00,$00,$07,$00,$00,$70,$00,$00   ; row  0
-001D5D  1  00 70 00 00  
-001D61  1  00 07 00 07     .byte $00,$07,$00,$07,$70,$00,$70,$00   ; row  1
-001D65  1  70 00 70 00  
-001D69  1  00 70 07 00     .byte $00,$70,$07,$00,$00,$70,$07,$00   ; row  2
-001D6D  1  00 70 07 00  
-001D71  1  07 00 00 77     .byte $07,$00,$00,$77,$77,$00,$00,$70   ; row  3
-001D75  1  77 00 00 70  
-001D79  1  00 00 77 71     .byte $00,$00,$77,$71,$17,$77,$00,$00   ; row  4
-001D7D  1  17 77 00 00  
-001D81  1  70 70 71 11     .byte $70,$70,$71,$11,$11,$17,$07,$07   ; row  5
-001D85  1  11 17 07 07  
-001D89  1  00 07 71 11     .byte $00,$07,$71,$11,$11,$17,$70,$00   ; row  6
-001D8D  1  11 17 70 00  
-001D91  1  07 77 71 11     .byte $07,$77,$71,$11,$11,$17,$77,$70   ; row  7
-001D95  1  11 17 77 70  
-001D99  1  07 77 71 11     .byte $07,$77,$71,$11,$11,$17,$77,$70   ; row  8
-001D9D  1  11 17 77 70  
-001DA1  1  00 07 71 11     .byte $00,$07,$71,$11,$11,$17,$70,$00   ; row  9
-001DA5  1  11 17 70 00  
-001DA9  1  70 70 71 11     .byte $70,$70,$71,$11,$11,$17,$07,$07   ; row 10
-001DAD  1  11 17 07 07  
-001DB1  1  00 00 77 71     .byte $00,$00,$77,$71,$17,$77,$00,$00   ; row 11
-001DB5  1  17 77 00 00  
-001DB9  1  07 00 00 77     .byte $07,$00,$00,$77,$77,$00,$00,$70   ; row 12
-001DBD  1  77 00 00 70  
-001DC1  1  00 70 07 00     .byte $00,$70,$07,$00,$00,$70,$07,$00   ; row 13
-001DC5  1  00 70 07 00  
-001DC9  1  00 07 00 07     .byte $00,$07,$00,$07,$70,$00,$70,$00   ; row 14
-001DCD  1  70 00 70 00  
-001DD1  1  00 00 07 00     .byte $00,$00,$07,$00,$00,$70,$00,$00   ; row 15
-001DD5  1  00 70 00 00  
-001DD9  1               
-001DD9  1               ;******************************************************************
-001DD9  1               ; ufo_spr_data — 16x16 4bpp, 128 bytes, stored at VRAM $01500
-001DD9  1               ;
-001DD9  1               ;   Color 0 = transparent, Color 5 = red (saucer body)
-001DD9  1               ;   Each byte encodes 2 pixels: high nibble = left, low nibble = right
-001DD9  1               ;
-001DD9  1               ;   Classic flying-saucer silhouette:
-001DD9  1               ;     Row 1: ......5555......  dome top  (cols  6-9)
-001DD9  1               ;     Row 2: ....55555555....  dome      (cols  4-11)
-001DD9  1               ;     Row 3: 5555555555555555  wide body (all 16 cols)
-001DD9  1               ;     Row 4: .5.5.5.5.5.5.5.5 body detail (odd cols lit)
-001DD9  1               ;     Row 5: 5555555555555555  wide body
-001DD9  1               ;     Row 6: ..555555555555..  underside (cols  2-13)
-001DD9  1               ;     Row 7: ....5555..5555..  engine pods (cols 4-7, 10-13)
-001DD9  1               ;     Rows 0,8-15: transparent
-001DD9  1               ;******************************************************************
-001DD9  1               ufo_spr_data:
-001DD9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0  blank
-001DDD  1  00 00 00 00  
-001DE1  1  00 00 00 55     .byte $00,$00,$00,$55,$55,$00,$00,$00  ; row 1  dome top
-001DE5  1  55 00 00 00  
-001DE9  1  00 00 55 55     .byte $00,$00,$55,$55,$55,$55,$00,$00  ; row 2  dome
-001DED  1  55 55 00 00  
-001DF1  1  55 55 55 55     .byte $55,$55,$55,$55,$55,$55,$55,$55  ; row 3  wide body
-001DF5  1  55 55 55 55  
-001DF9  1  05 05 05 05     .byte $05,$05,$05,$05,$05,$05,$05,$05  ; row 4  detail
-001DFD  1  05 05 05 05  
-001E01  1  55 55 55 55     .byte $55,$55,$55,$55,$55,$55,$55,$55  ; row 5  wide body
-001E05  1  55 55 55 55  
-001E09  1  00 55 55 55     .byte $00,$55,$55,$55,$55,$55,$55,$00  ; row 6  underside
-001E0D  1  55 55 55 00  
-001E11  1  00 00 55 55     .byte $00,$00,$55,$55,$00,$55,$55,$00  ; row 7  engine pods
-001E15  1  00 55 55 00  
-001E19  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 8
-001E1D  1  00 00 00 00  
-001E21  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 9
-001E25  1  00 00 00 00  
-001E29  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 10
-001E2D  1  00 00 00 00  
-001E31  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 11
-001E35  1  00 00 00 00  
-001E39  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 12
-001E3D  1  00 00 00 00  
-001E41  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 13
-001E45  1  00 00 00 00  
-001E49  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 14
-001E4D  1  00 00 00 00  
-001E51  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
-001E55  1  00 00 00 00  
-001E59  1               
-001E59  1               ;******************************************************************
-001E59  1               ; Invader sprite pixel data — 16x16 4bpp, 128 bytes each
-001E59  1               ; Each byte encodes 2 pixels: high nibble = left pixel, low nibble = right
-001E59  1               ; Color 0 = transparent
-001E59  1               ;
-001E59  1               ; Type A (crab,   rows 3-4): color 4 = green
-001E59  1               ; Type B (octopus, rows 1-2): color 3 = magenta
-001E59  1               ; Type C (squid,  row 0):    color 2 = cyan
-001E59  1               ;
-001E59  1               ; Design key (16 pixels wide):
-001E59  1               ;   .  = 0 (transparent)
-001E59  1               ;   A/B/C = color 4/3/2 for each type
-001E59  1               ;******************************************************************
-001E59  1               
-001E59  1               ;------------------------------------------------------------------
-001E59  1               ; Type A — crab, green (color 4), frame 0 (legs spread)
-001E59  1               ;
-001E59  1               ;   0: ................
-001E59  1               ;   1: 4...4......4...4   claw tips
-001E59  1               ;   2: .4............4.
-001E59  1               ;   3: .4444444444444.   body top
-001E59  1               ;   4: 44.44.4444.44.44  eye gaps
-001E59  1               ;   5: 4444444444444444
-001E59  1               ;   6: .44444444444444.
-001E59  1               ;   7: 4..4........4..4  legs spread
-001E59  1               ;   8: 4...........4...
-001E59  1               ;   9-15: ..............
-001E59  1               ;------------------------------------------------------------------
-001E59  1               inv_a_spr_f0:
-001E59  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0
-001E5D  1  00 00 00 00  
-001E61  1  40 00 40 00     .byte $40,$00,$40,$00,$00,$04,$00,$04  ; row 1
-001E65  1  00 04 00 04  
-001E69  1  04 00 00 00     .byte $04,$00,$00,$00,$00,$00,$04,$00  ; row 2
-001E6D  1  00 00 04 00  
-001E71  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 3
-001E75  1  44 44 44 40  
-001E79  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 4
-001E7D  1  44 04 40 44  
-001E81  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 5
-001E85  1  44 04 40 44  
-001E89  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 6
-001E8D  1  44 04 40 44  
-001E91  1  44 44 44 44     .byte $44,$44,$44,$44,$44,$44,$44,$44  ; row 7
-001E95  1  44 44 44 44  
-001E99  1  44 44 44 44     .byte $44,$44,$44,$44,$44,$44,$44,$44  ; row 8
-001E9D  1  44 44 44 44  
-001EA1  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 9
-001EA5  1  44 44 44 40  
-001EA9  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 10
-001EAD  1  44 44 44 40  
-001EB1  1  40 04 00 00     .byte $40,$04,$00,$00,$00,$00,$40,$04  ; row 11
-001EB5  1  00 00 40 04  
-001EB9  1  40 04 00 00     .byte $40,$04,$00,$00,$00,$00,$40,$04  ; row 12
-001EBD  1  00 00 40 04  
-001EC1  1  40 00 00 00     .byte $40,$00,$00,$00,$00,$00,$00,$04  ; row 13
-001EC5  1  00 00 00 04  
-001EC9  1  40 00 00 00     .byte $40,$00,$00,$00,$00,$00,$00,$04  ; row 14
-001ECD  1  00 00 00 04  
-001ED1  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
-001ED5  1  00 00 00 00  
-001ED9  1               
-001ED9  1               ;------------------------------------------------------------------
-001ED9  1               ; Type A — crab, green (color 4), frame 1 (legs tucked)
-001ED9  1               ;
-001ED9  1               ;   rows 0-6: same as frame 0
-001ED9  1               ;   7: .4..........4.  legs tucked inward
-001ED9  1               ;   8: ..4..........4..
-001ED9  1               ;------------------------------------------------------------------
-001ED9  1               inv_a_spr_f1:
-001ED9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0
-001EDD  1  00 00 00 00  
-001EE1  1  40 00 40 00     .byte $40,$00,$40,$00,$00,$04,$00,$04  ; row 1  (same)
-001EE5  1  00 04 00 04  
-001EE9  1  04 00 00 00     .byte $04,$00,$00,$00,$00,$00,$04,$00  ; row 2  (same)
-001EED  1  00 00 04 00  
-001EF1  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 3  (same)
-001EF5  1  44 44 44 40  
-001EF9  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 4  (same)
-001EFD  1  44 04 40 44  
-001F01  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 5  (same)
-001F05  1  44 04 40 44  
-001F09  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 6  (same)
-001F0D  1  44 04 40 44  
-001F11  1  44 44 44 44     .byte $44,$44,$44,$44,$44,$44,$44,$44  ; row 7  legs tucked
-001F15  1  44 44 44 44  
-001F19  1  44 44 44 44     .byte $44,$44,$44,$44,$44,$44,$44,$44  ; row 8
-001F1D  1  44 44 44 44  
-001F21  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 9
-001F25  1  44 44 44 40  
-001F29  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 10
-001F2D  1  44 44 44 40  
-001F31  1  04 00 04 00     .byte $04,$00,$04,$00,$00,$40,$00,$40  ; row 11
-001F35  1  00 40 00 40  
-001F39  1  04 00 04 00     .byte $04,$00,$04,$00,$00,$40,$00,$40  ; row 12
-001F3D  1  00 40 00 40  
-001F41  1  00 40 00 00     .byte $00,$40,$00,$00,$00,$00,$04,$00  ; row 13
-001F45  1  00 00 04 00  
-001F49  1  00 40 00 00     .byte $00,$40,$00,$00,$00,$00,$04,$00  ; row 14
-001F4D  1  00 00 04 00  
-001F51  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
-001F55  1  00 00 00 00  
-001F59  1               
-001F59  1               ;------------------------------------------------------------------
-001F59  1               ; Type B — octopus, magenta (color 3), frame 0 (tentacles out-wide)
-001F59  1               ;
-001F59  1               ;   0: ................
-001F59  1               ;   1: ..333333333333..  dome top
-001F59  1               ;   2: .3333333333333.
-001F59  1               ;   3: 33.333333333.33   bumps
-001F59  1               ;   4: 3.33.33333.33.3   eye row
-001F59  1               ;   5: 3333333333333333
-001F59  1               ;   6: .3333333333333.
-001F59  1               ;   7: 3..3...33...3..3  tentacles
-001F59  1               ;   8: 3...........3
-001F59  1               ;------------------------------------------------------------------
-001F59  1               inv_b_spr_f0:
-001F59  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0
-001F5D  1  00 00 00 00  
-001F61  1  00 33 33 33     .byte $00,$33,$33,$33,$33,$33,$33,$00  ; row 1
-001F65  1  33 33 33 00  
-001F69  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 2
-001F6D  1  33 33 33 30  
-001F71  1  33 03 33 33     .byte $33,$03,$33,$33,$33,$33,$30,$33  ; row 3
-001F75  1  33 33 30 33  
-001F79  1  33 03 33 33     .byte $33,$03,$33,$33,$33,$33,$30,$33  ; row 4
-001F7D  1  33 33 30 33  
-001F81  1  30 33 30 33     .byte $30,$33,$30,$33,$33,$30,$33,$03  ; row 5 eye row
-001F85  1  33 30 33 03  
-001F89  1  30 33 30 33     .byte $30,$33,$30,$33,$33,$30,$33,$03  ; row 6 eye row
-001F8D  1  33 30 33 03  
-001F91  1  33 33 33 33     .byte $33,$33,$33,$33,$33,$33,$33,$33  ; row 7
-001F95  1  33 33 33 33  
-001F99  1  33 33 33 33     .byte $33,$33,$33,$33,$33,$33,$33,$33  ; row 8
-001F9D  1  33 33 33 33  
-001FA1  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 9
-001FA5  1  33 33 33 30  
-001FA9  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 10
-001FAD  1  33 33 33 30  
-001FB1  1  30 03 00 03     .byte $30,$03,$00,$03,$30,$00,$30,$03  ; row 11
-001FB5  1  30 00 30 03  
-001FB9  1  30 03 00 30     .byte $30,$03,$00,$30,$03,$00,$30,$03  ; row 12
-001FBD  1  03 00 30 03  
-001FC1  1  30 00 00 00     .byte $30,$00,$00,$00,$00,$00,$00,$03  ; row 13
-001FC5  1  00 00 00 03  
-001FC9  1  30 00 00 00     .byte $30,$00,$00,$00,$00,$00,$00,$03  ; row 14
-001FCD  1  00 00 00 03  
-001FD1  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
-001FD5  1  00 00 00 00  
-001FD9  1               
-001FD9  1               ;------------------------------------------------------------------
-001FD9  1               ; Type B — octopus, magenta (color 3), frame 1 (tentacles angled in)
-001FD9  1               ;
-001FD9  1               ;   rows 0-6: same as frame 0
-001FD9  1               ;   7: .3..3.....3..3.   tentacles angled in
-001FD9  1               ;   8: .3...........3.
-001FD9  1               ;------------------------------------------------------------------
-001FD9  1               inv_b_spr_f1:
-001FD9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0
-001FDD  1  00 00 00 00  
-001FE1  1  00 33 33 33     .byte $00,$33,$33,$33,$33,$33,$33,$00  ; row 1  (same)
-001FE5  1  33 33 33 00  
-001FE9  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 2  (same)
-001FED  1  33 33 33 30  
-001FF1  1  33 03 33 33     .byte $33,$03,$33,$33,$33,$33,$30,$33  ; row 3  (same)
-001FF5  1  33 33 30 33  
-001FF9  1  33 03 33 33     .byte $33,$03,$33,$33,$33,$33,$30,$33  ; row 4  (same)
-001FFD  1  33 33 30 33  
-002001  1  30 33 03 33     .byte $30,$33,$03,$33,$33,$03,$33,$03  ; row 5  (same)
-002005  1  33 03 33 03  
-002009  1  30 33 03 33     .byte $30,$33,$03,$33,$33,$03,$33,$03  ; row 6  (same)
-00200D  1  33 03 33 03  
-002011  1  33 33 33 33     .byte $33,$33,$33,$33,$33,$33,$33,$33  ; row 7  tentacles in
-002015  1  33 33 33 33  
-002019  1  33 33 33 33     .byte $33,$33,$33,$33,$33,$33,$33,$33  ; row 8
-00201D  1  33 33 33 33  
-002021  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 9
-002025  1  33 33 33 30  
-002029  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 10
-00202D  1  33 33 33 30  
-002031  1  03 00 30 03     .byte $03,$00,$30,$03,$00,$30,$03,$00  ; row 11
-002035  1  00 30 03 00  
-002039  1  00 30 30 03     .byte $00,$30,$30,$03,$00,$30,$03,$00  ; row 12
-00203D  1  00 30 03 00  
-002041  1  03 00 00 00     .byte $03,$00,$00,$00,$00,$00,$00,$30  ; row 13
-002045  1  00 00 00 30  
-002049  1  03 00 00 00     .byte $03,$00,$00,$00,$00,$00,$00,$30  ; row 14
-00204D  1  00 00 00 30  
-002051  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
-002055  1  00 00 00 00  
-002059  1               
-002059  1               ;------------------------------------------------------------------
-002059  1               ; Type C — squid, cyan (color 2), frame 0 (antennae out)
-002059  1               ;
-002059  1               ;   0: ...2.......2...   antenna tips
-002059  1               ;   1: ..22........22..
-002059  1               ;   2: ..222222222222..
-002059  1               ;   3: .2222222222222.
-002059  1               ;   4: 2222222222222222
-002059  1               ;   5: 2.22.222222.22.2  eye row
-002059  1               ;   6: 2222222222222222
-002059  1               ;   7: .2.2.......2.2.   bottom fringe
-002059  1               ;   8: 2...........2
-002059  1               ;------------------------------------------------------------------
-002059  1               inv_c_spr_f0:
-002059  1  00 00 02 00     .byte $00,$00,$02,$00,$00,$20,$00,$00  ; row 0
-00205D  1  00 20 00 00  
-002061  1  00 00 22 00     .byte $00,$00,$22,$00,$00,$22,$00,$00  ; row 1
-002065  1  00 22 00 00  
-002069  1  00 00 22 22     .byte $00,$00,$22,$22,$22,$22,$00,$00  ; row 2
-00206D  1  22 22 00 00  
-002071  1  00 02 20 22     .byte $00,$02,$20,$22,$20,$22,$20,$00  ; row 3
-002075  1  20 22 20 00  
-002079  1  00 22 20 22     .byte $00,$22,$20,$22,$20,$22,$22,$00  ; row 4
-00207D  1  20 22 22 00  
-002081  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 5 eye row
-002085  1  22 22 22 00  
-002089  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 6
-00208D  1  22 22 22 00  
-002091  1  00 20 22 02     .byte $00,$20,$22,$02,$20,$22,$02,$00  ; row 7
-002095  1  20 22 02 00  
-002099  1  00 20 22 02     .byte $00,$20,$22,$02,$20,$22,$02,$00  ; row 8
-00209D  1  20 22 02 00  
-0020A1  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 9
-0020A5  1  22 22 22 00  
-0020A9  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 10
-0020AD  1  22 22 22 00  
-0020B1  1  00 02 02 00     .byte $00,$02,$02,$00,$00,$20,$20,$00  ; row 11
-0020B5  1  00 20 20 00  
-0020B9  1  00 02 02 00     .byte $00,$02,$02,$00,$00,$20,$20,$00  ; row 12
-0020BD  1  00 20 20 00  
-0020C1  1  00 20 00 00     .byte $00,$20,$00,$00,$00,$00,$02,$00  ; row 13
-0020C5  1  00 00 02 00  
-0020C9  1  00 02 00 00     .byte $00,$02,$00,$00,$00,$00,$20,$00  ; row 14
-0020CD  1  00 00 20 00  
-0020D1  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
-0020D5  1  00 00 00 00  
-0020D9  1               
-0020D9  1               ;------------------------------------------------------------------
-0020D9  1               ; Type C — squid, cyan (color 2), frame 1 (antennae pulled inward)
-0020D9  1               ;
-0020D9  1               ;   row 0: .....2.2.2.....   antennae closer to centre
-0020D9  1               ;   row 1: ....22....22....
-0020D9  1               ;   rows 2-8: same as frame 0
-0020D9  1               ;------------------------------------------------------------------
-0020D9  1               inv_c_spr_f1:
-0020D9  1  00 02 00 00     .byte $00,$02,$00,$00,$00,$00,$20,$00  ; row 0  antennae in
-0020DD  1  00 00 20 00  
-0020E1  1  00 00 22 00     .byte $00,$00,$22,$00,$00,$22,$00,$00  ; row 1
-0020E5  1  00 22 00 00  
-0020E9  1  00 00 22 22     .byte $00,$00,$22,$22,$22,$22,$00,$00  ; row 2  (same)
-0020ED  1  22 22 00 00  
-0020F1  1  00 02 22 02     .byte $00,$02,$22,$02,$22,$02,$20,$00  ; row 3  (same)
-0020F5  1  22 02 20 00  
-0020F9  1  00 22 22 02     .byte $00,$22,$22,$02,$22,$02,$22,$00  ; row 4  (same)
-0020FD  1  22 02 22 00  
-002101  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 5  (same)
-002105  1  22 22 22 00  
-002109  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 6  (same)
-00210D  1  22 22 22 00  
-002111  1  00 20 22 02     .byte $00,$20,$22,$02,$20,$22,$02,$00  ; row 7  (same)
-002115  1  20 22 02 00  
-002119  1  00 20 22 02     .byte $00,$20,$22,$02,$20,$22,$02,$00  ; row 8  (same)
-00211D  1  20 22 02 00  
-002121  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 9
-002125  1  22 22 22 00  
-002129  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 10
-00212D  1  22 22 22 00  
-002131  1  00 02 02 00     .byte $00,$02,$02,$00,$00,$20,$20,$00  ; row 11
-002135  1  00 20 20 00  
-002139  1  00 02 02 00     .byte $00,$02,$02,$00,$00,$20,$20,$00  ; row 12
-00213D  1  00 20 20 00  
-002141  1  00 20 00 00     .byte $00,$20,$00,$00,$00,$00,$02,$00  ; row 13
-002145  1  00 00 02 00  
-002149  1  00 20 00 00     .byte $00,$20,$00,$00,$00,$00,$02,$00  ; row 14
-00214D  1  00 00 02 00  
-002151  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
-002155  1  00 00 00 00  
-002159  1               
-002159  1               ;******************************************************************
-002159  1               ; Shield sprite pixel data — 16x16 4bpp, 128 bytes each
-002159  1               ;
-002159  1               ;   Color 0 = transparent, Color 7 = dark green (palette entry 7,
-002159  1               ;   set to dark green by init_shields).
-002159  1               ;   Each byte encodes 2 pixels: high nibble = left, low nibble = right.
-002159  1               ;
-002159  1               ;   Damage progression: each level erodes 4 more rows from the top,
-002159  1               ;   replacing solid color-7 pixels with a 2-pixel checkerboard of
-002159  1               ;   color 7 and transparent.  Rows not yet eroded remain solid.
-002159  1               ;
-002159  1               ;   Checker A (odd bits lit):  $70 $07 $70 $07 $70 $07 $70 $07
-002159  1               ;   Checker B (even bits lit): $07 $70 $07 $70 $07 $70 $07 $70
-002159  1               ;   Solid row:                 $77 $77 $77 $77 $77 $77 $77 $77
-002159  1               ;
-002159  1               ;   Classic Space Invaders arch/bunker shape (32x32, 4bpp, color index 7)
-002159  1               ;   Dome narrows upward (rows 0-1); solid body (rows 2-19); arch cut
-002159  1               ;   from rows 20-27 with 8px legs; solid base rows 28-31 (32px wide).
-002159  1               ;   Damage progression: dome erodes first, then body, then arch/base.
-002159  1               ;   Each row = 16 bytes (32 pixels × 4bpp).  32 rows × 16 bytes = 512 bytes per tile.
-002159  1               ;
-002159  1               ;   shield_tile_full:  dome 24/28px, 18 solid body rows, 8 arch rows, 4 base rows
-002159  1               ;   shield_tile_dmg1:  2 holes in dome top row
-002159  1               ;   shield_tile_dmg2:  dome top 20px, dome row 1 holed
-002159  1               ;   shield_tile_dmg3:  dome 16px, dome row 1 holed, 1 body hole
-002159  1               ;   shield_tile_dmg4:  dome 8/16px, 3 body holes, arch narrows to 6px
-002159  1               ;   shield_tile_dmg5:  dome gone/4px, 4 body holes, arch 4px, base hole
-002159  1               ;   shield_tile_dmg6:  body fragmenting, arch 2px legs, 2 base holes
-002159  1               ;   shield_tile_dmg7:  ruins — pillar stubs, arch dots, base crumbling
-002159  1               ;******************************************************************
-002159  1               
-002159  1               shield_tile_full:
-002159  1  00 00 00 00     .byte $00,$00,$00,$00,$77,$77,$77,$77,$77,$77,$77,$77,$00,$00,$00,$00  ; r0  dome 24px
-00215D  1  77 77 77 77  
-002161  1  77 77 77 77  
-002169  1  00 00 00 77     .byte $00,$00,$00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00,$00,$00  ; r1  dome 28px
-00216D  1  77 77 77 77  
-002171  1  77 77 77 77  
-002179  1  00 00 77 77     .byte $00,$00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00,$00  ; r2  solid body
-00217D  1  77 77 77 77  
-002181  1  77 77 77 77  
-002189  1  00 77 77 77     .byte $00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00  ; r3
-00218D  1  77 77 77 77  
-002191  1  77 77 77 77  
-002199  1  00 77 77 77     .byte $00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00  ; r4
-00219D  1  77 77 77 77  
-0021A1  1  77 77 77 77  
-0021A9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r5
-0021AD  1  77 77 77 77  
-0021B1  1  77 77 77 77  
-0021B9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r6
-0021BD  1  77 77 77 77  
-0021C1  1  77 77 77 77  
-0021C9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r7
-0021CD  1  77 77 77 77  
-0021D1  1  77 77 77 77  
-0021D9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
-0021DD  1  77 77 77 77  
-0021E1  1  77 77 77 77  
-0021E9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r9
-0021ED  1  77 77 77 77  
-0021F1  1  77 77 77 77  
-0021F9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r10
-0021FD  1  77 77 77 77  
-002201  1  77 77 77 77  
-002209  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r11
-00220D  1  77 77 77 77  
-002211  1  77 77 77 77  
-002219  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r12
-00221D  1  77 77 77 77  
-002221  1  77 77 77 77  
-002229  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r13
-00222D  1  77 77 77 77  
-002231  1  77 77 77 77  
-002239  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14
-00223D  1  77 77 77 77  
-002241  1  77 77 77 77  
-002249  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
-00224D  1  77 77 77 77  
-002251  1  77 77 77 77  
-002259  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r16
-00225D  1  77 77 77 77  
-002261  1  77 77 77 77  
-002269  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r17
-00226D  1  77 77 77 77  
-002271  1  77 77 77 77  
-002279  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r18
-00227D  1  77 77 77 77  
-002281  1  77 77 77 77  
-002289  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r19
-00228D  1  77 77 77 77  
-002291  1  77 77 77 77  
-002299  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r20
-00229D  1  77 77 77 77  
-0022A1  1  77 77 77 77  
-0022A9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r21
-0022AD  1  77 77 77 77  
-0022B1  1  77 77 77 77  
-0022B9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r22
-0022BD  1  77 77 77 77  
-0022C1  1  77 77 77 77  
-0022C9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r23
-0022CD  1  77 77 77 77  
-0022D1  1  77 77 77 77  
-0022D9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77,$77  ; r24 arch 8px legs
-0022DD  1  77 00 00 00  
-0022E1  1  00 00 00 77  
-0022E9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
-0022ED  1  00 00 00 00  
-0022F1  1  00 00 00 00  
-0022F9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26
-0022FD  1  00 00 00 00  
-002301  1  00 00 00 00  
-002309  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
-00230D  1  00 00 00 00  
-002311  1  00 00 00 00  
-002319  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28
-00231D  1  00 00 00 00  
-002321  1  00 00 00 00  
-002329  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
-00232D  1  00 00 00 00  
-002331  1  00 00 00 00  
-002339  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
-00233D  1  00 00 00 00  
-002341  1  00 00 00 00  
-002349  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
-00234D  1  00 00 00 00  
-002351  1  00 00 00 00  
-002359  1               
-002359  1               shield_tile_dmg1:
-002359  1  00 00 00 00     .byte $00,$00,$00,$00,$77,$00,$07,$70,$00,$00,$77,$00,$77,$70,$00,$00  ; r0  dome: 20px
-00235D  1  77 00 07 70  
-002361  1  00 00 77 00  
-002369  1  00 00 00 70     .byte $00,$00,$00,$70,$07,$00,$00,$00,$77,$00,$77,$00,$00,$00,$00,$00  ; r1  dome: holes at 10-11, 22-23
-00236D  1  07 00 00 00  
-002371  1  77 00 77 00  
-002379  1  00 00 77 07     .byte $00,$00,$77,$07,$07,$77,$07,$77,$00,$77,$77,$77,$77,$77,$00,$00  ; r2  solid body
-00237D  1  07 77 07 77  
-002381  1  00 77 77 77  
-002389  1  00 77 77 77     .byte $00,$77,$77,$77,$77,$77,$70,$77,$00,$77,$77,$77,$77,$77,$77,$00  ; r3
-00238D  1  77 77 70 77  
-002391  1  00 77 77 77  
-002399  1  00 77 77 77     .byte $00,$77,$77,$77,$77,$77,$77,$77,$70,$77,$77,$77,$77,$77,$77,$00  ; r4
-00239D  1  77 77 77 77  
-0023A1  1  70 77 77 77  
-0023A9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r5
-0023AD  1  77 77 77 77  
-0023B1  1  77 77 77 77  
-0023B9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r6
-0023BD  1  77 77 77 77  
-0023C1  1  77 77 77 77  
-0023C9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r7
-0023CD  1  77 77 77 77  
-0023D1  1  77 77 77 77  
-0023D9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
-0023DD  1  77 77 77 77  
-0023E1  1  77 77 77 77  
-0023E9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r9
-0023ED  1  77 77 77 77  
-0023F1  1  77 77 77 77  
-0023F9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r10
-0023FD  1  77 77 77 77  
-002401  1  77 77 77 77  
-002409  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r11
-00240D  1  77 77 77 77  
-002411  1  77 77 77 77  
-002419  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r12
-00241D  1  77 77 77 77  
-002421  1  77 77 77 77  
-002429  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r13
-00242D  1  77 77 77 77  
-002431  1  77 77 77 77  
-002439  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14
-00243D  1  77 77 77 77  
-002441  1  77 77 77 77  
-002449  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
-00244D  1  77 77 77 77  
-002451  1  77 77 77 77  
-002459  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r16
-00245D  1  77 77 77 77  
-002461  1  77 77 77 77  
-002469  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r17
-00246D  1  77 77 77 77  
-002471  1  77 77 77 77  
-002479  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r18
-00247D  1  77 77 77 77  
-002481  1  77 77 77 77  
-002489  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r19
-00248D  1  77 77 77 77  
-002491  1  77 77 77 77  
-002499  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r20 arch 8px legs
-00249D  1  77 77 77 77  
-0024A1  1  77 77 77 77  
-0024A9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r21
-0024AD  1  77 77 77 77  
-0024B1  1  77 77 77 77  
-0024B9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r22
-0024BD  1  77 77 77 77  
-0024C1  1  77 77 77 77  
-0024C9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r23
-0024CD  1  77 77 77 77  
-0024D1  1  77 77 77 77  
-0024D9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r24
-0024DD  1  00 00 00 00  
-0024E1  1  00 00 00 00  
-0024E9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
-0024ED  1  00 00 00 00  
-0024F1  1  00 00 00 00  
-0024F9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26
-0024FD  1  00 00 00 00  
-002501  1  00 00 00 00  
-002509  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
-00250D  1  00 00 00 00  
-002511  1  00 00 00 00  
-002519  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28 solid base
-00251D  1  00 00 00 00  
-002521  1  00 00 00 00  
-002529  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
-00252D  1  00 00 00 00  
-002531  1  00 00 00 00  
-002539  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
-00253D  1  00 00 00 00  
-002541  1  00 00 00 00  
-002549  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
-00254D  1  00 00 00 00  
-002551  1  00 00 00 00  
-002559  1               
-002559  1               shield_tile_dmg2:
-002559  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$70,$00,$00,$00,$00,$77,$00,$00,$00  ; r0  dome: 20px
-00255D  1  00 00 00 70  
-002561  1  00 00 00 00  
-002569  1  00 00 00 70     .byte $00,$00,$00,$70,$07,$00,$00,$00,$77,$00,$07,$00,$00,$00,$00,$00  ; r1  dome: holes at 10-11, 22-23
-00256D  1  07 00 00 00  
-002571  1  77 00 07 00  
-002579  1  00 00 77 07     .byte $00,$00,$77,$07,$07,$70,$70,$07,$77,$00,$00,$77,$70,$77,$00,$00  ; r2
-00257D  1  07 70 70 07  
-002581  1  77 00 00 77  
-002589  1  00 77 77 77     .byte $00,$77,$77,$77,$70,$77,$00,$77,$77,$70,$70,$77,$07,$77,$77,$00  ; r3
-00258D  1  70 77 00 77  
-002591  1  77 70 70 77  
-002599  1  00 77 77 77     .byte $00,$77,$77,$77,$77,$77,$00,$77,$77,$70,$77,$77,$07,$77,$77,$00  ; r4
-00259D  1  77 77 00 77  
-0025A1  1  77 70 77 77  
-0025A9  1  07 07 77 77     .byte $07,$07,$77,$77,$77,$77,$07,$77,$77,$07,$77,$77,$70,$77,$77,$07  ; r5
-0025AD  1  77 77 07 77  
-0025B1  1  77 07 77 77  
-0025B9  1  70 77 77 77     .byte $70,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r6
-0025BD  1  77 77 77 77  
-0025C1  1  77 77 77 77  
-0025C9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r7
-0025CD  1  77 77 77 77  
-0025D1  1  77 77 77 77  
-0025D9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
-0025DD  1  77 77 77 77  
-0025E1  1  77 77 77 77  
-0025E9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r9
-0025ED  1  77 77 77 77  
-0025F1  1  77 77 77 77  
-0025F9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r10
-0025FD  1  77 77 77 77  
-002601  1  77 77 77 77  
-002609  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r11
-00260D  1  77 77 77 77  
-002611  1  77 77 77 77  
-002619  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r12
-00261D  1  77 77 77 77  
-002621  1  77 77 77 77  
-002629  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r13
-00262D  1  77 77 77 77  
-002631  1  77 77 77 77  
-002639  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14
-00263D  1  77 77 77 77  
-002641  1  77 77 77 77  
-002649  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
-00264D  1  77 77 77 77  
-002651  1  77 77 77 77  
-002659  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r16
-00265D  1  77 77 77 77  
-002661  1  77 77 77 77  
-002669  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r17
-00266D  1  77 77 77 77  
-002671  1  77 77 77 77  
-002679  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r18
-00267D  1  77 77 77 77  
-002681  1  77 77 77 77  
-002689  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r19
-00268D  1  77 77 77 77  
-002691  1  77 77 77 77  
-002699  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r20 arch 8px legs
-00269D  1  77 77 77 77  
-0026A1  1  77 77 77 77  
-0026A9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r21
-0026AD  1  77 77 77 77  
-0026B1  1  77 77 77 77  
-0026B9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r22
-0026BD  1  77 77 77 77  
-0026C1  1  77 77 77 77  
-0026C9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r23
-0026CD  1  77 77 77 77  
-0026D1  1  77 77 77 77  
-0026D9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r24
-0026DD  1  00 00 00 00  
-0026E1  1  00 00 00 00  
-0026E9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
-0026ED  1  00 00 00 00  
-0026F1  1  00 00 00 00  
-0026F9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26
-0026FD  1  00 00 00 00  
-002701  1  00 00 00 00  
-002709  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
-00270D  1  00 00 00 00  
-002711  1  00 00 00 00  
-002719  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28 solid base
-00271D  1  00 00 00 00  
-002721  1  00 00 00 00  
-002729  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
-00272D  1  00 00 00 00  
-002731  1  00 00 00 00  
-002739  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
-00273D  1  00 00 00 00  
-002741  1  00 00 00 00  
-002749  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
-00274D  1  00 00 00 00  
-002751  1  00 00 00 00  
-002759  1               
-002759  1               shield_tile_dmg3:
-002759  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$07,$00,$00,$00,$00,$70,$00,$00,$00  ; r0  dome: 20px
-00275D  1  00 00 00 07  
-002761  1  00 00 00 00  
-002769  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$70,$00,$00,$00,$00,$00,$00,$00,$00  ; r1  dome: holes at 10-11, 22-23
-00276D  1  00 00 00 70  
-002771  1  00 00 00 00  
-002779  1  00 00 77 00     .byte $00,$00,$77,$00,$00,$07,$70,$70,$70,$00,$00,$77,$70,$77,$00,$00  ; r2
-00277D  1  00 07 70 70  
-002781  1  70 00 00 77  
-002789  1  00 77 77 00     .byte $00,$77,$77,$00,$77,$00,$07,$07,$77,$77,$00,$77,$77,$07,$77,$00  ; r3
-00278D  1  77 00 07 07  
-002791  1  77 77 00 77  
-002799  1  00 77 00 70     .byte $00,$77,$00,$70,$77,$77,$70,$70,$77,$00,$07,$07,$70,$77,$77,$00  ; r4
-00279D  1  77 77 70 70  
-0027A1  1  77 00 07 07  
-0027A9  1  70 70 00 77     .byte $70,$70,$00,$77,$77,$77,$77,$77,$77,$77,$00,$77,$77,$77,$77,$77  ; r5
-0027AD  1  77 77 77 77  
-0027B1  1  77 77 00 77  
-0027B9  1  77 70 07 77     .byte $77,$70,$07,$77,$77,$77,$77,$77,$77,$70,$77,$07,$77,$77,$77,$77  ; r6
-0027BD  1  77 77 77 77  
-0027C1  1  77 70 77 07  
-0027C9  1  77 70 77 77     .byte $77,$70,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r7
-0027CD  1  77 77 77 77  
-0027D1  1  77 77 77 77  
-0027D9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
-0027DD  1  77 77 77 77  
-0027E1  1  77 77 77 77  
-0027E9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$70,$07,$77,$77,$77,$77,$77,$77,$77  ; r9  body: center hole
-0027ED  1  77 77 77 70  
-0027F1  1  07 77 77 77  
-0027F9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r10
-0027FD  1  77 77 77 77  
-002801  1  77 77 77 77  
-002809  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r11
-00280D  1  77 77 77 77  
-002811  1  77 77 77 77  
-002819  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r12
-00281D  1  77 77 77 77  
-002821  1  77 77 77 77  
-002829  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r13
-00282D  1  77 77 77 77  
-002831  1  77 77 77 77  
-002839  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14
-00283D  1  77 77 77 77  
-002841  1  77 77 77 77  
-002849  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
-00284D  1  77 77 77 77  
-002851  1  77 77 77 77  
-002859  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r16
-00285D  1  77 77 77 77  
-002861  1  77 77 77 77  
-002869  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r17
-00286D  1  77 77 77 77  
-002871  1  77 77 77 77  
-002879  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r18
-00287D  1  77 77 77 77  
-002881  1  77 77 77 77  
-002889  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r19
-00288D  1  77 77 77 77  
-002891  1  77 77 77 77  
-002899  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r20 arch 8px legs
-00289D  1  77 77 77 77  
-0028A1  1  77 77 77 77  
-0028A9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r21
-0028AD  1  77 77 77 77  
-0028B1  1  77 77 77 77  
-0028B9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r22
-0028BD  1  77 77 77 77  
-0028C1  1  77 77 77 77  
-0028C9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r23
-0028CD  1  77 77 77 77  
-0028D1  1  77 77 77 77  
-0028D9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r24
-0028DD  1  00 00 00 00  
-0028E1  1  00 00 00 00  
-0028E9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
-0028ED  1  00 00 00 00  
-0028F1  1  00 00 00 00  
-0028F9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26
-0028FD  1  00 00 00 00  
-002901  1  00 00 00 00  
-002909  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
-00290D  1  00 00 00 00  
-002911  1  00 00 00 00  
-002919  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28 solid base
-00291D  1  00 00 00 00  
-002921  1  00 00 00 00  
-002929  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
-00292D  1  00 00 00 00  
-002931  1  00 00 00 00  
-002939  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
-00293D  1  00 00 00 00  
-002941  1  00 00 00 00  
-002949  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
-00294D  1  00 00 00 00  
-002951  1  00 00 00 00  
-002959  1               
-002959  1               shield_tile_dmg4:
-002959  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r0  dome: 20px
-00295D  1  00 00 00 00  
-002961  1  00 00 00 00  
-002969  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r1  dome: holes at 10-11, 22-23
-00296D  1  00 00 00 00  
-002971  1  00 00 00 00  
-002979  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r2
-00297D  1  00 00 00 00  
-002981  1  00 00 00 00  
-002989  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r3
-00298D  1  00 00 00 00  
-002991  1  00 00 00 00  
-002999  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r4
-00299D  1  00 00 00 00  
-0029A1  1  00 00 00 00  
-0029A9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r5  body: center hole
-0029AD  1  00 00 00 00  
-0029B1  1  00 00 00 00  
-0029B9  1  00 00 77 77     .byte $00,$00,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$00,$00  ; r6
-0029BD  1  00 00 00 00  
-0029C1  1  00 00 00 00  
-0029C9  1  00 77 77 00     .byte $00,$77,$77,$00,$00,$00,$00,$77,$00,$77,$00,$00,$77,$77,$77,$00  ; r7
-0029CD  1  00 00 00 77  
-0029D1  1  00 77 00 00  
-0029D9  1  00 77 70 00     .byte $00,$77,$70,$00,$77,$77,$77,$77,$00,$00,$77,$77,$00,$77,$77,$00  ; r8
-0029DD  1  77 77 77 77  
-0029E1  1  00 00 77 77  
-0029E9  1  77 77 77 00     .byte $77,$77,$77,$00,$77,$77,$00,$70,$07,$77,$07,$77,$77,$77,$77,$77  ; r9  body: side holes
-0029ED  1  77 77 00 70  
-0029F1  1  07 77 07 77  
-0029F9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r10
-0029FD  1  77 77 77 77  
-002A01  1  77 77 77 77  
-002A09  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r11
-002A0D  1  77 77 77 77  
-002A11  1  77 77 77 77  
-002A19  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r12
-002A1D  1  77 77 77 77  
-002A21  1  77 77 77 77  
-002A29  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r13
-002A2D  1  77 77 77 77  
-002A31  1  77 77 77 77  
-002A39  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14
-002A3D  1  77 77 77 77  
-002A41  1  77 77 77 77  
-002A49  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
-002A4D  1  77 77 77 77  
-002A51  1  77 77 77 77  
-002A59  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r16
-002A5D  1  77 77 77 77  
-002A61  1  77 77 77 77  
-002A69  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r17
-002A6D  1  77 77 77 77  
-002A71  1  77 77 77 77  
-002A79  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r18
-002A7D  1  77 77 77 77  
-002A81  1  77 77 77 77  
-002A89  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r19
-002A8D  1  77 77 77 77  
-002A91  1  77 77 77 77  
-002A99  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r20 arch: 6px legs
-002A9D  1  77 77 77 77  
-002AA1  1  77 77 77 77  
-002AA9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r21
-002AAD  1  77 77 77 77  
-002AB1  1  77 77 77 77  
-002AB9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r22
-002ABD  1  77 77 77 77  
-002AC1  1  77 77 77 77  
-002AC9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r23
-002ACD  1  77 77 77 77  
-002AD1  1  77 77 77 77  
-002AD9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r24 arch: 8px legs
-002ADD  1  00 00 00 00  
-002AE1  1  00 00 00 00  
-002AE9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
-002AED  1  00 00 00 00  
-002AF1  1  00 00 00 00  
-002AF9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26
-002AFD  1  00 00 00 00  
-002B01  1  00 00 00 00  
-002B09  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
-002B0D  1  00 00 00 00  
-002B11  1  00 00 00 00  
-002B19  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28 solid base
-002B1D  1  00 00 00 00  
-002B21  1  00 00 00 00  
-002B29  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
-002B2D  1  00 00 00 00  
-002B31  1  00 00 00 00  
-002B39  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
-002B3D  1  00 00 00 00  
-002B41  1  00 00 00 00  
-002B49  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
-002B4D  1  00 00 00 00  
-002B51  1  00 00 00 00  
-002B59  1               
-002B59  1               shield_tile_dmg5:
-002B59  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r0  dome: 20px
-002B5D  1  00 00 00 00  
-002B61  1  00 00 00 00  
-002B69  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r1  dome: holes at 10-11, 22-23
-002B6D  1  00 00 00 00  
-002B71  1  00 00 00 00  
-002B79  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$70,$00,$00  ; r2
-002B7D  1  00 00 00 00  
-002B81  1  00 00 00 00  
-002B89  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r3
-002B8D  1  00 00 00 00  
-002B91  1  00 00 00 00  
-002B99  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r4
-002B9D  1  00 00 00 00  
-002BA1  1  00 00 00 00  
-002BA9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r5  body: center hole
-002BAD  1  00 00 00 00  
-002BB1  1  00 00 00 00  
-002BB9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r6
-002BBD  1  00 00 00 00  
-002BC1  1  00 00 00 00  
-002BC9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r7
-002BCD  1  00 00 00 00  
-002BD1  1  00 00 00 00  
-002BD9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r8
-002BDD  1  00 00 00 00  
-002BE1  1  00 00 00 00  
-002BE9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$07,$00,$77,$00,$00,$00,$07,$70,$00  ; r9  body: side holes
-002BED  1  00 00 00 07  
-002BF1  1  00 77 00 00  
-002BF9  1  00 00 70 00     .byte $00,$00,$70,$00,$77,$00,$00,$77,$00,$00,$77,$70,$00,$00,$07,$00  ; r10 body: side holes
-002BFD  1  77 00 00 77  
-002C01  1  00 00 77 70  
-002C09  1  70 70 77 00     .byte $70,$70,$77,$00,$70,$00,$00,$00,$07,$00,$07,$70,$77,$77,$00,$00  ; r11
-002C0D  1  70 00 00 00  
-002C11  1  07 00 07 70  
-002C19  1  77 77 77 70     .byte $77,$77,$77,$70,$00,$00,$00,$00,$00,$00,$77,$00,$77,$77,$77,$00  ; r12
-002C1D  1  00 00 00 00  
-002C21  1  00 00 77 00  
-002C29  1  77 77 77 07     .byte $77,$77,$77,$07,$70,$77,$00,$70,$07,$77,$77,$07,$77,$77,$77,$07  ; r13 body: center hole
-002C2D  1  70 77 00 70  
-002C31  1  07 77 77 07  
-002C39  1  77 77 77 70     .byte $77,$77,$77,$70,$07,$77,$00,$70,$07,$77,$77,$00,$00,$77,$77,$77  ; r14
-002C3D  1  07 77 00 70  
-002C41  1  07 77 77 00  
-002C49  1  77 77 70 70     .byte $77,$77,$70,$70,$70,$77,$00,$77,$00,$77,$00,$77,$77,$07,$77,$77  ; r15
-002C4D  1  70 77 00 77  
-002C51  1  00 77 00 77  
-002C59  1  77 77 70 00     .byte $77,$77,$70,$00,$70,$00,$77,$00,$00,$00,$77,$77,$77,$07,$77,$77  ; r16
-002C5D  1  70 00 77 00  
-002C61  1  00 00 77 77  
-002C69  1  77 77 77 07     .byte $77,$77,$77,$07,$70,$77,$77,$07,$00,$77,$00,$77,$77,$77,$77,$77  ; r17
-002C6D  1  70 77 77 07  
-002C71  1  00 77 00 77  
-002C79  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$70,$07,$77,$77,$77,$77,$77,$77,$77  ; r18
-002C7D  1  77 77 77 70  
-002C81  1  07 77 77 77  
-002C89  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r19
-002C8D  1  77 77 77 77  
-002C91  1  77 77 77 77  
-002C99  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r20 arch: 4px legs
-002C9D  1  77 77 77 77  
-002CA1  1  77 77 77 77  
-002CA9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r21
-002CAD  1  77 77 77 77  
-002CB1  1  77 77 77 77  
-002CB9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r22
-002CBD  1  77 77 77 77  
-002CC1  1  77 77 77 77  
-002CC9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r23
-002CCD  1  77 77 77 77  
-002CD1  1  77 77 77 77  
-002CD9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r24 arch: 6px legs
-002CDD  1  00 00 00 00  
-002CE1  1  00 00 00 00  
-002CE9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
-002CED  1  00 00 00 00  
-002CF1  1  00 00 00 00  
-002CF9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26 arch: 8px legs
-002CFD  1  00 00 00 00  
-002D01  1  00 00 00 00  
-002D09  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
-002D0D  1  00 00 00 00  
-002D11  1  00 00 00 00  
-002D19  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28 base: center hole
-002D1D  1  00 00 00 00  
-002D21  1  00 00 00 00  
-002D29  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
-002D2D  1  00 00 00 00  
-002D31  1  00 00 00 00  
-002D39  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
-002D3D  1  00 00 00 00  
-002D41  1  00 00 00 00  
-002D49  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
-002D4D  1  00 00 00 00  
-002D51  1  00 00 00 00  
-002D59  1               
-002D59  1               shield_tile_dmg6:
-002D59  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r0  dome: 20px
-002D5D  1  00 00 00 00  
-002D61  1  00 00 00 00  
-002D69  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r1  dome: holes at 10-11, 22-23
-002D6D  1  00 00 00 00  
-002D71  1  00 00 00 00  
-002D79  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r2
-002D7D  1  00 00 00 00  
-002D81  1  00 00 00 00  
-002D89  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$07,$00,$00  ; r3
-002D8D  1  00 00 00 00  
-002D91  1  00 00 00 00  
-002D99  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r4
-002D9D  1  00 00 00 00  
-002DA1  1  00 00 00 00  
-002DA9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r5  body: center hole
-002DAD  1  00 00 00 00  
-002DB1  1  00 00 00 00  
-002DB9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r6
-002DBD  1  00 00 00 00  
-002DC1  1  00 00 00 00  
-002DC9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r7
-002DCD  1  00 00 00 00  
-002DD1  1  00 00 00 00  
-002DD9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r8
-002DDD  1  00 00 00 00  
-002DE1  1  00 00 00 00  
-002DE9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r9  body: side holes
-002DED  1  00 00 00 00  
-002DF1  1  00 00 00 00  
-002DF9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r10 body: side holes
-002DFD  1  00 00 00 00  
-002E01  1  00 00 00 00  
-002E09  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r11
-002E0D  1  00 00 00 00  
-002E11  1  00 00 00 00  
-002E19  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r12
-002E1D  1  00 00 00 00  
-002E21  1  00 00 00 00  
-002E29  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r13 body: center hole
-002E2D  1  00 00 00 00  
-002E31  1  00 00 00 00  
-002E39  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r14
-002E3D  1  00 00 00 00  
-002E41  1  00 00 00 00  
-002E49  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r15
-002E4D  1  00 00 00 00  
-002E51  1  00 00 00 00  
-002E59  1  00 07 00 00     .byte $00,$07,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r16 scattered
-002E5D  1  00 00 00 00  
-002E61  1  00 00 00 00  
-002E69  1  00 70 00 00     .byte $00,$70,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$00  ; r17 pillars
-002E6D  1  00 00 00 00  
-002E71  1  00 00 00 00  
-002E79  1  00 77 00 00     .byte $00,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$07,$70,$00  ; r18
-002E7D  1  00 00 00 00  
-002E81  1  00 00 00 00  
-002E89  1  00 70 07 77     .byte $00,$70,$07,$77,$77,$07,$00,$77,$00,$00,$77,$77,$77,$70,$07,$00  ; r19 fragmented
-002E8D  1  77 07 00 77  
-002E91  1  00 00 77 77  
-002E99  1  07 77 00 00     .byte $07,$77,$00,$00,$00,$77,$00,$07,$70,$00,$00,$00,$00,$77,$70,$00  ; r20 arch: 2px legs
-002E9D  1  00 77 00 07  
-002EA1  1  70 00 00 00  
-002EA9  1  77 00 77 77     .byte $77,$00,$77,$77,$00,$77,$70,$77,$77,$00,$00,$00,$00,$00,$77,$00  ; r21
-002EAD  1  00 77 70 77  
-002EB1  1  77 00 00 00  
-002EB9  1  77 77 00 00     .byte $77,$77,$00,$00,$77,$00,$70,$77,$77,$00,$00,$77,$00,$00,$77,$77  ; r22
-002EBD  1  77 00 70 77  
-002EC1  1  77 00 00 77  
-002EC9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$00,$77,$77,$00,$77,$77,$77,$77,$77  ; r23
-002ECD  1  77 77 77 00  
-002ED1  1  77 77 00 77  
-002ED9  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$00,$77,$77,$77,$77,$77,$00,$77,$77,$77,$77  ; r24 arch: 6px legs
-002EDD  1  77 00 77 77  
-002EE1  1  77 77 77 00  
-002EE9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
-002EED  1  00 00 00 00  
-002EF1  1  00 00 00 00  
-002EF9  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26 arch: 8px legs
-002EFD  1  00 00 00 00  
-002F01  1  00 00 00 00  
-002F09  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
-002F0D  1  00 00 00 00  
-002F11  1  00 00 00 00  
-002F19  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28 base: center hole
-002F1D  1  00 00 00 00  
-002F21  1  00 00 00 00  
-002F29  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
-002F2D  1  00 00 00 00  
-002F31  1  00 00 00 00  
-002F39  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
-002F3D  1  00 00 00 00  
-002F41  1  00 00 00 00  
-002F49  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
-002F4D  1  00 00 00 00  
-002F51  1  00 00 00 00  
-002F59  1               
-002F59  1               shield_tile_dmg7:
-002F59  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r0  gone
-002F5D  1  00 00 00 00  
-002F61  1  00 00 00 00  
-002F69  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r1  gone
-002F6D  1  00 00 00 00  
-002F71  1  00 00 00 00  
-002F79  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r2  gone
-002F7D  1  00 00 00 00  
-002F81  1  00 00 00 00  
-002F89  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r3  pillar tops 3px
-002F8D  1  00 00 00 00  
-002F91  1  00 00 00 00  
-002F99  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r4  pillars + inner dots
-002F9D  1  00 00 00 00  
-002FA1  1  00 00 00 00  
-002FA9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r5  pillars + arch top
-002FAD  1  00 00 00 00  
-002FB1  1  00 00 00 00  
-002FB9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r6  arch body fragments
-002FBD  1  00 00 00 00  
-002FC1  1  00 00 00 00  
-002FC9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r7
-002FCD  1  00 00 00 00  
-002FD1  1  00 00 00 00  
-002FD9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r8  pillar stubs
-002FDD  1  00 00 00 00  
-002FE1  1  00 00 00 00  
-002FE9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r9  fragments
-002FED  1  00 00 00 00  
-002FF1  1  00 00 00 00  
-002FF9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r10 pillar stubs 3px
-002FFD  1  00 00 00 00  
-003001  1  00 00 00 00  
-003009  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r11 pillar stubs + dots
-00300D  1  00 00 00 00  
-003011  1  00 00 00 00  
-003019  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r12
-00301D  1  00 00 00 00  
-003021  1  00 00 00 00  
-003029  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r13
-00302D  1  00 00 00 00  
-003031  1  00 00 00 00  
-003039  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r14 sparse
-00303D  1  00 00 00 00  
-003041  1  00 00 00 00  
-003049  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r15
-00304D  1  00 00 00 00  
-003051  1  00 00 00 00  
-003059  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r16
-00305D  1  00 00 00 00  
-003061  1  00 00 00 00  
-003069  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r17
-00306D  1  00 00 00 00  
-003071  1  00 00 00 00  
-003079  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r18 pillar dots
-00307D  1  00 00 00 00  
-003081  1  00 00 00 00  
-003089  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r19 sparse
-00308D  1  00 00 00 00  
-003091  1  00 00 00 00  
-003099  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r20 arch: 1px dots
-00309D  1  00 00 00 00  
-0030A1  1  00 00 00 00  
-0030A9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r21 arch: 2px
-0030AD  1  00 00 00 00  
-0030B1  1  00 00 00 00  
-0030B9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r22 arch: 1px
-0030BD  1  00 00 00 00  
-0030C1  1  00 00 00 00  
-0030C9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r23 arch: 2px
-0030CD  1  00 00 00 00  
-0030D1  1  00 00 00 00  
-0030D9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r24 arch: 1px
-0030DD  1  00 00 00 00  
-0030E1  1  00 00 00 00  
-0030E9  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r25 arch: 4px
-0030ED  1  00 00 00 00  
-0030F1  1  00 00 00 00  
-0030F9  1  70 00 00 00     .byte $70,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$07  ; r26 arch: 1px
-0030FD  1  00 00 00 00  
-003101  1  00 00 00 00  
-003109  1  07 77 07 70     .byte $07,$77,$07,$70,$00,$00,$00,$00,$00,$00,$00,$00,$07,$77,$70,$70  ; r27 arch: 8px remnant
-00310D  1  00 00 00 00  
-003111  1  00 00 00 00  
-003119  1  77 77 77 00     .byte $77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$07,$77  ; r28 base: two 4px gaps
-00311D  1  00 00 00 00  
-003121  1  00 00 00 00  
-003129  1  07 77 77 77     .byte $07,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$70  ; r29 base: crumbling
-00312D  1  00 00 00 00  
-003131  1  00 00 00 00  
-003139  1  77 77 00 00     .byte $77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77  ; r30 base: multiple gaps
-00313D  1  00 00 00 00  
-003141  1  00 00 00 00  
-003149  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31 base: ruins
-00314D  1  00 00 00 00  
-003151  1  00 00 00 00  
-003159  1               
-003159  1               ;******************************************************************
-003159  1               
+001BA6  1  C8 C9 D3 C3     .byte "HISCORE: ", 0
+001BAA  1  CF D2 C5 3A  
+001BAE  1  20 00        
+001BB0  1               str_play_again:
+001BB0  1  D3 D0 C1 C3     .byte "SPACE = PLAY AGAIN", 0
+001BB4  1  C5 20 3D 20  
+001BB8  1  D0 CC C1 D9  
+001BC3  1               str_wave_clear:
+001BC3  1  D7 C1 D6 C5     .byte "WAVE CLEAR", 0
+001BC7  1  20 C3 CC C5  
+001BCB  1  C1 D2 00     
+001BCE  1               str_wave_lbl:
+001BCE  1  D7 C1 D6 C5     .byte "WAVE: ", 0
+001BD2  1  3A 20 00     
+001BD5  1               str_wave_continue:
+001BD5  1  D0 D2 C5 D3     .byte "PRESS SPACE TO CONTINUE", 0
+001BD9  1  D3 20 D3 D0  
+001BDD  1  C1 C3 C5 20  
+001BED  1               str_run_stop_hint:
+001BED  1  D2 D5 CE 2F     .byte "RUN/STOP TO QUIT", 0
+001BF1  1  D3 D4 CF D0  
+001BF5  1  20 D4 CF 20  
+001BFE  1               str_lives_lbl:
+001BFE  1  CC C9 D6 C5     .byte "LIVES: ", 0
+001C02  1  D3 3A 20 00  
+001C06  1               
+001C06  1               ;******************************************************************
+001C06  1               ; player_spr_data — 16x16 4bpp sprite, 128 bytes
+001C06  1               ;
+001C06  1               ;   Color 0 = transparent, Color 1 = white (default palette index 1)
+001C06  1               ;   Design: classic upward-pointing triangular ship with engine notches
+001C06  1               ;
+001C06  1               ;   Each byte encodes 2 pixels: high nibble = left, low nibble = right
+001C06  1               ;   Columns: 0123456789ABCDEF
+001C06  1               ;
+001C06  1               ;   Row  0:  .......1........   cannon tip
+001C06  1               ;   Row  1:  .......11.......
+001C06  1               ;   Row  2:  ......111.......
+001C06  1               ;   Row  3:  ......111.......
+001C06  1               ;   Row  4:  .....11111......
+001C06  1               ;   Row  5:  .....1111111....
+001C06  1               ;   Row  6:  ...111111111....
+001C06  1               ;   Row  7:  ..11111111111...
+001C06  1               ;   Row  8:  .1111111111111..
+001C06  1               ;   Row  9:  1111111111111111   full base
+001C06  1               ;   Row 10:  1111111111111111
+001C06  1               ;   Row 11:  1111111111111111
+001C06  1               ;   Row 12:  11..11111111..11   engine notches
+001C06  1               ;   Row 13:  11..11111111..11
+001C06  1               ;   Row 14:  ................
+001C06  1               ;   Row 15:  ................
+001C06  1               ;******************************************************************
+001C06  1               player_spr_data:
+001C06  1                  ; row 0
+001C06  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00
+001C0A  1  00 00 00 00  
+001C0E  1                  ; row 1
+001C0E  1  00 00 00 01     .byte $00,$00,$00,$01,$10,$00,$00,$00
+001C12  1  10 00 00 00  
+001C16  1                  ; row 2
+001C16  1  00 00 00 01     .byte $00,$00,$00,$01,$10,$00,$00,$00
+001C1A  1  10 00 00 00  
+001C1E  1                  ; row 3
+001C1E  1  00 00 00 01     .byte $00,$00,$00,$01,$10,$00,$00,$00
+001C22  1  10 00 00 00  
+001C26  1                  ; row 4
+001C26  1  00 00 01 11     .byte $00,$00,$01,$11,$11,$10,$00,$00
+001C2A  1  11 10 00 00  
+001C2E  1                  ; row 5
+001C2E  1  00 00 11 11     .byte $00,$00,$11,$11,$11,$11,$00,$00
+001C32  1  11 11 00 00  
+001C36  1                  ; row 6
+001C36  1  00 01 11 11     .byte $00,$01,$11,$11,$11,$11,$10,$00
+001C3A  1  11 11 10 00  
+001C3E  1                  ; row 7
+001C3E  1  00 01 11 11     .byte $00,$01,$11,$11,$11,$11,$10,$00
+001C42  1  11 11 10 00  
+001C46  1                  ; row 8
+001C46  1  01 11 11 11     .byte $01,$11,$11,$11,$11,$11,$11,$10
+001C4A  1  11 11 11 10  
+001C4E  1                  ; row 9
+001C4E  1  11 11 11 11     .byte $11,$11,$11,$11,$11,$11,$11,$11
+001C52  1  11 11 11 11  
+001C56  1                  ; row 10
+001C56  1  11 11 11 11     .byte $11,$11,$11,$11,$11,$11,$11,$11
+001C5A  1  11 11 11 11  
+001C5E  1                  ; row 11
+001C5E  1  11 11 11 11     .byte $11,$11,$11,$11,$11,$11,$11,$11
+001C62  1  11 11 11 11  
+001C66  1                  ; row 12  (engine notches: cols 2-3 and 12-13 transparent)
+001C66  1  11 00 11 11     .byte $11,$00,$11,$11,$11,$11,$00,$11
+001C6A  1  11 11 00 11  
+001C6E  1                  ; row 13
+001C6E  1  11 00 11 11     .byte $11,$00,$11,$11,$11,$11,$00,$11
+001C72  1  11 11 00 11  
+001C76  1                  ; row 14
+001C76  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00
+001C7A  1  00 00 00 00  
+001C7E  1                  ; row 15
+001C7E  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00
+001C82  1  00 00 00 00  
+001C86  1               
+001C86  1               ;******************************************************************
+001C86  1               ; bullet_spr_data — 8x8 4bpp, 32 bytes
+001C86  1               ;
+001C86  1               ;   Color 0 = transparent, Color 1 = white
+001C86  1               ;   Design: 2-pixel-wide vertical bar, centered in 8px columns 3-4
+001C86  1               ;
+001C86  1               ;   Each byte encodes 2 pixels: high nibble = left, low nibble = right
+001C86  1               ;   Columns:  0 1 | 2 3 | 4 5 | 6 7
+001C86  1               ;   Pattern:  . . | . 1 | 1 . | . .   → $00 $01 $10 $00
+001C86  1               ;   All 8 rows identical.
+001C86  1               ;******************************************************************
+001C86  1               bullet_spr_data:
+001C86  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 0
+001C8A  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 1
+001C8E  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 2
+001C92  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 3
+001C96  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 4
+001C9A  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 5
+001C9E  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 6
+001CA2  1  00 01 10 00     .byte $00,$01,$10,$00  ; row 7
+001CA6  1               
+001CA6  1               ;******************************************************************
+001CA6  1               ; Lookup tables for update_invader_sprites
+001CA6  1               ;
+001CA6  1               ;   inv_addr_b0_f0/f1 — sprite data addr[12:5] for row 0-4, each frame
+001CA6  1               ;     Row 0 = Type C (squid),   VRAM $00300/$00380 → $18/$1C
+001CA6  1               ;     Rows 1-2 = Type B (octo), VRAM $00200/$00280 → $10/$14
+001CA6  1               ;     Rows 3-4 = Type A (crab), VRAM $00100/$00180 → $08/$0C
+001CA6  1               ;
+001CA6  1               ;   col_x_lo/hi — column X offset = col * INV_SPACING_X (=40), columns 0-10
+001CA6  1               ;   row_y_offsets — row Y offset = row * INV_SPACING_Y (=48), rows 0-4
+001CA6  1               ;******************************************************************
+001CA6  1  18 10 10 08  inv_addr_b0_f0: .byte $18, $10, $10, $08, $08   ; rows 0-4, frame 0
+001CAA  1  08           
+001CAB  1  1C 14 14 0C  inv_addr_b0_f1: .byte $1C, $14, $14, $0C, $0C   ; rows 0-4, frame 1
+001CAF  1  0C           
+001CB0  1               
+001CB0  1  00 28 50 78  col_x_lo:       .byte   0, 40, 80,120,160,200,240, 24, 64,104,144
+001CB4  1  A0 C8 F0 18  
+001CB8  1  40 68 90     
+001CBB  1  00 00 00 00  col_x_hi:       .byte   0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1
+001CBF  1  00 00 00 01  
+001CC3  1  01 01 01     
+001CC6  1               
+001CC6  1  00 30 60 90  row_y_offsets:  .byte   0, 48, 96,144,192          ; rows 0-4
+001CCA  1  C0           
+001CCB  1               
+001CCB  1               ; row * 11 base index into inv_alive bitmap (rows 0-4)
+001CCB  1  00 0B 16 21  inv_row_base:   .byte   0, 11, 22, 33, 44
+001CCF  1  2C           
+001CD0  1               
+001CD0  1               ; single-bit masks for bits 0-7
+001CD0  1  01 02 04 08  bit_masks:      .byte   1,  2,  4,  8, 16, 32, 64,128
+001CD4  1  10 20 40 80  
+001CD8  1               
+001CD8  1               ; BCD score per invader row (row 0=Type C, rows 1-2=Type B, rows 3-4=Type A)
+001CD8  1  30 20 20 10  score_by_row_bcd: .byte $30, $20, $20, $10, $10
+001CDC  1  10           
+001CDD  1               
+001CDD  1               ; March speed (frames/step) indexed by remaining invader count (0-55).
+001CDD  1               ; Formula: floor(5 + n*45/55) — speed=5 at 0-1 alive, speed=50 at 55 alive.
+001CDD  1               inv_speed_table:
+001CDD  1  05 05 06 07     .byte  5,  5,  6,  7,  8,  9,  9, 10, 11, 12, 13, 14   ; n=0-11
+001CE1  1  08 09 09 0A  
+001CE5  1  0B 0C 0D 0E  
+001CE9  1  0E 0F 10 11     .byte 14, 15, 16, 17, 18, 18, 19, 20, 21, 22, 23, 23   ; n=12-23
+001CED  1  12 12 13 14  
+001CF1  1  15 16 17 17  
+001CF5  1  18 19 1A 1B     .byte 24, 25, 26, 27, 27, 28, 29, 30, 31, 32, 32, 33   ; n=24-35
+001CF9  1  1B 1C 1D 1E  
+001CFD  1  1F 20 20 21  
+001D01  1  22 23 24 24     .byte 34, 35, 36, 36, 37, 38, 39, 40, 41, 41, 42, 43   ; n=36-47
+001D05  1  25 26 27 28  
+001D09  1  29 29 2A 2B  
+001D0D  1  2C 2D 2D 2E     .byte 44, 45, 45, 46, 47, 48, 49, 50                   ; n=48-55
+001D11  1  2F 30 31 32  
+001D15  1               
+001D15  1               ; VERA sprite-attribute low-byte for each invader bullet slot (0-2)
+001D15  1               ; Sprite 5=$1FC28, 6=$1FC30, 7=$1FC38 — high byte always $FC
+001D15  1  28 30 38     ibul_spr_lo:    .byte $28, $30, $38
+001D18  1               
+001D18  1               ; UFO score tables indexed by (shot_count & 7) — two-byte BCD pairs
+001D18  1               ; Scores: 50, 100, 150, 300, 100, 50, 300, 150
+001D18  1  50 00 50 00  ufo_score_lo:   .byte $50, $00, $50, $00, $00, $50, $00, $50
+001D1C  1  00 50 00 50  
+001D20  1  00 01 01 03  ufo_score_hi:   .byte $00, $01, $01, $03, $01, $00, $03, $01
+001D24  1  01 00 03 01  
+001D28  1               
+001D28  1               ; Shield X positions (4 shields evenly spread across play field, VERA coords)
+001D28  1               ; Display pixels: 40, 120, 200, 280  (every 80 display px / 160 VERA px)
+001D28  1  50 F0 90 30  shield_x_lo:    .byte <80,  <240, <400, <560
+001D2C  1  00 00 01 02  shield_x_hi:    .byte >80,  >240, >400, >560
+001D30  1               
+001D30  1               ; Shield sprite data addr[12:5] for each damage level (0=full … 7=dmg7)
+001D30  1               ; $00500>>5=$28  $00700>>5=$38  $00900>>5=$48  $00B00>>5=$58
+001D30  1               ; $00D00>>5=$68  $00F00>>5=$78  $01100>>5=$88  $01300>>5=$98
+001D30  1  28 38 48 58  shield_addr_b0: .byte $28, $38, $48, $58, $68, $78, $88, $98
+001D34  1  68 78 88 98  
+001D38  1               
+001D38  1               ;******************************************************************
+001D38  1               ; Invader bullet sprite pixel data — 8x8 4bpp, 32 bytes
+001D38  1               ; Zigzag pattern, colour 1 (white).  Each byte = 2 pixels (hi=left, lo=right).
+001D38  1               ;******************************************************************
+001D38  1               inv_bullet_spr_data:
+001D38  1  00 10 00 00     .byte $00,$10,$00,$00   ; row 0: . . 1 . | . . . .
+001D3C  1  00 10 00 00     .byte $00,$10,$00,$00   ; row 1
+001D40  1  00 01 00 00     .byte $00,$01,$00,$00   ; row 2: . . . 1 | . . . .
+001D44  1  00 01 00 00     .byte $00,$01,$00,$00   ; row 3
+001D48  1  00 10 00 00     .byte $00,$10,$00,$00   ; row 4
+001D4C  1  00 10 00 00     .byte $00,$10,$00,$00   ; row 5
+001D50  1  00 01 00 00     .byte $00,$01,$00,$00   ; row 6
+001D54  1  00 01 00 00     .byte $00,$01,$00,$00   ; row 7
+001D58  1               
+001D58  1               ;******************************************************************
+001D58  1               ; Explosion sprite pixel data — 16x16 4bpp, 128 bytes
+001D58  1               ; Color 1 = white (bright core), Color 6 = yellow (burst), 0 = transparent
+001D58  1               ; Starburst pattern, symmetric about centre.
+001D58  1               ;******************************************************************
+001D58  1               ; Color indices: 1=white (core), 7=yellow (burst, KERNAL default palette entry 7)
+001D58  1               explosion_pixels:
+001D58  1  00 00 07 00     .byte $00,$00,$07,$00,$00,$70,$00,$00   ; row  0
+001D5C  1  00 70 00 00  
+001D60  1  00 07 00 07     .byte $00,$07,$00,$07,$70,$00,$70,$00   ; row  1
+001D64  1  70 00 70 00  
+001D68  1  00 70 07 00     .byte $00,$70,$07,$00,$00,$70,$07,$00   ; row  2
+001D6C  1  00 70 07 00  
+001D70  1  07 00 00 77     .byte $07,$00,$00,$77,$77,$00,$00,$70   ; row  3
+001D74  1  77 00 00 70  
+001D78  1  00 00 77 71     .byte $00,$00,$77,$71,$17,$77,$00,$00   ; row  4
+001D7C  1  17 77 00 00  
+001D80  1  70 70 71 11     .byte $70,$70,$71,$11,$11,$17,$07,$07   ; row  5
+001D84  1  11 17 07 07  
+001D88  1  00 07 71 11     .byte $00,$07,$71,$11,$11,$17,$70,$00   ; row  6
+001D8C  1  11 17 70 00  
+001D90  1  07 77 71 11     .byte $07,$77,$71,$11,$11,$17,$77,$70   ; row  7
+001D94  1  11 17 77 70  
+001D98  1  07 77 71 11     .byte $07,$77,$71,$11,$11,$17,$77,$70   ; row  8
+001D9C  1  11 17 77 70  
+001DA0  1  00 07 71 11     .byte $00,$07,$71,$11,$11,$17,$70,$00   ; row  9
+001DA4  1  11 17 70 00  
+001DA8  1  70 70 71 11     .byte $70,$70,$71,$11,$11,$17,$07,$07   ; row 10
+001DAC  1  11 17 07 07  
+001DB0  1  00 00 77 71     .byte $00,$00,$77,$71,$17,$77,$00,$00   ; row 11
+001DB4  1  17 77 00 00  
+001DB8  1  07 00 00 77     .byte $07,$00,$00,$77,$77,$00,$00,$70   ; row 12
+001DBC  1  77 00 00 70  
+001DC0  1  00 70 07 00     .byte $00,$70,$07,$00,$00,$70,$07,$00   ; row 13
+001DC4  1  00 70 07 00  
+001DC8  1  00 07 00 07     .byte $00,$07,$00,$07,$70,$00,$70,$00   ; row 14
+001DCC  1  70 00 70 00  
+001DD0  1  00 00 07 00     .byte $00,$00,$07,$00,$00,$70,$00,$00   ; row 15
+001DD4  1  00 70 00 00  
+001DD8  1               
+001DD8  1               ;******************************************************************
+001DD8  1               ; ufo_spr_data — 16x16 4bpp, 128 bytes, stored at VRAM $01500
+001DD8  1               ;
+001DD8  1               ;   Color 0 = transparent, Color 5 = red (saucer body)
+001DD8  1               ;   Each byte encodes 2 pixels: high nibble = left, low nibble = right
+001DD8  1               ;
+001DD8  1               ;   Classic flying-saucer silhouette:
+001DD8  1               ;     Row 1: ......5555......  dome top  (cols  6-9)
+001DD8  1               ;     Row 2: ....55555555....  dome      (cols  4-11)
+001DD8  1               ;     Row 3: 5555555555555555  wide body (all 16 cols)
+001DD8  1               ;     Row 4: .5.5.5.5.5.5.5.5 body detail (odd cols lit)
+001DD8  1               ;     Row 5: 5555555555555555  wide body
+001DD8  1               ;     Row 6: ..555555555555..  underside (cols  2-13)
+001DD8  1               ;     Row 7: ....5555..5555..  engine pods (cols 4-7, 10-13)
+001DD8  1               ;     Rows 0,8-15: transparent
+001DD8  1               ;******************************************************************
+001DD8  1               ufo_spr_data:
+001DD8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0  blank
+001DDC  1  00 00 00 00  
+001DE0  1  00 00 00 55     .byte $00,$00,$00,$55,$55,$00,$00,$00  ; row 1  dome top
+001DE4  1  55 00 00 00  
+001DE8  1  00 00 55 55     .byte $00,$00,$55,$55,$55,$55,$00,$00  ; row 2  dome
+001DEC  1  55 55 00 00  
+001DF0  1  55 55 55 55     .byte $55,$55,$55,$55,$55,$55,$55,$55  ; row 3  wide body
+001DF4  1  55 55 55 55  
+001DF8  1  05 05 05 05     .byte $05,$05,$05,$05,$05,$05,$05,$05  ; row 4  detail
+001DFC  1  05 05 05 05  
+001E00  1  55 55 55 55     .byte $55,$55,$55,$55,$55,$55,$55,$55  ; row 5  wide body
+001E04  1  55 55 55 55  
+001E08  1  00 55 55 55     .byte $00,$55,$55,$55,$55,$55,$55,$00  ; row 6  underside
+001E0C  1  55 55 55 00  
+001E10  1  00 00 55 55     .byte $00,$00,$55,$55,$00,$55,$55,$00  ; row 7  engine pods
+001E14  1  00 55 55 00  
+001E18  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 8
+001E1C  1  00 00 00 00  
+001E20  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 9
+001E24  1  00 00 00 00  
+001E28  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 10
+001E2C  1  00 00 00 00  
+001E30  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 11
+001E34  1  00 00 00 00  
+001E38  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 12
+001E3C  1  00 00 00 00  
+001E40  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 13
+001E44  1  00 00 00 00  
+001E48  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 14
+001E4C  1  00 00 00 00  
+001E50  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+001E54  1  00 00 00 00  
+001E58  1               
+001E58  1               ;******************************************************************
+001E58  1               ; Invader sprite pixel data — 16x16 4bpp, 128 bytes each
+001E58  1               ; Each byte encodes 2 pixels: high nibble = left pixel, low nibble = right
+001E58  1               ; Color 0 = transparent
+001E58  1               ;
+001E58  1               ; Type A (crab,   rows 3-4): color 4 = green
+001E58  1               ; Type B (octopus, rows 1-2): color 3 = magenta
+001E58  1               ; Type C (squid,  row 0):    color 2 = cyan
+001E58  1               ;
+001E58  1               ; Design key (16 pixels wide):
+001E58  1               ;   .  = 0 (transparent)
+001E58  1               ;   A/B/C = color 4/3/2 for each type
+001E58  1               ;******************************************************************
+001E58  1               
+001E58  1               ;------------------------------------------------------------------
+001E58  1               ; Type A — crab, green (color 4), frame 0 (legs spread)
+001E58  1               ;
+001E58  1               ;   0: ................
+001E58  1               ;   1: 4...4......4...4   claw tips
+001E58  1               ;   2: .4............4.
+001E58  1               ;   3: .4444444444444.   body top
+001E58  1               ;   4: 44.44.4444.44.44  eye gaps
+001E58  1               ;   5: 4444444444444444
+001E58  1               ;   6: .44444444444444.
+001E58  1               ;   7: 4..4........4..4  legs spread
+001E58  1               ;   8: 4...........4...
+001E58  1               ;   9-15: ..............
+001E58  1               ;------------------------------------------------------------------
+001E58  1               inv_a_spr_f0:
+001E58  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0
+001E5C  1  00 00 00 00  
+001E60  1  40 00 40 00     .byte $40,$00,$40,$00,$00,$04,$00,$04  ; row 1
+001E64  1  00 04 00 04  
+001E68  1  04 00 00 00     .byte $04,$00,$00,$00,$00,$00,$04,$00  ; row 2
+001E6C  1  00 00 04 00  
+001E70  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 3
+001E74  1  44 44 44 40  
+001E78  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 4
+001E7C  1  44 04 40 44  
+001E80  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 5
+001E84  1  44 04 40 44  
+001E88  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 6
+001E8C  1  44 04 40 44  
+001E90  1  44 44 44 44     .byte $44,$44,$44,$44,$44,$44,$44,$44  ; row 7
+001E94  1  44 44 44 44  
+001E98  1  44 44 44 44     .byte $44,$44,$44,$44,$44,$44,$44,$44  ; row 8
+001E9C  1  44 44 44 44  
+001EA0  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 9
+001EA4  1  44 44 44 40  
+001EA8  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 10
+001EAC  1  44 44 44 40  
+001EB0  1  40 04 00 00     .byte $40,$04,$00,$00,$00,$00,$40,$04  ; row 11
+001EB4  1  00 00 40 04  
+001EB8  1  40 04 00 00     .byte $40,$04,$00,$00,$00,$00,$40,$04  ; row 12
+001EBC  1  00 00 40 04  
+001EC0  1  40 00 00 00     .byte $40,$00,$00,$00,$00,$00,$00,$04  ; row 13
+001EC4  1  00 00 00 04  
+001EC8  1  40 00 00 00     .byte $40,$00,$00,$00,$00,$00,$00,$04  ; row 14
+001ECC  1  00 00 00 04  
+001ED0  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+001ED4  1  00 00 00 00  
+001ED8  1               
+001ED8  1               ;------------------------------------------------------------------
+001ED8  1               ; Type A — crab, green (color 4), frame 1 (legs tucked)
+001ED8  1               ;
+001ED8  1               ;   rows 0-6: same as frame 0
+001ED8  1               ;   7: .4..........4.  legs tucked inward
+001ED8  1               ;   8: ..4..........4..
+001ED8  1               ;------------------------------------------------------------------
+001ED8  1               inv_a_spr_f1:
+001ED8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0
+001EDC  1  00 00 00 00  
+001EE0  1  40 00 40 00     .byte $40,$00,$40,$00,$00,$04,$00,$04  ; row 1  (same)
+001EE4  1  00 04 00 04  
+001EE8  1  04 00 00 00     .byte $04,$00,$00,$00,$00,$00,$04,$00  ; row 2  (same)
+001EEC  1  00 00 04 00  
+001EF0  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 3  (same)
+001EF4  1  44 44 44 40  
+001EF8  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 4  (same)
+001EFC  1  44 04 40 44  
+001F00  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 5  (same)
+001F04  1  44 04 40 44  
+001F08  1  44 04 40 44     .byte $44,$04,$40,$44,$44,$04,$40,$44  ; row 6  (same)
+001F0C  1  44 04 40 44  
+001F10  1  44 44 44 44     .byte $44,$44,$44,$44,$44,$44,$44,$44  ; row 7  legs tucked
+001F14  1  44 44 44 44  
+001F18  1  44 44 44 44     .byte $44,$44,$44,$44,$44,$44,$44,$44  ; row 8
+001F1C  1  44 44 44 44  
+001F20  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 9
+001F24  1  44 44 44 40  
+001F28  1  04 44 44 44     .byte $04,$44,$44,$44,$44,$44,$44,$40  ; row 10
+001F2C  1  44 44 44 40  
+001F30  1  04 00 04 00     .byte $04,$00,$04,$00,$00,$40,$00,$40  ; row 11
+001F34  1  00 40 00 40  
+001F38  1  04 00 04 00     .byte $04,$00,$04,$00,$00,$40,$00,$40  ; row 12
+001F3C  1  00 40 00 40  
+001F40  1  00 40 00 00     .byte $00,$40,$00,$00,$00,$00,$04,$00  ; row 13
+001F44  1  00 00 04 00  
+001F48  1  00 40 00 00     .byte $00,$40,$00,$00,$00,$00,$04,$00  ; row 14
+001F4C  1  00 00 04 00  
+001F50  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+001F54  1  00 00 00 00  
+001F58  1               
+001F58  1               ;------------------------------------------------------------------
+001F58  1               ; Type B — octopus, magenta (color 3), frame 0 (tentacles out-wide)
+001F58  1               ;
+001F58  1               ;   0: ................
+001F58  1               ;   1: ..333333333333..  dome top
+001F58  1               ;   2: .3333333333333.
+001F58  1               ;   3: 33.333333333.33   bumps
+001F58  1               ;   4: 3.33.33333.33.3   eye row
+001F58  1               ;   5: 3333333333333333
+001F58  1               ;   6: .3333333333333.
+001F58  1               ;   7: 3..3...33...3..3  tentacles
+001F58  1               ;   8: 3...........3
+001F58  1               ;------------------------------------------------------------------
+001F58  1               inv_b_spr_f0:
+001F58  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0
+001F5C  1  00 00 00 00  
+001F60  1  00 33 33 33     .byte $00,$33,$33,$33,$33,$33,$33,$00  ; row 1
+001F64  1  33 33 33 00  
+001F68  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 2
+001F6C  1  33 33 33 30  
+001F70  1  33 03 33 33     .byte $33,$03,$33,$33,$33,$33,$30,$33  ; row 3
+001F74  1  33 33 30 33  
+001F78  1  33 03 33 33     .byte $33,$03,$33,$33,$33,$33,$30,$33  ; row 4
+001F7C  1  33 33 30 33  
+001F80  1  30 33 30 33     .byte $30,$33,$30,$33,$33,$30,$33,$03  ; row 5 eye row
+001F84  1  33 30 33 03  
+001F88  1  30 33 30 33     .byte $30,$33,$30,$33,$33,$30,$33,$03  ; row 6 eye row
+001F8C  1  33 30 33 03  
+001F90  1  33 33 33 33     .byte $33,$33,$33,$33,$33,$33,$33,$33  ; row 7
+001F94  1  33 33 33 33  
+001F98  1  33 33 33 33     .byte $33,$33,$33,$33,$33,$33,$33,$33  ; row 8
+001F9C  1  33 33 33 33  
+001FA0  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 9
+001FA4  1  33 33 33 30  
+001FA8  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 10
+001FAC  1  33 33 33 30  
+001FB0  1  30 03 00 03     .byte $30,$03,$00,$03,$30,$00,$30,$03  ; row 11
+001FB4  1  30 00 30 03  
+001FB8  1  30 03 00 30     .byte $30,$03,$00,$30,$03,$00,$30,$03  ; row 12
+001FBC  1  03 00 30 03  
+001FC0  1  30 00 00 00     .byte $30,$00,$00,$00,$00,$00,$00,$03  ; row 13
+001FC4  1  00 00 00 03  
+001FC8  1  30 00 00 00     .byte $30,$00,$00,$00,$00,$00,$00,$03  ; row 14
+001FCC  1  00 00 00 03  
+001FD0  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+001FD4  1  00 00 00 00  
+001FD8  1               
+001FD8  1               ;------------------------------------------------------------------
+001FD8  1               ; Type B — octopus, magenta (color 3), frame 1 (tentacles angled in)
+001FD8  1               ;
+001FD8  1               ;   rows 0-6: same as frame 0
+001FD8  1               ;   7: .3..3.....3..3.   tentacles angled in
+001FD8  1               ;   8: .3...........3.
+001FD8  1               ;------------------------------------------------------------------
+001FD8  1               inv_b_spr_f1:
+001FD8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 0
+001FDC  1  00 00 00 00  
+001FE0  1  00 33 33 33     .byte $00,$33,$33,$33,$33,$33,$33,$00  ; row 1  (same)
+001FE4  1  33 33 33 00  
+001FE8  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 2  (same)
+001FEC  1  33 33 33 30  
+001FF0  1  33 03 33 33     .byte $33,$03,$33,$33,$33,$33,$30,$33  ; row 3  (same)
+001FF4  1  33 33 30 33  
+001FF8  1  33 03 33 33     .byte $33,$03,$33,$33,$33,$33,$30,$33  ; row 4  (same)
+001FFC  1  33 33 30 33  
+002000  1  30 33 03 33     .byte $30,$33,$03,$33,$33,$03,$33,$03  ; row 5  (same)
+002004  1  33 03 33 03  
+002008  1  30 33 03 33     .byte $30,$33,$03,$33,$33,$03,$33,$03  ; row 6  (same)
+00200C  1  33 03 33 03  
+002010  1  33 33 33 33     .byte $33,$33,$33,$33,$33,$33,$33,$33  ; row 7  tentacles in
+002014  1  33 33 33 33  
+002018  1  33 33 33 33     .byte $33,$33,$33,$33,$33,$33,$33,$33  ; row 8
+00201C  1  33 33 33 33  
+002020  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 9
+002024  1  33 33 33 30  
+002028  1  03 33 33 33     .byte $03,$33,$33,$33,$33,$33,$33,$30  ; row 10
+00202C  1  33 33 33 30  
+002030  1  03 00 30 03     .byte $03,$00,$30,$03,$00,$30,$03,$00  ; row 11
+002034  1  00 30 03 00  
+002038  1  00 30 30 03     .byte $00,$30,$30,$03,$00,$30,$03,$00  ; row 12
+00203C  1  00 30 03 00  
+002040  1  03 00 00 00     .byte $03,$00,$00,$00,$00,$00,$00,$30  ; row 13
+002044  1  00 00 00 30  
+002048  1  03 00 00 00     .byte $03,$00,$00,$00,$00,$00,$00,$30  ; row 14
+00204C  1  00 00 00 30  
+002050  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+002054  1  00 00 00 00  
+002058  1               
+002058  1               ;------------------------------------------------------------------
+002058  1               ; Type C — squid, cyan (color 2), frame 0 (antennae out)
+002058  1               ;
+002058  1               ;   0: ...2.......2...   antenna tips
+002058  1               ;   1: ..22........22..
+002058  1               ;   2: ..222222222222..
+002058  1               ;   3: .2222222222222.
+002058  1               ;   4: 2222222222222222
+002058  1               ;   5: 2.22.222222.22.2  eye row
+002058  1               ;   6: 2222222222222222
+002058  1               ;   7: .2.2.......2.2.   bottom fringe
+002058  1               ;   8: 2...........2
+002058  1               ;------------------------------------------------------------------
+002058  1               inv_c_spr_f0:
+002058  1  00 00 02 00     .byte $00,$00,$02,$00,$00,$20,$00,$00  ; row 0
+00205C  1  00 20 00 00  
+002060  1  00 00 22 00     .byte $00,$00,$22,$00,$00,$22,$00,$00  ; row 1
+002064  1  00 22 00 00  
+002068  1  00 00 22 22     .byte $00,$00,$22,$22,$22,$22,$00,$00  ; row 2
+00206C  1  22 22 00 00  
+002070  1  00 02 20 22     .byte $00,$02,$20,$22,$20,$22,$20,$00  ; row 3
+002074  1  20 22 20 00  
+002078  1  00 22 20 22     .byte $00,$22,$20,$22,$20,$22,$22,$00  ; row 4
+00207C  1  20 22 22 00  
+002080  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 5 eye row
+002084  1  22 22 22 00  
+002088  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 6
+00208C  1  22 22 22 00  
+002090  1  00 20 22 02     .byte $00,$20,$22,$02,$20,$22,$02,$00  ; row 7
+002094  1  20 22 02 00  
+002098  1  00 20 22 02     .byte $00,$20,$22,$02,$20,$22,$02,$00  ; row 8
+00209C  1  20 22 02 00  
+0020A0  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 9
+0020A4  1  22 22 22 00  
+0020A8  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 10
+0020AC  1  22 22 22 00  
+0020B0  1  00 02 02 00     .byte $00,$02,$02,$00,$00,$20,$20,$00  ; row 11
+0020B4  1  00 20 20 00  
+0020B8  1  00 02 02 00     .byte $00,$02,$02,$00,$00,$20,$20,$00  ; row 12
+0020BC  1  00 20 20 00  
+0020C0  1  00 20 00 00     .byte $00,$20,$00,$00,$00,$00,$02,$00  ; row 13
+0020C4  1  00 00 02 00  
+0020C8  1  00 02 00 00     .byte $00,$02,$00,$00,$00,$00,$20,$00  ; row 14
+0020CC  1  00 00 20 00  
+0020D0  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+0020D4  1  00 00 00 00  
+0020D8  1               
+0020D8  1               ;------------------------------------------------------------------
+0020D8  1               ; Type C — squid, cyan (color 2), frame 1 (antennae pulled inward)
+0020D8  1               ;
+0020D8  1               ;   row 0: .....2.2.2.....   antennae closer to centre
+0020D8  1               ;   row 1: ....22....22....
+0020D8  1               ;   rows 2-8: same as frame 0
+0020D8  1               ;------------------------------------------------------------------
+0020D8  1               inv_c_spr_f1:
+0020D8  1  00 02 00 00     .byte $00,$02,$00,$00,$00,$00,$20,$00  ; row 0  antennae in
+0020DC  1  00 00 20 00  
+0020E0  1  00 00 22 00     .byte $00,$00,$22,$00,$00,$22,$00,$00  ; row 1
+0020E4  1  00 22 00 00  
+0020E8  1  00 00 22 22     .byte $00,$00,$22,$22,$22,$22,$00,$00  ; row 2  (same)
+0020EC  1  22 22 00 00  
+0020F0  1  00 02 22 02     .byte $00,$02,$22,$02,$22,$02,$20,$00  ; row 3  (same)
+0020F4  1  22 02 20 00  
+0020F8  1  00 22 22 02     .byte $00,$22,$22,$02,$22,$02,$22,$00  ; row 4  (same)
+0020FC  1  22 02 22 00  
+002100  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 5  (same)
+002104  1  22 22 22 00  
+002108  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 6  (same)
+00210C  1  22 22 22 00  
+002110  1  00 20 22 02     .byte $00,$20,$22,$02,$20,$22,$02,$00  ; row 7  (same)
+002114  1  20 22 02 00  
+002118  1  00 20 22 02     .byte $00,$20,$22,$02,$20,$22,$02,$00  ; row 8  (same)
+00211C  1  20 22 02 00  
+002120  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 9
+002124  1  22 22 22 00  
+002128  1  00 22 22 22     .byte $00,$22,$22,$22,$22,$22,$22,$00  ; row 10
+00212C  1  22 22 22 00  
+002130  1  00 02 02 00     .byte $00,$02,$02,$00,$00,$20,$20,$00  ; row 11
+002134  1  00 20 20 00  
+002138  1  00 02 02 00     .byte $00,$02,$02,$00,$00,$20,$20,$00  ; row 12
+00213C  1  00 20 20 00  
+002140  1  00 20 00 00     .byte $00,$20,$00,$00,$00,$00,$02,$00  ; row 13
+002144  1  00 00 02 00  
+002148  1  00 20 00 00     .byte $00,$20,$00,$00,$00,$00,$02,$00  ; row 14
+00214C  1  00 00 02 00  
+002150  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00  ; row 15
+002154  1  00 00 00 00  
+002158  1               
+002158  1               ;******************************************************************
+002158  1               ; Shield sprite pixel data — 16x16 4bpp, 128 bytes each
+002158  1               ;
+002158  1               ;   Color 0 = transparent, Color 7 = dark green (palette entry 7,
+002158  1               ;   set to dark green by init_shields).
+002158  1               ;   Each byte encodes 2 pixels: high nibble = left, low nibble = right.
+002158  1               ;
+002158  1               ;   Damage progression: each level erodes 4 more rows from the top,
+002158  1               ;   replacing solid color-7 pixels with a 2-pixel checkerboard of
+002158  1               ;   color 7 and transparent.  Rows not yet eroded remain solid.
+002158  1               ;
+002158  1               ;   Checker A (odd bits lit):  $70 $07 $70 $07 $70 $07 $70 $07
+002158  1               ;   Checker B (even bits lit): $07 $70 $07 $70 $07 $70 $07 $70
+002158  1               ;   Solid row:                 $77 $77 $77 $77 $77 $77 $77 $77
+002158  1               ;
+002158  1               ;   Classic Space Invaders arch/bunker shape (32x32, 4bpp, color index 7)
+002158  1               ;   Dome narrows upward (rows 0-1); solid body (rows 2-19); arch cut
+002158  1               ;   from rows 20-27 with 8px legs; solid base rows 28-31 (32px wide).
+002158  1               ;   Damage progression: dome erodes first, then body, then arch/base.
+002158  1               ;   Each row = 16 bytes (32 pixels × 4bpp).  32 rows × 16 bytes = 512 bytes per tile.
+002158  1               ;
+002158  1               ;   shield_tile_full:  dome 24/28px, 18 solid body rows, 8 arch rows, 4 base rows
+002158  1               ;   shield_tile_dmg1:  2 holes in dome top row
+002158  1               ;   shield_tile_dmg2:  dome top 20px, dome row 1 holed
+002158  1               ;   shield_tile_dmg3:  dome 16px, dome row 1 holed, 1 body hole
+002158  1               ;   shield_tile_dmg4:  dome 8/16px, 3 body holes, arch narrows to 6px
+002158  1               ;   shield_tile_dmg5:  dome gone/4px, 4 body holes, arch 4px, base hole
+002158  1               ;   shield_tile_dmg6:  body fragmenting, arch 2px legs, 2 base holes
+002158  1               ;   shield_tile_dmg7:  ruins — pillar stubs, arch dots, base crumbling
+002158  1               ;******************************************************************
+002158  1               
+002158  1               shield_tile_full:
+002158  1  00 00 00 00     .byte $00,$00,$00,$00,$77,$77,$77,$77,$77,$77,$77,$77,$00,$00,$00,$00  ; r0  dome 24px
+00215C  1  77 77 77 77  
+002160  1  77 77 77 77  
+002168  1  00 00 00 77     .byte $00,$00,$00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00,$00,$00  ; r1  dome 28px
+00216C  1  77 77 77 77  
+002170  1  77 77 77 77  
+002178  1  00 00 77 77     .byte $00,$00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00,$00  ; r2  solid body
+00217C  1  77 77 77 77  
+002180  1  77 77 77 77  
+002188  1  00 77 77 77     .byte $00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00  ; r3
+00218C  1  77 77 77 77  
+002190  1  77 77 77 77  
+002198  1  00 77 77 77     .byte $00,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$00  ; r4
+00219C  1  77 77 77 77  
+0021A0  1  77 77 77 77  
+0021A8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r5
+0021AC  1  77 77 77 77  
+0021B0  1  77 77 77 77  
+0021B8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r6
+0021BC  1  77 77 77 77  
+0021C0  1  77 77 77 77  
+0021C8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r7
+0021CC  1  77 77 77 77  
+0021D0  1  77 77 77 77  
+0021D8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
+0021DC  1  77 77 77 77  
+0021E0  1  77 77 77 77  
+0021E8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r9
+0021EC  1  77 77 77 77  
+0021F0  1  77 77 77 77  
+0021F8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r10
+0021FC  1  77 77 77 77  
+002200  1  77 77 77 77  
+002208  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r11
+00220C  1  77 77 77 77  
+002210  1  77 77 77 77  
+002218  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r12
+00221C  1  77 77 77 77  
+002220  1  77 77 77 77  
+002228  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r13
+00222C  1  77 77 77 77  
+002230  1  77 77 77 77  
+002238  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14
+00223C  1  77 77 77 77  
+002240  1  77 77 77 77  
+002248  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
+00224C  1  77 77 77 77  
+002250  1  77 77 77 77  
+002258  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r16
+00225C  1  77 77 77 77  
+002260  1  77 77 77 77  
+002268  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r17
+00226C  1  77 77 77 77  
+002270  1  77 77 77 77  
+002278  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r18
+00227C  1  77 77 77 77  
+002280  1  77 77 77 77  
+002288  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r19
+00228C  1  77 77 77 77  
+002290  1  77 77 77 77  
+002298  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r20
+00229C  1  77 77 77 77  
+0022A0  1  77 77 77 77  
+0022A8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r21
+0022AC  1  77 77 77 77  
+0022B0  1  77 77 77 77  
+0022B8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r22
+0022BC  1  77 77 77 77  
+0022C0  1  77 77 77 77  
+0022C8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r23
+0022CC  1  77 77 77 77  
+0022D0  1  77 77 77 77  
+0022D8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77,$77  ; r24 arch 8px legs
+0022DC  1  77 00 00 00  
+0022E0  1  00 00 00 77  
+0022E8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
+0022EC  1  00 00 00 00  
+0022F0  1  00 00 00 00  
+0022F8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26
+0022FC  1  00 00 00 00  
+002300  1  00 00 00 00  
+002308  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
+00230C  1  00 00 00 00  
+002310  1  00 00 00 00  
+002318  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28
+00231C  1  00 00 00 00  
+002320  1  00 00 00 00  
+002328  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
+00232C  1  00 00 00 00  
+002330  1  00 00 00 00  
+002338  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
+00233C  1  00 00 00 00  
+002340  1  00 00 00 00  
+002348  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
+00234C  1  00 00 00 00  
+002350  1  00 00 00 00  
+002358  1               
+002358  1               shield_tile_dmg1:
+002358  1  00 00 00 00     .byte $00,$00,$00,$00,$77,$00,$07,$70,$00,$00,$77,$00,$77,$70,$00,$00  ; r0  dome: 20px
+00235C  1  77 00 07 70  
+002360  1  00 00 77 00  
+002368  1  00 00 00 70     .byte $00,$00,$00,$70,$07,$00,$00,$00,$77,$00,$77,$00,$00,$00,$00,$00  ; r1  dome: holes at 10-11, 22-23
+00236C  1  07 00 00 00  
+002370  1  77 00 77 00  
+002378  1  00 00 77 07     .byte $00,$00,$77,$07,$07,$77,$07,$77,$00,$77,$77,$77,$77,$77,$00,$00  ; r2  solid body
+00237C  1  07 77 07 77  
+002380  1  00 77 77 77  
+002388  1  00 77 77 77     .byte $00,$77,$77,$77,$77,$77,$70,$77,$00,$77,$77,$77,$77,$77,$77,$00  ; r3
+00238C  1  77 77 70 77  
+002390  1  00 77 77 77  
+002398  1  00 77 77 77     .byte $00,$77,$77,$77,$77,$77,$77,$77,$70,$77,$77,$77,$77,$77,$77,$00  ; r4
+00239C  1  77 77 77 77  
+0023A0  1  70 77 77 77  
+0023A8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r5
+0023AC  1  77 77 77 77  
+0023B0  1  77 77 77 77  
+0023B8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r6
+0023BC  1  77 77 77 77  
+0023C0  1  77 77 77 77  
+0023C8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r7
+0023CC  1  77 77 77 77  
+0023D0  1  77 77 77 77  
+0023D8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
+0023DC  1  77 77 77 77  
+0023E0  1  77 77 77 77  
+0023E8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r9
+0023EC  1  77 77 77 77  
+0023F0  1  77 77 77 77  
+0023F8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r10
+0023FC  1  77 77 77 77  
+002400  1  77 77 77 77  
+002408  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r11
+00240C  1  77 77 77 77  
+002410  1  77 77 77 77  
+002418  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r12
+00241C  1  77 77 77 77  
+002420  1  77 77 77 77  
+002428  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r13
+00242C  1  77 77 77 77  
+002430  1  77 77 77 77  
+002438  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14
+00243C  1  77 77 77 77  
+002440  1  77 77 77 77  
+002448  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
+00244C  1  77 77 77 77  
+002450  1  77 77 77 77  
+002458  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r16
+00245C  1  77 77 77 77  
+002460  1  77 77 77 77  
+002468  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r17
+00246C  1  77 77 77 77  
+002470  1  77 77 77 77  
+002478  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r18
+00247C  1  77 77 77 77  
+002480  1  77 77 77 77  
+002488  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r19
+00248C  1  77 77 77 77  
+002490  1  77 77 77 77  
+002498  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r20 arch 8px legs
+00249C  1  77 77 77 77  
+0024A0  1  77 77 77 77  
+0024A8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r21
+0024AC  1  77 77 77 77  
+0024B0  1  77 77 77 77  
+0024B8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r22
+0024BC  1  77 77 77 77  
+0024C0  1  77 77 77 77  
+0024C8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r23
+0024CC  1  77 77 77 77  
+0024D0  1  77 77 77 77  
+0024D8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r24
+0024DC  1  00 00 00 00  
+0024E0  1  00 00 00 00  
+0024E8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
+0024EC  1  00 00 00 00  
+0024F0  1  00 00 00 00  
+0024F8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26
+0024FC  1  00 00 00 00  
+002500  1  00 00 00 00  
+002508  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
+00250C  1  00 00 00 00  
+002510  1  00 00 00 00  
+002518  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28 solid base
+00251C  1  00 00 00 00  
+002520  1  00 00 00 00  
+002528  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
+00252C  1  00 00 00 00  
+002530  1  00 00 00 00  
+002538  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
+00253C  1  00 00 00 00  
+002540  1  00 00 00 00  
+002548  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
+00254C  1  00 00 00 00  
+002550  1  00 00 00 00  
+002558  1               
+002558  1               shield_tile_dmg2:
+002558  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$70,$00,$00,$00,$00,$77,$00,$00,$00  ; r0  dome: 20px
+00255C  1  00 00 00 70  
+002560  1  00 00 00 00  
+002568  1  00 00 00 70     .byte $00,$00,$00,$70,$07,$00,$00,$00,$77,$00,$07,$00,$00,$00,$00,$00  ; r1  dome: holes at 10-11, 22-23
+00256C  1  07 00 00 00  
+002570  1  77 00 07 00  
+002578  1  00 00 77 07     .byte $00,$00,$77,$07,$07,$70,$70,$07,$77,$00,$00,$77,$70,$77,$00,$00  ; r2
+00257C  1  07 70 70 07  
+002580  1  77 00 00 77  
+002588  1  00 77 77 77     .byte $00,$77,$77,$77,$70,$77,$00,$77,$77,$70,$70,$77,$07,$77,$77,$00  ; r3
+00258C  1  70 77 00 77  
+002590  1  77 70 70 77  
+002598  1  00 77 77 77     .byte $00,$77,$77,$77,$77,$77,$00,$77,$77,$70,$77,$77,$07,$77,$77,$00  ; r4
+00259C  1  77 77 00 77  
+0025A0  1  77 70 77 77  
+0025A8  1  07 07 77 77     .byte $07,$07,$77,$77,$77,$77,$07,$77,$77,$07,$77,$77,$70,$77,$77,$07  ; r5
+0025AC  1  77 77 07 77  
+0025B0  1  77 07 77 77  
+0025B8  1  70 77 77 77     .byte $70,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r6
+0025BC  1  77 77 77 77  
+0025C0  1  77 77 77 77  
+0025C8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r7
+0025CC  1  77 77 77 77  
+0025D0  1  77 77 77 77  
+0025D8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
+0025DC  1  77 77 77 77  
+0025E0  1  77 77 77 77  
+0025E8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r9
+0025EC  1  77 77 77 77  
+0025F0  1  77 77 77 77  
+0025F8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r10
+0025FC  1  77 77 77 77  
+002600  1  77 77 77 77  
+002608  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r11
+00260C  1  77 77 77 77  
+002610  1  77 77 77 77  
+002618  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r12
+00261C  1  77 77 77 77  
+002620  1  77 77 77 77  
+002628  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r13
+00262C  1  77 77 77 77  
+002630  1  77 77 77 77  
+002638  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14
+00263C  1  77 77 77 77  
+002640  1  77 77 77 77  
+002648  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
+00264C  1  77 77 77 77  
+002650  1  77 77 77 77  
+002658  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r16
+00265C  1  77 77 77 77  
+002660  1  77 77 77 77  
+002668  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r17
+00266C  1  77 77 77 77  
+002670  1  77 77 77 77  
+002678  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r18
+00267C  1  77 77 77 77  
+002680  1  77 77 77 77  
+002688  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r19
+00268C  1  77 77 77 77  
+002690  1  77 77 77 77  
+002698  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r20 arch 8px legs
+00269C  1  77 77 77 77  
+0026A0  1  77 77 77 77  
+0026A8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r21
+0026AC  1  77 77 77 77  
+0026B0  1  77 77 77 77  
+0026B8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r22
+0026BC  1  77 77 77 77  
+0026C0  1  77 77 77 77  
+0026C8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r23
+0026CC  1  77 77 77 77  
+0026D0  1  77 77 77 77  
+0026D8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r24
+0026DC  1  00 00 00 00  
+0026E0  1  00 00 00 00  
+0026E8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
+0026EC  1  00 00 00 00  
+0026F0  1  00 00 00 00  
+0026F8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26
+0026FC  1  00 00 00 00  
+002700  1  00 00 00 00  
+002708  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
+00270C  1  00 00 00 00  
+002710  1  00 00 00 00  
+002718  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28 solid base
+00271C  1  00 00 00 00  
+002720  1  00 00 00 00  
+002728  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
+00272C  1  00 00 00 00  
+002730  1  00 00 00 00  
+002738  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
+00273C  1  00 00 00 00  
+002740  1  00 00 00 00  
+002748  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
+00274C  1  00 00 00 00  
+002750  1  00 00 00 00  
+002758  1               
+002758  1               shield_tile_dmg3:
+002758  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$07,$00,$00,$00,$00,$70,$00,$00,$00  ; r0  dome: 20px
+00275C  1  00 00 00 07  
+002760  1  00 00 00 00  
+002768  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$70,$00,$00,$00,$00,$00,$00,$00,$00  ; r1  dome: holes at 10-11, 22-23
+00276C  1  00 00 00 70  
+002770  1  00 00 00 00  
+002778  1  00 00 77 00     .byte $00,$00,$77,$00,$00,$07,$70,$70,$70,$00,$00,$77,$70,$77,$00,$00  ; r2
+00277C  1  00 07 70 70  
+002780  1  70 00 00 77  
+002788  1  00 77 77 00     .byte $00,$77,$77,$00,$77,$00,$07,$07,$77,$77,$00,$77,$77,$07,$77,$00  ; r3
+00278C  1  77 00 07 07  
+002790  1  77 77 00 77  
+002798  1  00 77 00 70     .byte $00,$77,$00,$70,$77,$77,$70,$70,$77,$00,$07,$07,$70,$77,$77,$00  ; r4
+00279C  1  77 77 70 70  
+0027A0  1  77 00 07 07  
+0027A8  1  70 70 00 77     .byte $70,$70,$00,$77,$77,$77,$77,$77,$77,$77,$00,$77,$77,$77,$77,$77  ; r5
+0027AC  1  77 77 77 77  
+0027B0  1  77 77 00 77  
+0027B8  1  77 70 07 77     .byte $77,$70,$07,$77,$77,$77,$77,$77,$77,$70,$77,$07,$77,$77,$77,$77  ; r6
+0027BC  1  77 77 77 77  
+0027C0  1  77 70 77 07  
+0027C8  1  77 70 77 77     .byte $77,$70,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r7
+0027CC  1  77 77 77 77  
+0027D0  1  77 77 77 77  
+0027D8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r8
+0027DC  1  77 77 77 77  
+0027E0  1  77 77 77 77  
+0027E8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$70,$07,$77,$77,$77,$77,$77,$77,$77  ; r9  body: center hole
+0027EC  1  77 77 77 70  
+0027F0  1  07 77 77 77  
+0027F8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r10
+0027FC  1  77 77 77 77  
+002800  1  77 77 77 77  
+002808  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r11
+00280C  1  77 77 77 77  
+002810  1  77 77 77 77  
+002818  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r12
+00281C  1  77 77 77 77  
+002820  1  77 77 77 77  
+002828  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r13
+00282C  1  77 77 77 77  
+002830  1  77 77 77 77  
+002838  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14
+00283C  1  77 77 77 77  
+002840  1  77 77 77 77  
+002848  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
+00284C  1  77 77 77 77  
+002850  1  77 77 77 77  
+002858  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r16
+00285C  1  77 77 77 77  
+002860  1  77 77 77 77  
+002868  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r17
+00286C  1  77 77 77 77  
+002870  1  77 77 77 77  
+002878  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r18
+00287C  1  77 77 77 77  
+002880  1  77 77 77 77  
+002888  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r19
+00288C  1  77 77 77 77  
+002890  1  77 77 77 77  
+002898  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r20 arch 8px legs
+00289C  1  77 77 77 77  
+0028A0  1  77 77 77 77  
+0028A8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r21
+0028AC  1  77 77 77 77  
+0028B0  1  77 77 77 77  
+0028B8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r22
+0028BC  1  77 77 77 77  
+0028C0  1  77 77 77 77  
+0028C8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r23
+0028CC  1  77 77 77 77  
+0028D0  1  77 77 77 77  
+0028D8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r24
+0028DC  1  00 00 00 00  
+0028E0  1  00 00 00 00  
+0028E8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
+0028EC  1  00 00 00 00  
+0028F0  1  00 00 00 00  
+0028F8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26
+0028FC  1  00 00 00 00  
+002900  1  00 00 00 00  
+002908  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
+00290C  1  00 00 00 00  
+002910  1  00 00 00 00  
+002918  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28 solid base
+00291C  1  00 00 00 00  
+002920  1  00 00 00 00  
+002928  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
+00292C  1  00 00 00 00  
+002930  1  00 00 00 00  
+002938  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
+00293C  1  00 00 00 00  
+002940  1  00 00 00 00  
+002948  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
+00294C  1  00 00 00 00  
+002950  1  00 00 00 00  
+002958  1               
+002958  1               shield_tile_dmg4:
+002958  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r0  dome: 20px
+00295C  1  00 00 00 00  
+002960  1  00 00 00 00  
+002968  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r1  dome: holes at 10-11, 22-23
+00296C  1  00 00 00 00  
+002970  1  00 00 00 00  
+002978  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r2
+00297C  1  00 00 00 00  
+002980  1  00 00 00 00  
+002988  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r3
+00298C  1  00 00 00 00  
+002990  1  00 00 00 00  
+002998  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r4
+00299C  1  00 00 00 00  
+0029A0  1  00 00 00 00  
+0029A8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r5  body: center hole
+0029AC  1  00 00 00 00  
+0029B0  1  00 00 00 00  
+0029B8  1  00 00 77 77     .byte $00,$00,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$00,$00  ; r6
+0029BC  1  00 00 00 00  
+0029C0  1  00 00 00 00  
+0029C8  1  00 77 77 00     .byte $00,$77,$77,$00,$00,$00,$00,$77,$00,$77,$00,$00,$77,$77,$77,$00  ; r7
+0029CC  1  00 00 00 77  
+0029D0  1  00 77 00 00  
+0029D8  1  00 77 70 00     .byte $00,$77,$70,$00,$77,$77,$77,$77,$00,$00,$77,$77,$00,$77,$77,$00  ; r8
+0029DC  1  77 77 77 77  
+0029E0  1  00 00 77 77  
+0029E8  1  77 77 77 00     .byte $77,$77,$77,$00,$77,$77,$00,$70,$07,$77,$07,$77,$77,$77,$77,$77  ; r9  body: side holes
+0029EC  1  77 77 00 70  
+0029F0  1  07 77 07 77  
+0029F8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r10
+0029FC  1  77 77 77 77  
+002A00  1  77 77 77 77  
+002A08  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r11
+002A0C  1  77 77 77 77  
+002A10  1  77 77 77 77  
+002A18  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r12
+002A1C  1  77 77 77 77  
+002A20  1  77 77 77 77  
+002A28  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r13
+002A2C  1  77 77 77 77  
+002A30  1  77 77 77 77  
+002A38  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r14
+002A3C  1  77 77 77 77  
+002A40  1  77 77 77 77  
+002A48  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r15
+002A4C  1  77 77 77 77  
+002A50  1  77 77 77 77  
+002A58  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r16
+002A5C  1  77 77 77 77  
+002A60  1  77 77 77 77  
+002A68  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r17
+002A6C  1  77 77 77 77  
+002A70  1  77 77 77 77  
+002A78  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r18
+002A7C  1  77 77 77 77  
+002A80  1  77 77 77 77  
+002A88  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r19
+002A8C  1  77 77 77 77  
+002A90  1  77 77 77 77  
+002A98  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r20 arch: 6px legs
+002A9C  1  77 77 77 77  
+002AA0  1  77 77 77 77  
+002AA8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r21
+002AAC  1  77 77 77 77  
+002AB0  1  77 77 77 77  
+002AB8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r22
+002ABC  1  77 77 77 77  
+002AC0  1  77 77 77 77  
+002AC8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r23
+002ACC  1  77 77 77 77  
+002AD0  1  77 77 77 77  
+002AD8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r24 arch: 8px legs
+002ADC  1  00 00 00 00  
+002AE0  1  00 00 00 00  
+002AE8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
+002AEC  1  00 00 00 00  
+002AF0  1  00 00 00 00  
+002AF8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26
+002AFC  1  00 00 00 00  
+002B00  1  00 00 00 00  
+002B08  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
+002B0C  1  00 00 00 00  
+002B10  1  00 00 00 00  
+002B18  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28 solid base
+002B1C  1  00 00 00 00  
+002B20  1  00 00 00 00  
+002B28  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
+002B2C  1  00 00 00 00  
+002B30  1  00 00 00 00  
+002B38  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
+002B3C  1  00 00 00 00  
+002B40  1  00 00 00 00  
+002B48  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
+002B4C  1  00 00 00 00  
+002B50  1  00 00 00 00  
+002B58  1               
+002B58  1               shield_tile_dmg5:
+002B58  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r0  dome: 20px
+002B5C  1  00 00 00 00  
+002B60  1  00 00 00 00  
+002B68  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r1  dome: holes at 10-11, 22-23
+002B6C  1  00 00 00 00  
+002B70  1  00 00 00 00  
+002B78  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$70,$00,$00  ; r2
+002B7C  1  00 00 00 00  
+002B80  1  00 00 00 00  
+002B88  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r3
+002B8C  1  00 00 00 00  
+002B90  1  00 00 00 00  
+002B98  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r4
+002B9C  1  00 00 00 00  
+002BA0  1  00 00 00 00  
+002BA8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r5  body: center hole
+002BAC  1  00 00 00 00  
+002BB0  1  00 00 00 00  
+002BB8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r6
+002BBC  1  00 00 00 00  
+002BC0  1  00 00 00 00  
+002BC8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r7
+002BCC  1  00 00 00 00  
+002BD0  1  00 00 00 00  
+002BD8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r8
+002BDC  1  00 00 00 00  
+002BE0  1  00 00 00 00  
+002BE8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$07,$00,$77,$00,$00,$00,$07,$70,$00  ; r9  body: side holes
+002BEC  1  00 00 00 07  
+002BF0  1  00 77 00 00  
+002BF8  1  00 00 70 00     .byte $00,$00,$70,$00,$77,$00,$00,$77,$00,$00,$77,$70,$00,$00,$07,$00  ; r10 body: side holes
+002BFC  1  77 00 00 77  
+002C00  1  00 00 77 70  
+002C08  1  70 70 77 00     .byte $70,$70,$77,$00,$70,$00,$00,$00,$07,$00,$07,$70,$77,$77,$00,$00  ; r11
+002C0C  1  70 00 00 00  
+002C10  1  07 00 07 70  
+002C18  1  77 77 77 70     .byte $77,$77,$77,$70,$00,$00,$00,$00,$00,$00,$77,$00,$77,$77,$77,$00  ; r12
+002C1C  1  00 00 00 00  
+002C20  1  00 00 77 00  
+002C28  1  77 77 77 07     .byte $77,$77,$77,$07,$70,$77,$00,$70,$07,$77,$77,$07,$77,$77,$77,$07  ; r13 body: center hole
+002C2C  1  70 77 00 70  
+002C30  1  07 77 77 07  
+002C38  1  77 77 77 70     .byte $77,$77,$77,$70,$07,$77,$00,$70,$07,$77,$77,$00,$00,$77,$77,$77  ; r14
+002C3C  1  07 77 00 70  
+002C40  1  07 77 77 00  
+002C48  1  77 77 70 70     .byte $77,$77,$70,$70,$70,$77,$00,$77,$00,$77,$00,$77,$77,$07,$77,$77  ; r15
+002C4C  1  70 77 00 77  
+002C50  1  00 77 00 77  
+002C58  1  77 77 70 00     .byte $77,$77,$70,$00,$70,$00,$77,$00,$00,$00,$77,$77,$77,$07,$77,$77  ; r16
+002C5C  1  70 00 77 00  
+002C60  1  00 00 77 77  
+002C68  1  77 77 77 07     .byte $77,$77,$77,$07,$70,$77,$77,$07,$00,$77,$00,$77,$77,$77,$77,$77  ; r17
+002C6C  1  70 77 77 07  
+002C70  1  00 77 00 77  
+002C78  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$70,$07,$77,$77,$77,$77,$77,$77,$77  ; r18
+002C7C  1  77 77 77 70  
+002C80  1  07 77 77 77  
+002C88  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r19
+002C8C  1  77 77 77 77  
+002C90  1  77 77 77 77  
+002C98  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r20 arch: 4px legs
+002C9C  1  77 77 77 77  
+002CA0  1  77 77 77 77  
+002CA8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r21
+002CAC  1  77 77 77 77  
+002CB0  1  77 77 77 77  
+002CB8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r22
+002CBC  1  77 77 77 77  
+002CC0  1  77 77 77 77  
+002CC8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77,$77  ; r23
+002CCC  1  77 77 77 77  
+002CD0  1  77 77 77 77  
+002CD8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r24 arch: 6px legs
+002CDC  1  00 00 00 00  
+002CE0  1  00 00 00 00  
+002CE8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
+002CEC  1  00 00 00 00  
+002CF0  1  00 00 00 00  
+002CF8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26 arch: 8px legs
+002CFC  1  00 00 00 00  
+002D00  1  00 00 00 00  
+002D08  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
+002D0C  1  00 00 00 00  
+002D10  1  00 00 00 00  
+002D18  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28 base: center hole
+002D1C  1  00 00 00 00  
+002D20  1  00 00 00 00  
+002D28  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
+002D2C  1  00 00 00 00  
+002D30  1  00 00 00 00  
+002D38  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
+002D3C  1  00 00 00 00  
+002D40  1  00 00 00 00  
+002D48  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
+002D4C  1  00 00 00 00  
+002D50  1  00 00 00 00  
+002D58  1               
+002D58  1               shield_tile_dmg6:
+002D58  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r0  dome: 20px
+002D5C  1  00 00 00 00  
+002D60  1  00 00 00 00  
+002D68  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r1  dome: holes at 10-11, 22-23
+002D6C  1  00 00 00 00  
+002D70  1  00 00 00 00  
+002D78  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r2
+002D7C  1  00 00 00 00  
+002D80  1  00 00 00 00  
+002D88  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$07,$00,$00  ; r3
+002D8C  1  00 00 00 00  
+002D90  1  00 00 00 00  
+002D98  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r4
+002D9C  1  00 00 00 00  
+002DA0  1  00 00 00 00  
+002DA8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r5  body: center hole
+002DAC  1  00 00 00 00  
+002DB0  1  00 00 00 00  
+002DB8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r6
+002DBC  1  00 00 00 00  
+002DC0  1  00 00 00 00  
+002DC8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r7
+002DCC  1  00 00 00 00  
+002DD0  1  00 00 00 00  
+002DD8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r8
+002DDC  1  00 00 00 00  
+002DE0  1  00 00 00 00  
+002DE8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r9  body: side holes
+002DEC  1  00 00 00 00  
+002DF0  1  00 00 00 00  
+002DF8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r10 body: side holes
+002DFC  1  00 00 00 00  
+002E00  1  00 00 00 00  
+002E08  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r11
+002E0C  1  00 00 00 00  
+002E10  1  00 00 00 00  
+002E18  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r12
+002E1C  1  00 00 00 00  
+002E20  1  00 00 00 00  
+002E28  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r13 body: center hole
+002E2C  1  00 00 00 00  
+002E30  1  00 00 00 00  
+002E38  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r14
+002E3C  1  00 00 00 00  
+002E40  1  00 00 00 00  
+002E48  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r15
+002E4C  1  00 00 00 00  
+002E50  1  00 00 00 00  
+002E58  1  00 07 00 00     .byte $00,$07,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r16 scattered
+002E5C  1  00 00 00 00  
+002E60  1  00 00 00 00  
+002E68  1  00 70 00 00     .byte $00,$70,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$00  ; r17 pillars
+002E6C  1  00 00 00 00  
+002E70  1  00 00 00 00  
+002E78  1  00 77 00 00     .byte $00,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$07,$70,$00  ; r18
+002E7C  1  00 00 00 00  
+002E80  1  00 00 00 00  
+002E88  1  00 70 07 77     .byte $00,$70,$07,$77,$77,$07,$00,$77,$00,$00,$77,$77,$77,$70,$07,$00  ; r19 fragmented
+002E8C  1  77 07 00 77  
+002E90  1  00 00 77 77  
+002E98  1  07 77 00 00     .byte $07,$77,$00,$00,$00,$77,$00,$07,$70,$00,$00,$00,$00,$77,$70,$00  ; r20 arch: 2px legs
+002E9C  1  00 77 00 07  
+002EA0  1  70 00 00 00  
+002EA8  1  77 00 77 77     .byte $77,$00,$77,$77,$00,$77,$70,$77,$77,$00,$00,$00,$00,$00,$77,$00  ; r21
+002EAC  1  00 77 70 77  
+002EB0  1  77 00 00 00  
+002EB8  1  77 77 00 00     .byte $77,$77,$00,$00,$77,$00,$70,$77,$77,$00,$00,$77,$00,$00,$77,$77  ; r22
+002EBC  1  77 00 70 77  
+002EC0  1  77 00 00 77  
+002EC8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$77,$77,$00,$77,$77,$00,$77,$77,$77,$77,$77  ; r23
+002ECC  1  77 77 77 00  
+002ED0  1  77 77 00 77  
+002ED8  1  77 77 77 77     .byte $77,$77,$77,$77,$77,$00,$77,$77,$77,$77,$77,$00,$77,$77,$77,$77  ; r24 arch: 6px legs
+002EDC  1  77 00 77 77  
+002EE0  1  77 77 77 00  
+002EE8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r25
+002EEC  1  00 00 00 00  
+002EF0  1  00 00 00 00  
+002EF8  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r26 arch: 8px legs
+002EFC  1  00 00 00 00  
+002F00  1  00 00 00 00  
+002F08  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r27
+002F0C  1  00 00 00 00  
+002F10  1  00 00 00 00  
+002F18  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r28 base: center hole
+002F1C  1  00 00 00 00  
+002F20  1  00 00 00 00  
+002F28  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r29
+002F2C  1  00 00 00 00  
+002F30  1  00 00 00 00  
+002F38  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r30
+002F3C  1  00 00 00 00  
+002F40  1  00 00 00 00  
+002F48  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31
+002F4C  1  00 00 00 00  
+002F50  1  00 00 00 00  
+002F58  1               
+002F58  1               shield_tile_dmg7:
+002F58  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r0  gone
+002F5C  1  00 00 00 00  
+002F60  1  00 00 00 00  
+002F68  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r1  gone
+002F6C  1  00 00 00 00  
+002F70  1  00 00 00 00  
+002F78  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r2  gone
+002F7C  1  00 00 00 00  
+002F80  1  00 00 00 00  
+002F88  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r3  pillar tops 3px
+002F8C  1  00 00 00 00  
+002F90  1  00 00 00 00  
+002F98  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r4  pillars + inner dots
+002F9C  1  00 00 00 00  
+002FA0  1  00 00 00 00  
+002FA8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r5  pillars + arch top
+002FAC  1  00 00 00 00  
+002FB0  1  00 00 00 00  
+002FB8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r6  arch body fragments
+002FBC  1  00 00 00 00  
+002FC0  1  00 00 00 00  
+002FC8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r7
+002FCC  1  00 00 00 00  
+002FD0  1  00 00 00 00  
+002FD8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r8  pillar stubs
+002FDC  1  00 00 00 00  
+002FE0  1  00 00 00 00  
+002FE8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r9  fragments
+002FEC  1  00 00 00 00  
+002FF0  1  00 00 00 00  
+002FF8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r10 pillar stubs 3px
+002FFC  1  00 00 00 00  
+003000  1  00 00 00 00  
+003008  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r11 pillar stubs + dots
+00300C  1  00 00 00 00  
+003010  1  00 00 00 00  
+003018  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r12
+00301C  1  00 00 00 00  
+003020  1  00 00 00 00  
+003028  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r13
+00302C  1  00 00 00 00  
+003030  1  00 00 00 00  
+003038  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r14 sparse
+00303C  1  00 00 00 00  
+003040  1  00 00 00 00  
+003048  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r15
+00304C  1  00 00 00 00  
+003050  1  00 00 00 00  
+003058  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r16
+00305C  1  00 00 00 00  
+003060  1  00 00 00 00  
+003068  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r17
+00306C  1  00 00 00 00  
+003070  1  00 00 00 00  
+003078  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r18 pillar dots
+00307C  1  00 00 00 00  
+003080  1  00 00 00 00  
+003088  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r19 sparse
+00308C  1  00 00 00 00  
+003090  1  00 00 00 00  
+003098  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r20 arch: 1px dots
+00309C  1  00 00 00 00  
+0030A0  1  00 00 00 00  
+0030A8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r21 arch: 2px
+0030AC  1  00 00 00 00  
+0030B0  1  00 00 00 00  
+0030B8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r22 arch: 1px
+0030BC  1  00 00 00 00  
+0030C0  1  00 00 00 00  
+0030C8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r23 arch: 2px
+0030CC  1  00 00 00 00  
+0030D0  1  00 00 00 00  
+0030D8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r24 arch: 1px
+0030DC  1  00 00 00 00  
+0030E0  1  00 00 00 00  
+0030E8  1  00 00 00 00     .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; r25 arch: 4px
+0030EC  1  00 00 00 00  
+0030F0  1  00 00 00 00  
+0030F8  1  70 00 00 00     .byte $70,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$07  ; r26 arch: 1px
+0030FC  1  00 00 00 00  
+003100  1  00 00 00 00  
+003108  1  07 77 07 70     .byte $07,$77,$07,$70,$00,$00,$00,$00,$00,$00,$00,$00,$07,$77,$70,$70  ; r27 arch: 8px remnant
+00310C  1  00 00 00 00  
+003110  1  00 00 00 00  
+003118  1  77 77 77 00     .byte $77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$07,$77  ; r28 base: two 4px gaps
+00311C  1  00 00 00 00  
+003120  1  00 00 00 00  
+003128  1  07 77 77 77     .byte $07,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$70  ; r29 base: crumbling
+00312C  1  00 00 00 00  
+003130  1  00 00 00 00  
+003138  1  77 77 00 00     .byte $77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77  ; r30 base: multiple gaps
+00313C  1  00 00 00 00  
+003140  1  00 00 00 00  
+003148  1  77 77 77 77     .byte $77,$77,$77,$77,$00,$00,$00,$00,$00,$00,$00,$00,$77,$77,$77,$77  ; r31 base: ruins
+00314C  1  00 00 00 00  
+003150  1  00 00 00 00  
+003158  1               
+003158  1               ;******************************************************************
+003158  1               

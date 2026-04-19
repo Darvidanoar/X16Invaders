@@ -466,14 +466,14 @@ Phase 4 — Combat
 Phase 5 — Shields & UFO
   [x] Shield sprites (4 damage levels per shield)
   [x] Bullet vs. shield collision and damage
-  [ ] UFO spawn, movement, scoring
+  [x] UFO spawn, movement, scoring
   [ ] UFO drone sound
 
 Phase 6 — Game States & Polish
   [x] Title screen
-  [ ] Game over screen
-  [ ] Wave clear / next wave
-  [ ] Lives display (sprite icons or text)
+  [x] Game over screen
+  [x] Wave clear / next wave
+  [x] Lives display (sprite icons or text)
   [ ] Score BCD display on Layer 1
   [ ] Hi-score tracking (RAM only; no save)
   [ ] March sounds (VERA PSG)

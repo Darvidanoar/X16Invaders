@@ -50,6 +50,13 @@ Phase 5 (continued)
 - Claude, the base sprites 32 pixels high.  Can you also make them 32 pixels wide?  (total used session tokens used: 97%)
 
 
+Phase 5 (continued)
+- please write phase 5 code for: UFO spawn, movement, scoring (total used session tokens used: 23%)
+- please write phase 5 code for: UFO drone sound (total used session tokens used: 31%)
 
 
-
+Phase 6
+- please write phase 6 code for: Game over screen (total used session tokens used: 37%)
+- please write the phase 6 code for: Wave clear / next wave (total used session tokens used: 45%)
+- please write the phase 6 code for: Lives display (sprite icons or text) (total used session tokens used: 50%)
+- please write the phase 6 code for: Score BCD display on Layer 1 (total used session tokens used: 65%)

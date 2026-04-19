@@ -1819,8 +1819,9 @@ game_over_screen:
    lda #PETSCII_CLR
    jsr CHROUT
 
-   lda #9
-   ldy #15
+   ; (Plot: Set X to Row, Set Y to Col)
+   ldx #9
+   ldy #35
    clc
    jsr PLOT
    ldx #0
@@ -1831,8 +1832,9 @@ game_over_screen:
    bra @go1
 @go1d:
 
-   lda #11
-   ldy #13
+   ; (Plot: Set X to Row, Set Y to Col)
+   ldx #11
+   ldy #33
    clc
    jsr PLOT
    ldx #0
@@ -1849,8 +1851,9 @@ game_over_screen:
    lda score_lo
    jsr print_hex_byte
 
-   lda #12
-   ldy #12
+   ; (Plot: Set X to Row, Set Y to Col)
+   ldx #12
+   ldy #32
    clc
    jsr PLOT
    ldx #0
@@ -1867,8 +1870,9 @@ game_over_screen:
    lda hi_score_lo
    jsr print_hex_byte
 
-   lda #17
-   ldy #12
+   ; (Plot: Set X to Row, Set Y to Col)
+   ldx #17
+   ldy #32
    clc
    jsr PLOT
    ldx #0
@@ -1899,8 +1903,9 @@ game_over_loop:
    and #$20                  ; bit 5: flips every 32 frames ≈ 2 Hz blink
    bne @go_show
 @go_hide:
-   lda #15
-   ldy #11
+   ;   (Plot: Set X to Row, Set Y to Col)
+   ldx #20
+   ldy #31
    clc
    jsr PLOT
    ldx #18
@@ -1910,8 +1915,9 @@ game_over_loop:
    bne @go_erase
    jmp game_over_loop
 @go_show:
-   lda #15
-   ldy #11
+   ;   (Plot: Set X to Row, Set Y to Col)
+   ldx #20
+   ldy #31
    clc
    jsr PLOT
    ldx #0
@@ -2282,9 +2288,9 @@ draw_title_screen:
    ; Sample invader sprites (Types C, B, A) + score labels
    jsr show_title_sprites
 
-   ; Row 19, col 12: "RUN/STOP TO QUIT"
-   lda #19
-   ldy #12
+   ; Row 19, col 12: "RUN/STOP TO QUIT"  (Plot: Set X to Row, Set Y to Col)
+   ldx #19
+   ldy #32
    clc
    jsr PLOT
    ldx #0
@@ -3225,8 +3231,8 @@ snd_update_ufo_drone:
 ;   Note: KERNAL PLOT convention for X16: A = row, Y = col, CLC.
 ;******************************************************************
 update_hud:
-   ; --- score: row 1, col 0 ---
-   lda #1
+   ; --- score: row 1, col 0 (Plot: Set X to Row, Set Y to Col) ---
+   ldx #1
    ldy #0
    clc
    jsr PLOT
@@ -3237,8 +3243,8 @@ update_hud:
    lda score_lo
    jsr print_hex_byte
 
-   ; --- hi-score: row 1, col 16 ---
-   lda #1
+   ; --- hi-score: row 1, col 16  (Plot: Set X to Row, Set Y to Col) ---
+   ldx #1
    ldy #16
    clc
    jsr PLOT
@@ -3249,8 +3255,8 @@ update_hud:
    lda hi_score_lo
    jsr print_hex_byte
 
-   ; --- lives count: row 29, col 1 ---
-   lda #29
+   ; --- lives count: row 58, col 1  (Plot: Set X to Row, Set Y to Col) ---
+   ldx #58
    ldy #1
    clc
    jsr PLOT
@@ -3266,8 +3272,8 @@ update_hud:
    lda #' '
    jsr CHROUT                    ; erase any stale digit
 
-   ; --- wave number: row 29, col 20 ---
-   lda #29
+   ; --- wave number: row 58, col 20  (Plot: Set X to Row, Set Y to Col) ---
+   ldx #58
    ldy #20
    clc
    jsr PLOT
@@ -3337,7 +3343,7 @@ str_game_over:
 str_score_lbl:
    .byte "SCORE: ", 0
 str_hi_score_go:
-   .byte "HI-SCORE: ", 0
+   .byte "HISCORE: ", 0
 str_play_again:
    .byte "SPACE = PLAY AGAIN", 0
 str_wave_clear:
