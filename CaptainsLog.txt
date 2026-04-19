@@ -40,6 +40,16 @@ Phase 5:
   The game seems to have stopped working - Debugging:
   - claude the games seems to be getting stuck in the @ibul_loop loop of the check_invbullet_shields subroutine.  can you please fix that?  (total used session tokens used: 61%)
 - Claude, can you make the shield sprites look more like the ones in the original game? (total used session tokens used: 96%)
+  NOTE:  The bases are a little small, presumably because the original game ran as a much lower resolution.  
+         Next session, I ask Claude to make the bases 16px wide with 8 levels of damage.
+
+Phase 5 (continued)
+- The base sprites are a little too small.  Please make the base sprites 16 pixels wide with 8 levels of damage. (total used session tokens used: 40%)
+  Hmmm, they were already 16 pixels wide, I should have asked for 32 pixels wide.
+- Please make the base sprites 32 pixels wide with 8 levels of damage. (total used session tokens used: 70%)
+- Claude, the base sprites 32 pixels high.  Can you also make them 32 pixels wide?  (total used session tokens used: 97%)
+
+
 
 
 
