@@ -1776,7 +1776,222 @@ player_hit:
    rts
 
 @game_over:
-   jmp exit_game             ; placeholder: Phase 6 will show a game-over screen
+   jmp game_over_screen
+
+;******************************************************************
+; game_over_screen — update hi-score, draw GAME OVER, wait for input
+;   SPACE     → restart_game (full state reset + main_loop)
+;   RUN/STOP  → exit to BASIC
+;
+;   Layout (40-col text):
+;     Row  9, col 15: "GAME OVER"
+;     Row 11, col 13: "SCORE: " + 6 BCD digits
+;     Row 12, col 12: "HI-SCORE: " + 6 BCD digits
+;     Row 15, col 11: "SPACE = PLAY AGAIN"  (blinks)
+;     Row 17, col 12: "RUN/STOP TO QUIT"
+;******************************************************************
+game_over_screen:
+   jsr snd_stop_ufo_drone    ; silence drone if UFO was active
+
+   jsr update_hi_score       ; copy score → hi_score if score is higher
+
+   jsr hide_all_inv_sprites  ; clear play field sprites
+
+   lda #PETSCII_CLR
+   jsr CHROUT
+
+   lda #9
+   ldy #15
+   clc
+   jsr PLOT
+   ldx #0
+@go1: lda str_game_over, x
+   beq @go1d
+   jsr CHROUT
+   inx
+   bra @go1
+@go1d:
+
+   lda #11
+   ldy #13
+   clc
+   jsr PLOT
+   ldx #0
+@go2: lda str_score_lbl, x
+   beq @go2d
+   jsr CHROUT
+   inx
+   bra @go2
+@go2d:
+   lda score_hi
+   jsr print_hex_byte
+   lda score_mid
+   jsr print_hex_byte
+   lda score_lo
+   jsr print_hex_byte
+
+   lda #12
+   ldy #12
+   clc
+   jsr PLOT
+   ldx #0
+@go3: lda str_hi_score_go, x
+   beq @go3d
+   jsr CHROUT
+   inx
+   bra @go3
+@go3d:
+   lda hi_score_hi
+   jsr print_hex_byte
+   lda hi_score_mid
+   jsr print_hex_byte
+   lda hi_score_lo
+   jsr print_hex_byte
+
+   lda #17
+   ldy #12
+   clc
+   jsr PLOT
+   ldx #0
+@go4: lda str_run_stop_hint, x
+   beq @go4d
+   jsr CHROUT
+   inx
+   bra @go4
+@go4d:
+
+;------------------------------------------------------------------
+; game_over_loop — blink "SPACE = PLAY AGAIN"; wait for input
+;------------------------------------------------------------------
+game_over_loop:
+   jsr wait_vsync
+   inc frame_count
+   jsr update_input
+
+   lda key_last
+   cmp #KEY_RUN_STOP
+   beq @go_quit
+
+   lda key_flags
+   and #KEY_FIRE
+   bne @go_restart
+
+   lda frame_count
+   and #$20                  ; bit 5: flips every 32 frames ≈ 2 Hz blink
+   bne @go_show
+@go_hide:
+   lda #15
+   ldy #11
+   clc
+   jsr PLOT
+   ldx #18
+@go_erase: lda #' '
+   jsr CHROUT
+   dex
+   bne @go_erase
+   jmp game_over_loop
+@go_show:
+   lda #15
+   ldy #11
+   clc
+   jsr PLOT
+   ldx #0
+@go_print: lda str_play_again, x
+   beq @go_pd
+   jsr CHROUT
+   inx
+   bra @go_print
+@go_pd:
+   jmp game_over_loop
+
+@go_quit:
+   lda #PETSCII_CLR
+   jsr CHROUT
+   jmp ENTER_BASIC
+
+@go_restart:
+   jmp restart_game
+
+;******************************************************************
+; update_hi_score — copy score → hi_score when score > hi_score
+;   BCD compare: check hi byte, then mid, then lo.
+;******************************************************************
+update_hi_score:
+   lda score_hi
+   cmp hi_score_hi
+   bcc @no_update
+   bne @do_update
+   lda score_mid
+   cmp hi_score_mid
+   bcc @no_update
+   bne @do_update
+   lda score_lo
+   cmp hi_score_lo
+   bcc @no_update
+   beq @no_update            ; equal → no change
+@do_update:
+   lda score_lo
+   sta hi_score_lo
+   lda score_mid
+   sta hi_score_mid
+   lda score_hi
+   sta hi_score_hi
+@no_update:
+   rts
+
+;******************************************************************
+; restart_game — reset all gameplay state; reuse VRAM data; jump to main_loop
+;   Does NOT reset hi-score.
+;******************************************************************
+restart_game:
+   stz score_lo
+   stz score_mid
+   stz score_hi
+
+   jsr init_player           ; resets player_x, lives=3, inv_hit_timer=0
+
+   ; hide + deactivate player bullet
+   stz bullet_active
+   jsr update_bullet_sprite
+
+   ; reset explosion timer and hide sprite 4
+   stz exp_timer
+   stz VERA_ctrl
+   VERA_SET_ADDR (EXPLODE_SPRITE_ATTR + 6), 1
+   lda #$00
+   sta VERA_data0
+
+   ; deactivate all invader bullets and hide their sprites
+   stz ibul_active+0
+   stz ibul_active+1
+   stz ibul_active+2
+   ldx #0
+@rst_ibul:
+   jsr update_inv_bullet_sprite
+   inx
+   cpx #3
+   bne @rst_ibul
+   lda #INV_FIRE_TIMER_INIT
+   sta inv_fire_timer
+
+   ; reset UFO state and silence drone
+   stz ufo_active
+   jsr snd_stop_ufo_drone
+   jsr update_ufo_sprite
+   lda #<UFO_TIMER_INIT
+   sta ufo_timer_lo
+   lda #>UFO_TIMER_INIT
+   sta ufo_timer_hi
+   stz shot_count
+
+   ; reset invader grid (alive bits, position, speed, sprites)
+   jsr init_invaders
+   ; reset shields (damage counters, sprite tiles)
+   jsr init_shields
+
+   lda #PETSCII_CLR
+   jsr CHROUT
+   jmp main_loop
 
 ;******************************************************************
 ; draw_title_screen — paint the title screen; called once before title_loop
@@ -2864,6 +3079,14 @@ str_score_a:
    .byte "= 10 PTS", 0
 str_press_space:
    .byte "PRESS SPACE TO START", 0
+str_game_over:
+   .byte "GAME OVER", 0
+str_score_lbl:
+   .byte "SCORE: ", 0
+str_hi_score_go:
+   .byte "HI-SCORE: ", 0
+str_play_again:
+   .byte "SPACE = PLAY AGAIN", 0
 str_run_stop_hint:
    .byte "RUN/STOP TO QUIT", 0
 str_frame_lbl:
