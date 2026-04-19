@@ -157,6 +157,16 @@ UFO_Y              = 32          ; VERA Y coord (= display pixel 16, top of play
 UFO_SPEED          = 2           ; VERA pixels per frame rightward (1 display pixel/frame)
 UFO_TIMER_INIT     = 600         ; frames between UFO appearances (≈10 sec at 60 Hz)
 
+; VERA PSG voice 3 — UFO drone (base addr $1F9C0 + 3*4 = $1F9CC)
+; PSG byte layout: 0=FREQ_L, 1=FREQ_H, 2=volume([7]=R,[6]=L,[5:0]=vol 0-63), 3=waveform([7:6])
+; Waveform codes: 00=pulse, 01=sawtooth, 10=triangle, 11=noise
+; freq_hz ≈ freq_reg * 25000000 / (512 * 131072)  →  freq_reg ≈ freq_hz * 2.684
+VRAM_PSG_VOICE3    = VRAM_psg + 12   ; $1F9CC — voice 3 registers
+PSG_VOL_FULL       = $FF             ; R enable + L enable + volume 63
+PSG_WAVE_SAW       = %01000000       ; sawtooth waveform (bits 7:6 = 01)
+UFO_DRONE_FREQ1    = 1074            ; ≈400 Hz  ($0432)
+UFO_DRONE_FREQ2    = 1611            ; ≈600 Hz  ($064B)
+
 ; Shields
 SHIELD_Y           = 352        ; VERA Y coordinate for all 4 shields (176 display pixels)
 SHIELD_SPR_BASE    = $1FE10     ; sprite slot 66 attr ($1FC00 + 66*8); slots 8-65 in use
@@ -2559,6 +2569,7 @@ update_ufo:
    adc #0
    sta ufo_timer_hi
    jsr update_ufo_sprite
+   jsr snd_start_ufo_drone
    rts
 
    ; --- move UFO right ---
@@ -2581,9 +2592,11 @@ update_ufo:
 @ufo_off_screen:
    stz ufo_active
    jsr update_ufo_sprite
+   jsr snd_stop_ufo_drone
    rts
 @ufo_on_screen:
    jsr update_ufo_sprite
+   jsr snd_update_ufo_drone
 @ufo_done:
    rts
 
@@ -2698,6 +2711,7 @@ check_bullet_ufo:
 
    stz ufo_active
    jsr update_ufo_sprite
+   jsr snd_stop_ufo_drone
 
    ; score: ufo_score table indexed by shot_count & 7
    lda shot_count
@@ -2708,6 +2722,62 @@ check_bullet_ufo:
    jsr add_score_bcd
 
 @done:
+   rts
+
+;******************************************************************
+; snd_start_ufo_drone — enable VERA PSG voice 3 (sawtooth, full vol, freq1)
+;   Called once when UFO spawns.
+;******************************************************************
+snd_start_ufo_drone:
+   stz VERA_ctrl
+   VERA_SET_ADDR VRAM_PSG_VOICE3, 1
+   lda #<UFO_DRONE_FREQ1
+   sta VERA_data0               ; byte 0: FREQ_L
+   lda #>UFO_DRONE_FREQ1
+   sta VERA_data0               ; byte 1: FREQ_H
+   lda #PSG_VOL_FULL
+   sta VERA_data0               ; byte 2: volume
+   lda #PSG_WAVE_SAW
+   sta VERA_data0               ; byte 3: waveform
+   rts
+
+;******************************************************************
+; snd_stop_ufo_drone — silence VERA PSG voice 3
+;   Called when UFO leaves screen or is destroyed.
+;******************************************************************
+snd_stop_ufo_drone:
+   stz VERA_ctrl
+   VERA_SET_ADDR (VRAM_PSG_VOICE3 + 2), 1   ; byte 2 = volume/enable
+   lda #$00
+   sta VERA_data0               ; zero volume → silent
+   rts
+
+;******************************************************************
+; snd_update_ufo_drone — warble between freq1/freq2 using frame_count
+;   bit 3 (flips every 8 frames ≈ 3.75 Hz wobble rate).
+;   Call every frame while UFO is active.
+;   Rewrites all 4 voice bytes (keeps volume/waveform stable).
+;******************************************************************
+snd_update_ufo_drone:
+   stz VERA_ctrl
+   VERA_SET_ADDR VRAM_PSG_VOICE3, 1
+   lda frame_count
+   and #$08                     ; bit 3: 0 for 8 frames, 1 for 8 frames
+   bne @freq2
+   lda #<UFO_DRONE_FREQ1
+   sta VERA_data0               ; byte 0: FREQ_L (freq1)
+   lda #>UFO_DRONE_FREQ1
+   bra @rest
+@freq2:
+   lda #<UFO_DRONE_FREQ2
+   sta VERA_data0               ; byte 0: FREQ_L (freq2)
+   lda #>UFO_DRONE_FREQ2
+@rest:
+   sta VERA_data0               ; byte 1: FREQ_H
+   lda #PSG_VOL_FULL
+   sta VERA_data0               ; byte 2: volume
+   lda #PSG_WAVE_SAW
+   sta VERA_data0               ; byte 3: waveform
    rts
 
 ;******************************************************************
