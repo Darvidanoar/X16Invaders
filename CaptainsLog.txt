@@ -68,5 +68,5 @@ Phase 6
 Phase 7
 - please write the phase 7 code for: Pause the game for five seconds with 'GAME OVER' text in the centre of the screen at the end of the game.  (total used session tokens used: 9%)
 - please write the phase 7 code for: Stop player from firing while dead  (total used session tokens used: 10%)
-
+- please write the phase 7 code for: On exiting the game, remove all sprites  (total used session tokens used: %)
 

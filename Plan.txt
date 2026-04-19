@@ -482,7 +482,8 @@ Phase 6 — Game States & Polish
 Phase 7 — Testing & Tuning
   [x] Stop player from firing while dead
   [x] Pause the game for five seconds with 'GAME OVER' text in the centre of the screen at the end of the game.
-  [ ] Reset the shields when starting a new wave
+  [x] Reset the shields when starting a new wave
+  [x] On exiting the game, remove all sprites
 
 
 --------------------------------------------------------------

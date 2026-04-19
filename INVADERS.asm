@@ -479,8 +479,14 @@ main_loop:
 ;------------------------------------------------------------------
 exit_game:
    jsr hide_all_sprites
+   lda #PETSCII_WHITE
+   jsr CHROUT
    lda #PETSCII_CLR
    jsr CHROUT
+   clc
+   lda #$00
+   jsr SCREEN_MODE
+
    jmp ENTER_BASIC
 
 ;******************************************************************
