@@ -11,62 +11,62 @@ Went down a rabbit hole trying to fix a bug with the player character not moving
 Phase 3
 Take 1
 Asked Claude to start phase 3 and exceeded the token maximum (78% of tokens used).
-Added a reference to the plan.txt file in Claude.md.  Hoping this will direct code to the plan without me having to tell it and also without Claude having to 'discover' it.
+Added a reference to the plan.txt file in Claude.md.  Hoping this will direct Claude to the plan without me having to tell it and also without Claude having to 'discover' it.
 Added some guidance to the Claude.md file to hopefully get better token usage.
 Take 2
-After the updates to Claude.md, this phase went pretty smoothly.  I onlyh had to tweak the sprites a little to get them looking closer to how I want.
+After the updates to Claude.md, this phase went pretty smoothly.  I only had to tweak the sprites a little to get them looking closer to how I want.
 
 
 Phase 4
 Ran out of tokens real quick (twice).  Started asking Claude to write the code for each item in the phase, individually:
-- proceed with phase 4 of thr plan, but only write the player bullet fire, move and boundary check.  We'll continue with the rest of phase 4 later. (total used session tokens used: 12%)
-- now write the phase 4 code for: Bullet vs. invader collision → kill invader, score.  (total used session tokens used: 29%)  However, there are some long conditional branches coded that need to be addressed.
+- proceed with phase 4 of thr plan, but only write the player bullet fire, move and boundary check.  We'll continue with the rest of phase 4 later. (total session tokens used: 12%)
+- now write the phase 4 code for: Bullet vs. invader collision → kill invader, score.  (total session tokens used: 29%)  However, there are some long conditional branches coded that need to be addressed.
 New session
-- I asked claude to address each of these long conditional branches (total used session tokens used: 7%)
-- now write the phase 4 code for: Speed increase as invaders die (total used session tokens used: 12%)
+- I asked claude to address each of these long conditional branches (total session tokens used: 7%)
+- now write the phase 4 code for: Speed increase as invaders die (total session tokens used: 12%)
    NOTE: At this point Claude noticed that I had been checking the items as done in the plan.txt and asked to do that.
-- now write the phase 4 code for: Explosion sprite + timer (total used session tokens used: 22%)
+- now write the phase 4 code for: Explosion sprite + timer (total session tokens used: 22%)
   The background colour had chnaged to an eye-bleeding yellow. 
-- When I ran the code after your last changes, the background colour is now yellow.  Can you please change this back to black? (total used session tokens used: 35%)
-- now write the phase 4 code for: Invader bullets: spawn, move, boundary check (total used session tokens used: 50%)
-- the invader bullets sometimes don't fall from a location where there is an invader.  It needs to look like the invaders are firing the invader bullets. (total used session tokens used: 65%)
-- Coninuing with phase 4, now write the code for: Invader bullet vs. player → lose life (total used session tokens used: 71%)
+- When I ran the code after your last changes, the background colour is now yellow.  Can you please change this back to black? (total session tokens used: 35%)
+- now write the phase 4 code for: Invader bullets: spawn, move, boundary check (total session tokens used: 50%)
+- the invader bullets sometimes don't fall from a location where there is an invader.  It needs to look like the invaders are firing the invader bullets. (total session tokens used: 65%)
+- Coninuing with phase 4, now write the code for: Invader bullet vs. player → lose life (total session tokens used: 71%)
 - When the player cannon gets hit with an invader bullet, add a 1 second delay before the player's new cannon appears. 
 
 
 Phase 5:
-- please write phase 5 code for: Title screen [oops accidentally asked for a bit of phase 6] (total used session tokens used: 32%)
-- please write phase 5 code for: Shield sprites (4 damage levels per shield) (total used session tokens used: 58%)
+- please write phase 5 code for: Title screen [oops accidentally asked for a bit of phase 6] (total session tokens used: 32%)
+- please write phase 5 code for: Shield sprites (4 damage levels per shield) (total session tokens used: 58%)
   The game seems to have stopped working - Debugging:
-  - claude the games seems to be getting stuck in the @ibul_loop loop of the check_invbullet_shields subroutine.  can you please fix that?  (total used session tokens used: 61%)
-- Claude, can you make the shield sprites look more like the ones in the original game? (total used session tokens used: 96%)
+  - claude the games seems to be getting stuck in the @ibul_loop loop of the check_invbullet_shields subroutine.  can you please fix that?  (total session tokens used: 61%)
+- Claude, can you make the shield sprites look more like the ones in the original game? (total session tokens used: 96%)
   NOTE:  The bases are a little small, presumably because the original game ran as a much lower resolution.  
          Next session, I ask Claude to make the bases 16px wide with 8 levels of damage.
 
 Phase 5 (continued)
 - The base sprites are a little too small.  Please make the base sprites 16 pixels wide with 8 levels of damage. (total used session tokens used: 40%)
   Hmmm, they were already 16 pixels wide, I should have asked for 32 pixels wide.
-- Please make the base sprites 32 pixels wide with 8 levels of damage. (total used session tokens used: 70%)
-- Claude, the base sprites 32 pixels high.  Can you also make them 32 pixels wide?  (total used session tokens used: 97%)
+- Please make the base sprites 32 pixels wide with 8 levels of damage. (total session tokens used: 70%)
+- Claude, the base sprites 32 pixels high.  Can you also make them 32 pixels wide?  (total session tokens used: 97%)
 
 
 Phase 5 (continued)
-- please write phase 5 code for: UFO spawn, movement, scoring (total used session tokens used: 23%)
-- please write phase 5 code for: UFO drone sound (total used session tokens used: 31%)
+- please write phase 5 code for: UFO spawn, movement, scoring (total session tokens used: 23%)
+- please write phase 5 code for: UFO drone sound (total session tokens used: 31%)
 
 
 Phase 6
-- please write phase 6 code for: Game over screen (total used session tokens used: 37%)
-- please write the phase 6 code for: Wave clear / next wave (total used session tokens used: 45%)
-- please write the phase 6 code for: Lives display (sprite icons or text) (total used session tokens used: 50%)
-- please write the phase 6 code for: Score BCD display on Layer 1 (total used session tokens used: 65%)
-- please write the phase 6 code for: Hi-score tracking (RAM only; no save) (total used session tokens used: 67%)
-- please write the phase 6 code for: March sounds (VERA PSG) (total used session tokens used: 74%)
-- please write the phase 6 code for: Fire and explosion sounds (total used session tokens used: 79%)
+- please write phase 6 code for: Game over screen (total session tokens used: 37%)
+- please write the phase 6 code for: Wave clear / next wave (total session tokens used: 45%)
+- please write the phase 6 code for: Lives display (sprite icons or text) (total session tokens used: 50%)
+- please write the phase 6 code for: Score BCD display on Layer 1 (total session tokens used: 65%)
+- please write the phase 6 code for: Hi-score tracking (RAM only; no save) (total us session tokens used: 67%)
+- please write the phase 6 code for: March sounds (VERA PSG) (total session tokens used: 74%)
+- please write the phase 6 code for: Fire and explosion sounds (total session tokens used: 79%)
 
 
 Phase 7
-- please write the phase 7 code for: Pause the game for five seconds with 'GAME OVER' text in the centre of the screen at the end of the game.  (total used session tokens used: 9%)
-- please write the phase 7 code for: Stop player from firing while dead  (total used session tokens used: 10%)
-- please write the phase 7 code for: On exiting the game, remove all sprites  (total used session tokens used: %)
+- please write the phase 7 code for: Pause the game for five seconds with 'GAME OVER' text in the centre of the screen at the end of the game.  (total session tokens used: 9%)
+- please write the phase 7 code for: Stop player from firing while dead  (total session tokens used: 10%)
+- please write the phase 7 code for: On exiting the game, remove all sprites  (total session tokens used: %)
 
