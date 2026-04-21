@@ -19,7 +19,7 @@ I spent a lot of time trying to get claude to fix an issue where the player char
 
 4. Having claude do the coding in small steps is much more cost effective, but running out of tokens still happens.  If this was a serious piece of work, I'd definitely want to be on a better plan. 
 
-5. Overall, the game seems to work very well.  However, having scanned various parts of the code, there seem to be several instances where the code simply jumps out of a subroutine without ever executing an rts.  More close examination of the code is required to confirm this.
+5. Overall, the game seems to work very well.  However, having scanned various parts of the code, there is an instance in the **player_hit** routine where the code simply jumps out of a subroutine without ever executing an rts.  I guess it's fine, but if you were playing all day the stack might eventually overflow.
 
 ---
 
